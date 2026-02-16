@@ -76,8 +76,8 @@ export const getDashboardStatsHandler = async (req: Request, res: Response, next
       }
 
       stats = {
-        upcomingBookings,
-        recentWorkouts,
+        upcomingBookings: upcomingBookings as unknown as MemberStats['upcomingBookings'],
+        recentWorkouts: recentWorkouts as unknown as MemberStats['recentWorkouts'],
         totalWorkouts,
         workoutStreak: streak,
       };
