@@ -1,0 +1,23 @@
+import { Router } from 'express';
+import { protect, restrictTo } from '../../middlewares/auth.middleware';
+import * as userController from './user.controller';
+
+const router = Router();
+
+// All routes require authentication
+router.use(protect);
+
+// Admin routes
+router.get('/', restrictTo('STUDIO_ADMIN'), userController.getAllUsers);
+
+// User profile
+router.get('/profile', userController.getProfile);
+router.patch('/profile', userController.updateProfile);
+
+// Instructors
+router.get('/instructors', userController.getInstructors);
+router.get('/instructors/:id', userController.getInstructorProfile);
+
+router.patch('/:id/toggle-status', restrictTo('STUDIO_ADMIN'), userController.toggleUserStatus);
+
+export default router;

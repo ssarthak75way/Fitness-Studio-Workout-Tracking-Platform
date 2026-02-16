@@ -1,0 +1,124 @@
+import { useEffect, useState } from 'react';
+import { useParams, useNavigate } from 'react-router-dom';
+import { Box, Typography, Avatar, Paper, Chip, Button, List, ListItem, ListItemText, Rating } from '@mui/material';
+import api from '../../services/api';
+import CalendarMonthIcon from '@mui/icons-material/CalendarMonth';
+import ReviewSection from '../../components/reviews/ReviewSection';
+
+export default function InstructorProfilePage() {
+  const { id } = useParams();
+  const navigate = useNavigate();
+  const [data, setData] = useState<any>(null);
+
+  useEffect(() => {
+    const fetchProfile = async () => {
+      try {
+        const res = await api.get(`/users/instructors/${id}`);
+        setData(res.data.data);
+      } catch (error) {
+        console.error("Failed to load instructor");
+      }
+    };
+    fetchProfile();
+  }, [id]);
+
+  if (!data) return <Typography>Loading...</Typography>;
+
+  const { instructor, upcomingClasses } = data;
+
+  return (
+    <Box>
+      <Button onClick={() => navigate(-1)} sx={{ mb: 2 }}>&larr; Back</Button>
+
+      <Paper sx={{ p: 4, mb: 4 }}>
+        <Box display="flex" gap={4} alignItems="center" flexWrap="wrap">
+          <Box>
+            <Avatar
+              src={instructor.profileImage || "/default-avatar.png"}
+              sx={{ width: 120, height: 120, fontSize: 40 }}
+            >
+              {instructor.fullName[0]}
+            </Avatar>
+          </Box>
+          <Box flex={1} minWidth={300}>
+            <Box display="flex" justifyContent="space-between" alignItems="start">
+              <Box>
+                <Typography variant="h4">{instructor.fullName}</Typography>
+                <Box display="flex" alignItems="center" gap={1} mt={0.5}>
+                  <Rating value={instructor.averageRating || 0} precision={0.5} readOnly size="small" />
+                  <Typography variant="subtitle2" color="text.secondary">
+                    ({instructor.totalRatings || 0} reviews)
+                  </Typography>
+                </Box>
+              </Box>
+            </Box>
+
+            <Box sx={{ display: 'flex', gap: 1, my: 2, flexWrap: 'wrap' }}>
+              {instructor.specialties?.map((tag: string) => (
+                <Chip key={tag} label={tag} color="primary" variant="outlined" />
+              ))}
+            </Box>
+
+            <Typography variant="body1" color="text.secondary" paragraph>
+              {instructor.bio || "No bio available for this instructor."}
+            </Typography>
+
+            {instructor.certifications && instructor.certifications.length > 0 && (
+              <Box mt={2}>
+                <Typography variant="subtitle2" gutterBottom>Certifications</Typography>
+                <Box sx={{ display: 'flex', gap: 1, flexWrap: 'wrap' }}>
+                  {instructor.certifications.map((cert: string) => (
+                    <Chip key={cert} label={cert} size="small" variant="filled" sx={{ bgcolor: '#eff6ff' }} />
+                  ))}
+                </Box>
+              </Box>
+            )}
+          </Box>
+        </Box>
+      </Paper>
+
+      <Box display="flex" gap={4} flexDirection={{ xs: 'column', md: 'row' }}>
+        <Box flex={1}>
+          <Typography variant="h5" gutterBottom>Upcoming Classes</Typography>
+          <Paper>
+            <List>
+              {upcomingClasses.map((cls: any) => (
+                <ListItem
+                  key={cls._id}
+                  divider
+                  secondaryAction={
+                    <Button
+                      variant="contained"
+                      size="small"
+                      startIcon={<CalendarMonthIcon />}
+                      onClick={() => navigate('/schedule')}
+                    >
+                      View
+                    </Button>
+                  }
+                >
+                  <ListItemText
+                    primary={cls.title}
+                    secondary={`${new Date(cls.startTime).toLocaleString()} • ${cls.type}`}
+                  />
+                </ListItem>
+              ))}
+              {upcomingClasses.length === 0 && (
+                <ListItem><ListItemText primary="No upcoming classes scheduled." /></ListItem>
+              )}
+            </List>
+          </Paper>
+        </Box>
+
+        <Box flex={1}>
+          <Typography variant="h5" gutterBottom>Member Reviews</Typography>
+          <ReviewSection
+            targetType="INSTRUCTOR"
+            targetId={instructor._id}
+            targetName={instructor.fullName}
+          />
+        </Box>
+      </Box>
+    </Box>
+  );
+}
