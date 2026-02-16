@@ -18,6 +18,7 @@ const UserManagementPage = lazy(() => import('../features/admin/UserManagementPa
 const ProtectedLayout = lazy(() => import('../components/ProtectedLayout'));
 const PublicLayout = lazy(() => import('../components/PublicLayout'));
 const InstructorProfilePage = lazy(() => import('../features/instructors/InstructorProfilePage'));
+const ProfilePage = lazy(() => import('../features/profile/ProfilePage'));
 
 function ProtectedRoute({
   children,
@@ -143,6 +144,14 @@ function AppContent() {
           element={
             <ProtectedRoute allowedRoles={['STUDIO_ADMIN']}>
               <UserManagementPage />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/profile"
+          element={
+            <ProtectedRoute>
+              <ProfilePage />
             </ProtectedRoute>
           }
         />
