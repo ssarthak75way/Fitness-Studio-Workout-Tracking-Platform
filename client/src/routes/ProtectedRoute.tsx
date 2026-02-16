@@ -2,13 +2,21 @@ import { Navigate, useLocation, Outlet } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { CircularProgress, Box } from '@mui/material';
 
+const styles = {
+  loadingContainer: {
+    display: 'flex',
+    justifyContent: 'center',
+    mt: 4,
+  },
+};
+
 export default function ProtectedRoute({ allowedRoles }: { allowedRoles?: string[] }) {
   const { user, isAuthenticated, loading } = useAuth(); // Assume 'loading' is added to AuthContext
   const location = useLocation();
 
   if (loading) {
     return (
-      <Box sx={{ display: 'flex', justifyContent: 'center', mt: 4 }}>
+      <Box sx={styles.loadingContainer}>
         <CircularProgress />
       </Box>
     );

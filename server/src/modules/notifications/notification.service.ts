@@ -1,9 +1,7 @@
 import { NotificationModel } from './notification.model.js';
 
 export const NotificationService = {
-    /**
-     * Create a notification
-     */
+     //Create a notification
     createNotification: async (
         userId: string,
         type: string,
@@ -23,18 +21,14 @@ export const NotificationService = {
         return notification;
     },
 
-    /**
-     * Get user notifications
-     */
+     // Get user notifications
     getUserNotifications: async (userId: string) => {
         return NotificationModel.find({ user: userId })
             .sort({ createdAt: -1 })
             .limit(50);
     },
 
-    /**
-     * Mark notification as read
-     */
+     // Mark notification as read
     markAsRead: async (notificationId: string, userId: string) => {
         return NotificationModel.findOneAndUpdate(
             { _id: notificationId, user: userId },
@@ -43,9 +37,7 @@ export const NotificationService = {
         );
     },
 
-    /**
-     * Send notification to multiple users
-     */
+     // Send notification to multiple users
     sendBulkNotification: async (
         userIds: string[],
         type: string,

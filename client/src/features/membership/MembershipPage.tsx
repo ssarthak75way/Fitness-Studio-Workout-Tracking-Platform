@@ -48,6 +48,115 @@ const PLANS = [
     },
 ];
 
+const styles = {
+    pageContainer: {
+        maxWidth: 1200,
+        mx: 'auto',
+        px: { xs: 2, md: 4 },
+        py: 4
+    },
+    pageHeader: { mb: 6, textAlign: 'center' },
+    pageTitle: (theme: any) => ({
+        background: `linear-gradient(45deg, ${theme.palette.primary.main} 30%, ${theme.palette.secondary.main} 90%)`,
+        WebkitBackgroundClip: 'text',
+        WebkitTextFillColor: 'transparent',
+        mb: 1
+    }),
+    currentMembershipCard: (theme: any, isActive: boolean) => ({
+        mb: 8,
+        borderRadius: 4,
+        overflow: 'visible',
+        border: `1px solid ${isActive ? alpha(theme.palette.success.main, 0.3) : theme.palette.divider}`,
+        background: theme.palette.background.paper,
+        boxShadow: isActive ? `0 8px 32px ${alpha(theme.palette.success.main, 0.1)}` : theme.shadows[1],
+        position: 'relative'
+    }),
+    activeBadge: (theme: any) => ({
+        position: 'absolute',
+        top: -12,
+        left: '50%',
+        transform: 'translateX(-50%)',
+        bgcolor: theme.palette.success.main,
+        color: 'white',
+        px: 2,
+        py: 0.5,
+        borderRadius: 10,
+        fontWeight: 700,
+        fontSize: '0.75rem',
+        letterSpacing: '0.05em',
+        boxShadow: theme.shadows[4],
+        display: 'flex',
+        alignItems: 'center',
+        gap: 0.5
+    }),
+    badgeIcon: { fontSize: 16 },
+    membershipDetailsBox: (theme: any) => ({
+        bgcolor: alpha(theme.palette.background.default, 0.5),
+        p: 3,
+        borderRadius: 3,
+        border: `1px solid ${theme.palette.divider}`
+    }),
+    noMembershipBox: (theme: any) => ({
+        display: 'flex',
+        alignItems: 'center',
+        gap: 2,
+        mt: { xs: 2, md: 0 },
+        p: 2,
+        borderRadius: 2,
+        bgcolor: alpha(theme.palette.info.main, 0.05)
+    }),
+    noMembershipIcon: { fontSize: 40, opacity: 0.8 },
+    planCard: (theme: any, popular: boolean) => ({
+        height: '100%',
+        display: 'flex',
+        flexDirection: 'column',
+        borderRadius: 4,
+        position: 'relative',
+        overflow: 'visible',
+        border: popular ? `2px solid ${theme.palette.secondary.main}` : `1px solid ${theme.palette.divider}`,
+        boxShadow: popular ? `0 12px 48px ${alpha(theme.palette.secondary.main, 0.15)}` : theme.shadows[2],
+    }),
+    popularBadge: (theme: any) => ({
+        position: 'absolute',
+        top: -16,
+        left: '50%',
+        transform: 'translateX(-50%)',
+        bgcolor: theme.palette.secondary.main,
+        color: 'white',
+        px: 3,
+        py: 0.75,
+        borderRadius: 10,
+        fontWeight: 700,
+        fontSize: '0.875rem',
+        letterSpacing: '0.05em',
+        boxShadow: theme.shadows[4],
+        display: 'flex',
+        alignItems: 'center',
+        gap: 0.5,
+        zIndex: 1
+    }),
+    popularBadgeIcon: { fontSize: 18 },
+    planName: (color: string) => ({
+        textTransform: 'uppercase',
+        letterSpacing: '0.1em',
+        fontSize: '0.85rem',
+        mb: 1,
+        color: color
+    }),
+    planFeatureItem: { py: 0.75 },
+    planFeatureIcon: (color: string) => ({ fontSize: 20, color: color }),
+    purchaseButton: (theme: any, popular: boolean) => ({
+        py: 1.5,
+        fontWeight: 700,
+        borderRadius: 2,
+        boxShadow: popular ? theme.shadows[4] : 'none',
+        borderWidth: popular ? 0 : 2,
+        '&:hover': {
+            borderWidth: popular ? 0 : 2,
+        }
+    })
+};
+
 export default function MembershipPage() {
     const theme = useTheme();
     const { user } = useAuth();
@@ -147,14 +256,9 @@ export default function MembershipPage() {
         (new Date(membership.endDate).getTime() - new Date().getTime()) < (7 * 24 * 60 * 60 * 1000);
 
     return (
-        <Box maxWidth={1200} mx="auto" px={{ xs: 2, md: 4 }} py={4}>
-            <Box mb={6} textAlign="center">
-                <Typography variant="h3" fontWeight={800} sx={{
-                    background: `linear-gradient(45deg, ${theme.palette.primary.main} 30%, ${theme.palette.secondary.main} 90%)`,
-                    WebkitBackgroundClip: 'text',
-                    WebkitTextFillColor: 'transparent',
-                    mb: 1
-                }}>
+        <Box sx={styles.pageContainer}>
+            <Box sx={styles.pageHeader}>
+                <Typography variant="h3" fontWeight={800} sx={styles.pageTitle(theme)}>
                     Membership & Plans
                 </Typography>
                 <Typography variant="h6" color="text.secondary" fontWeight={400}>
@@ -162,38 +266,11 @@ export default function MembershipPage() {
                 </Typography>
             </Box>
 
-
-
             {/* Current Membership Card */}
-            <Card sx={{
-                mb: 8,
-                borderRadius: 4,
-                overflow: 'visible',
-                border: `1px solid ${membership?.isActive ? alpha(theme.palette.success.main, 0.3) : theme.palette.divider}`,
-                background: theme.palette.background.paper,
-                boxShadow: membership?.isActive ? `0 8px 32px ${alpha(theme.palette.success.main, 0.1)}` : theme.shadows[1],
-                position: 'relative'
-            }}>
+            <Card sx={styles.currentMembershipCard(theme, membership?.isActive)}>
                 {membership?.isActive && (
-                    <Box sx={{
-                        position: 'absolute',
-                        top: -12,
-                        left: '50%',
-                        transform: 'translateX(-50%)',
-                        bgcolor: theme.palette.success.main,
-                        color: 'white',
-                        px: 2,
-                        py: 0.5,
-                        borderRadius: 10,
-                        fontWeight: 700,
-                        fontSize: '0.75rem',
-                        letterSpacing: '0.05em',
-                        boxShadow: theme.shadows[4],
-                        display: 'flex',
-                        alignItems: 'center',
-                        gap: 0.5
-                    }}>
-                        <CheckCircleIcon sx={{ fontSize: 16 }} /> ACTIVE MEMBERSHIP
+                    <Box sx={styles.activeBadge(theme)}>
+                        <CheckCircleIcon sx={styles.badgeIcon} /> ACTIVE MEMBERSHIP
                     </Box>
                 )}
                 <CardContent sx={{ p: { xs: 3, md: 5 } }}>
@@ -220,12 +297,7 @@ export default function MembershipPage() {
 
                         <Grid size={{ xs: 12, md: 8 }}>
                             {membership ? (
-                                <Box sx={{
-                                    bgcolor: alpha(theme.palette.background.default, 0.5),
-                                    p: 3,
-                                    borderRadius: 3,
-                                    border: `1px solid ${theme.palette.divider}`
-                                }}>
+                                <Box sx={styles.membershipDetailsBox(theme)}>
                                     <Grid container spacing={3}>
                                         {membership.endDate && (
                                             <Grid size={{ xs: 12, sm: 4 }}>
@@ -258,8 +330,8 @@ export default function MembershipPage() {
                                     </Grid>
                                 </Box>
                             ) : (
-                                <Box display="flex" alignItems="center" gap={2} mt={{ xs: 2, md: 0 }} p={2} borderRadius={2} bgcolor={alpha(theme.palette.info.main, 0.05)}>
-                                    <FitnessCenterIcon color="primary" sx={{ fontSize: 40, opacity: 0.8 }} />
+                                <Box sx={styles.noMembershipBox(theme)}>
+                                    <FitnessCenterIcon color="primary" sx={styles.noMembershipIcon} />
                                     <Typography variant="body1" color="text.secondary">
                                         You don't have an active membership yet. Select a plan below to unlock your full potential!
                                     </Typography>
@@ -282,42 +354,15 @@ export default function MembershipPage() {
                             transition={{ type: 'spring', stiffness: 300 }}
                             style={{ height: '100%' }}
                         >
-                            <Card sx={{
-                                height: '100%',
-                                display: 'flex',
-                                flexDirection: 'column',
-                                borderRadius: 4,
-                                position: 'relative',
-                                overflow: 'visible',
-                                border: plan.popular ? `2px solid ${theme.palette.secondary.main}` : `1px solid ${theme.palette.divider}`,
-                                boxShadow: plan.popular ? `0 12px 48px ${alpha(theme.palette.secondary.main, 0.15)}` : theme.shadows[2],
-                            }}>
+                            <Card sx={styles.planCard(theme, plan.popular)}>
                                 {plan.popular && (
-                                    <Box sx={{
-                                        position: 'absolute',
-                                        top: -16,
-                                        left: '50%',
-                                        transform: 'translateX(-50%)',
-                                        bgcolor: theme.palette.secondary.main,
-                                        color: 'white',
-                                        px: 3,
-                                        py: 0.75,
-                                        borderRadius: 10,
-                                        fontWeight: 700,
-                                        fontSize: '0.875rem',
-                                        letterSpacing: '0.05em',
-                                        boxShadow: theme.shadows[4],
-                                        display: 'flex',
-                                        alignItems: 'center',
-                                        gap: 0.5,
-                                        zIndex: 1
-                                    }}>
-                                        <WorkspacePremiumIcon sx={{ fontSize: 18 }} /> MOST POPULAR
+                                    <Box sx={styles.popularBadge(theme)}>
+                                        <WorkspacePremiumIcon sx={styles.popularBadgeIcon} /> MOST POPULAR
                                     </Box>
                                 )}
                                 <CardContent sx={{ flexGrow: 1, p: 4, pt: plan.popular ? 5 : 4 }}>
                                     <Box textAlign="center" mb={3}>
-                                        <Typography variant="h6" fontWeight={700} color={plan.color} sx={{ textTransform: 'uppercase', letterSpacing: '0.1em', fontSize: '0.85rem', mb: 1 }}>
+                                        <Typography variant="h6" fontWeight={700} sx={styles.planName(plan.color)}>
                                             {plan.name}
                                         </Typography>
                                         <Box display="flex" justifyContent="center" alignItems="baseline">
@@ -337,9 +382,9 @@ export default function MembershipPage() {
 
                                     <List disablePadding>
                                         {plan.features.map((feature, idx) => (
-                                            <ListItem key={idx} disableGutters sx={{ py: 0.75 }}>
+                                            <ListItem key={idx} disableGutters sx={styles.planFeatureItem}>
                                                 <ListItemIcon sx={{ minWidth: 32 }}>
-                                                    <CheckCircleIcon sx={{ fontSize: 20, color: plan.color }} />
+                                                    <CheckCircleIcon sx={styles.planFeatureIcon(plan.color)} />
                                                 </ListItemIcon>
                                                 <ListItemText
                                                     primary={feature}
@@ -357,16 +402,7 @@ export default function MembershipPage() {
                                         onClick={() => initiatePurchase(plan.type)}
                                         disabled={loading || (membership?.isActive && membership?.type === plan.type)}
                                         size="large"
-                                        sx={{
-                                            py: 1.5,
-                                            fontWeight: 700,
-                                            borderRadius: 2,
-                                            boxShadow: plan.popular ? theme.shadows[4] : 'none',
-                                            borderWidth: plan.popular ? 0 : 2,
-                                            '&:hover': {
-                                                borderWidth: plan.popular ? 0 : 2,
-                                            }
-                                        }}
+                                        sx={styles.purchaseButton(theme, plan.popular)}
                                     >
                                         {membership?.isActive && membership?.type === plan.type ? 'Current Plan' : 'Choose Plan'}
                                     </Button>

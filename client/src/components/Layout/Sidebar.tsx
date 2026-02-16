@@ -183,7 +183,10 @@ const styles = {
     letterSpacing: '1px',
     textAlign: 'center',
     textTransform: 'uppercase',
-  }
+  },
+  navContainer: (theme: any) => ({ width: { sm: drawerWidth }, flexShrink: { sm: 0 } }),
+  mobileDrawer: { display: { xs: 'block', sm: 'none' } },
+  desktopDrawer: { display: { xs: 'none', sm: 'block' } }
 };
 
 export default function Sidebar({ mobileOpen, handleDrawerToggle }: SidebarProps) {
@@ -254,14 +257,14 @@ export default function Sidebar({ mobileOpen, handleDrawerToggle }: SidebarProps
   );
 
   return (
-    <Box component="nav" sx={{ width: { sm: drawerWidth }, flexShrink: { sm: 0 } }}>
+    <Box component="nav" sx={styles.navContainer}>
       <Drawer
         variant="temporary"
         open={mobileOpen}
         onClose={handleDrawerToggle}
         ModalProps={{ keepMounted: true }}
         sx={{
-          display: { xs: 'block', sm: 'none' },
+          ...styles.mobileDrawer,
           ...styles.drawer,
         }}
       >
@@ -271,7 +274,7 @@ export default function Sidebar({ mobileOpen, handleDrawerToggle }: SidebarProps
       <Drawer
         variant="permanent"
         sx={{
-          display: { xs: 'none', sm: 'block' },
+          ...styles.desktopDrawer,
           ...styles.drawer,
         }}
         open

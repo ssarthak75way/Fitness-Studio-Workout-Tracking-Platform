@@ -47,6 +47,43 @@ interface Booking {
     qrCodeUrl?: string;
 }
 
+const styles = {
+    pageContainer: { maxWidth: 1200, mx: 'auto', p: { xs: 2, md: 3 } },
+    headerTitle: (theme: any) => ({
+        background: `linear-gradient(45deg, ${theme.palette.text.primary} 30%, ${theme.palette.primary.main} 90%)`,
+        WebkitBackgroundClip: 'text',
+        WebkitTextFillColor: 'transparent',
+    }),
+    tabsContainer: { borderBottom: 1, borderColor: 'divider', mb: 3 },
+    card: (theme: any) => ({
+        height: '100%',
+        display: 'flex',
+        flexDirection: 'column',
+        transition: 'transform 0.2s, box-shadow 0.2s',
+        '&:hover': {
+            transform: 'translateY(-4px)',
+            boxShadow: theme.shadows[4]
+        },
+        border: `1px solid ${theme.palette.divider}`,
+        borderRadius: 3
+    }),
+    cardContent: { flexGrow: 1, p: 3 },
+    chip: { fontWeight: 600, borderRadius: 1 },
+    qrIconButton: (theme: any) => ({
+        bgcolor: alpha(theme.palette.primary.main, 0.1),
+        color: 'primary.main',
+        '&:hover': { bgcolor: alpha(theme.palette.primary.main, 0.2) }
+    }),
+    instructorLink: { textDecoration: 'none', color: 'inherit' },
+    instructorText: { fontWeight: 500, '&:hover': { textDecoration: 'underline' } },
+    button: { borderRadius: 2 },
+    noBookingsContainer: { textAlign: 'center', py: 8, opacity: 0.7 },
+    noBookingsIcon: { fontSize: 64, color: 'text.secondary', mb: 2, opacity: 0.5 },
+    qrDialogContent: { textAlign: 'center', py: 4 },
+    qrWrapper: { p: 2, bgcolor: 'white', borderRadius: 2, display: 'inline-block', mb: 2 },
+    qrImage: { width: 200, height: 200 }
+};
+
 export default function BookingsPage() {
     const theme = useTheme();
     const navigate = useNavigate();
@@ -117,13 +154,9 @@ export default function BookingsPage() {
     const filteredBookings = getFilteredBookings();
 
     return (
-        <Box sx={{ maxWidth: 1200, mx: 'auto', p: { xs: 2, md: 3 } }}>
+        <Box sx={styles.pageContainer}>
             <Box mb={4}>
-                <Typography variant="h4" fontWeight="800" gutterBottom sx={{
-                    background: `linear-gradient(45deg, ${theme.palette.text.primary} 30%, ${theme.palette.primary.main} 90%)`,
-                    WebkitBackgroundClip: 'text',
-                    WebkitTextFillColor: 'transparent',
-                }}>
+                <Typography variant="h4" fontWeight="800" gutterBottom sx={styles.headerTitle(theme)}>
                     My Bookings
                 </Typography>
                 <Typography variant="body1" color="text.secondary">
@@ -131,7 +164,7 @@ export default function BookingsPage() {
                 </Typography>
             </Box>
 
-            <Box sx={{ borderBottom: 1, borderColor: 'divider', mb: 3 }}>
+            <Box sx={styles.tabsContainer}>
                 <Tabs value={tabValue} onChange={handleTabChange} aria-label="booking tabs">
                     <Tab label="Upcoming" />
                     <Tab label="History" />
@@ -142,26 +175,15 @@ export default function BookingsPage() {
             <Grid container spacing={3}>
                 {filteredBookings.map((booking) => (
                     <Grid size={{ xs: 12, md: 6, lg: 4 }} key={booking._id}>
-                        <Card sx={{
-                            height: '100%',
-                            display: 'flex',
-                            flexDirection: 'column',
-                            transition: 'transform 0.2s, box-shadow 0.2s',
-                            '&:hover': {
-                                transform: 'translateY(-4px)',
-                                boxShadow: theme.shadows[4]
-                            },
-                            border: `1px solid ${theme.palette.divider}`,
-                            borderRadius: 3
-                        }}>
-                            <CardContent sx={{ flexGrow: 1, p: 3 }}>
+                        <Card sx={styles.card(theme)}>
+                            <CardContent sx={styles.cardContent}>
                                 <Box display="flex" justifyContent="space-between" alignItems="start" mb={2}>
                                     <Chip
                                         label={booking.status}
                                         color={getStatusColor(booking.status) as any}
                                         size="small"
                                         variant="filled"
-                                        sx={{ fontWeight: 600, borderRadius: 1 }}
+                                        sx={styles.chip}
                                     />
                                     {booking.status === 'CONFIRMED' && booking.qrCodeUrl && (
                                         <IconButton
@@ -170,11 +192,7 @@ export default function BookingsPage() {
                                                 setSelectedQR(booking.qrCodeUrl!);
                                                 setOpenQR(true);
                                             }}
-                                            sx={{
-                                                bgcolor: alpha(theme.palette.primary.main, 0.1),
-                                                color: 'primary.main',
-                                                '&:hover': { bgcolor: alpha(theme.palette.primary.main, 0.2) }
-                                            }}
+                                            sx={styles.qrIconButton(theme)}
                                         >
                                             <QrCodeIcon fontSize="small" />
                                         </IconButton>
@@ -198,8 +216,8 @@ export default function BookingsPage() {
                                     <Box display="flex" alignItems="center" gap={1.5}>
                                         <PersonIcon color="action" fontSize="small" />
                                         {booking?.classSession?.instructor ? (
-                                            <Link to={`/instructors/${booking.classSession.instructor._id}`} style={{ textDecoration: 'none', color: 'inherit' }}>
-                                                <Typography variant="body2" color="primary" sx={{ fontWeight: 500, '&:hover': { textDecoration: 'underline' } }}>
+                                            <Link to={`/instructors/${booking.classSession.instructor._id}`} style={styles.instructorLink}>
+                                                <Typography variant="body2" color="primary" sx={styles.instructorText}>
                                                     {booking.classSession.instructor.fullName}
                                                 </Typography>
                                             </Link>
@@ -226,7 +244,7 @@ export default function BookingsPage() {
                                         fullWidth
                                         startIcon={<CancelIcon />}
                                         onClick={() => setCancelId(booking._id)}
-                                        sx={{ borderRadius: 2 }}
+                                        sx={styles.button}
                                     >
                                         Cancel Booking
                                     </Button>
@@ -237,7 +255,7 @@ export default function BookingsPage() {
                                         color="primary"
                                         fullWidth
                                         onClick={() => navigate('/schedule')}
-                                        sx={{ borderRadius: 2 }}
+                                        sx={styles.button}
                                     >
                                         Book Again
                                     </Button>
@@ -249,8 +267,8 @@ export default function BookingsPage() {
             </Grid>
 
             {filteredBookings.length === 0 && (
-                <Box textAlign="center" py={8} sx={{ opacity: 0.7 }}>
-                    <EventIcon sx={{ fontSize: 64, color: 'text.secondary', mb: 2, opacity: 0.5 }} />
+                <Box sx={styles.noBookingsContainer}>
+                    <EventIcon sx={styles.noBookingsIcon} />
                     <Typography variant="h6" color="text.secondary">
                         No {tabValue === 0 ? 'upcoming' : tabValue === 1 ? 'past' : 'cancelled'} bookings found.
                     </Typography>
@@ -264,18 +282,15 @@ export default function BookingsPage() {
 
             {/* QR Code Dialog */}
             <Dialog open={openQR} onClose={() => setOpenQR(false)} maxWidth="xs" fullWidth>
-                <DialogContent sx={{ textAlign: 'center', py: 4 }}>
+                <DialogContent sx={styles.qrDialogContent}>
                     <Typography variant="h6" gutterBottom fontWeight="bold">
                         Check-in QR Code
                     </Typography>
-                    <Box sx={{ p: 2, bgcolor: 'white', borderRadius: 2, display: 'inline-block', mb: 2 }}>
-                        {selectedQR && <img src={selectedQR} alt="QR Code" style={{ width: 200, height: 200 }} />}
+                    <Box sx={styles.qrWrapper}>
+                        {selectedQR && <img src={selectedQR} alt="QR Code" style={styles.qrImage} />}
                     </Box>
                     <Typography variant="body2" color="text.secondary">
                         Scan this at the studio front desk.
-                    </Typography>
-                    <Typography variant="body2" color="text.secondary">
-                        {/* {booking.classSession.location} */}
                     </Typography>
                     <Button onClick={() => setOpenQR(false)} sx={{ mt: 2 }}>Close</Button>
                 </DialogContent>

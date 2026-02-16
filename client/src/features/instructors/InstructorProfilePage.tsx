@@ -5,6 +5,15 @@ import api from '../../services/api';
 import CalendarMonthIcon from '@mui/icons-material/CalendarMonth';
 import ReviewSection from '../../components/reviews/ReviewSection';
 
+const styles = {
+  backButton: { mb: 2 },
+  profilePaper: { p: 4, mb: 4 },
+  avatar: { width: 120, height: 120, fontSize: 40 },
+  specialtiesContainer: { display: 'flex', gap: 1, my: 2, flexWrap: 'wrap' },
+  certificationsContainer: { display: 'flex', gap: 1, flexWrap: 'wrap' },
+  certificationChip: { bgcolor: '#eff6ff' }
+};
+
 export default function InstructorProfilePage() {
   const { id } = useParams();
   const navigate = useNavigate();
@@ -28,14 +37,14 @@ export default function InstructorProfilePage() {
 
   return (
     <Box>
-      <Button onClick={() => navigate(-1)} sx={{ mb: 2 }}>&larr; Back</Button>
+      <Button onClick={() => navigate(-1)} sx={styles.backButton}>&larr; Back</Button>
 
-      <Paper sx={{ p: 4, mb: 4 }}>
+      <Paper sx={styles.profilePaper}>
         <Box display="flex" gap={4} alignItems="center" flexWrap="wrap">
           <Box>
             <Avatar
               src={instructor.profileImage || "/default-avatar.png"}
-              sx={{ width: 120, height: 120, fontSize: 40 }}
+              sx={styles.avatar}
             >
               {instructor.fullName[0]}
             </Avatar>
@@ -53,7 +62,7 @@ export default function InstructorProfilePage() {
               </Box>
             </Box>
 
-            <Box sx={{ display: 'flex', gap: 1, my: 2, flexWrap: 'wrap' }}>
+            <Box sx={styles.specialtiesContainer}>
               {instructor.specialties?.map((tag: string) => (
                 <Chip key={tag} label={tag} color="primary" variant="outlined" />
               ))}
@@ -66,9 +75,9 @@ export default function InstructorProfilePage() {
             {instructor.certifications && instructor.certifications.length > 0 && (
               <Box mt={2}>
                 <Typography variant="subtitle2" gutterBottom>Certifications</Typography>
-                <Box sx={{ display: 'flex', gap: 1, flexWrap: 'wrap' }}>
+                <Box sx={styles.certificationsContainer}>
                   {instructor.certifications.map((cert: string) => (
-                    <Chip key={cert} label={cert} size="small" variant="filled" sx={{ bgcolor: '#eff6ff' }} />
+                    <Chip key={cert} label={cert} size="small" variant="filled" sx={styles.certificationChip} />
                   ))}
                 </Box>
               </Box>

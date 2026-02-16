@@ -1,7 +1,7 @@
 
 import {
   Dialog, DialogTitle, DialogContent, DialogActions,
-  Button, Typography, Box, Chip, Divider, Alert
+  Button, Typography, Box, Chip, Divider
 } from '@mui/material';
 import { useState } from 'react';
 import { Link } from 'react-router-dom';
@@ -38,11 +38,20 @@ interface Props {
   onBookingSuccess: () => void;
 }
 
+const styles = {
+  header: { display: 'flex', justifyContent: 'space-between', alignItems: 'center' },
+  infoBox: { display: 'flex', alignItems: 'center', mb: 1, gap: 1 },
+  instructorLink: { textDecoration: 'none', color: '#1976d2', fontWeight: 600 },
+  locationBox: { display: 'flex', alignItems: 'center', mb: 2, gap: 1 },
+  divider: { my: 1 },
+  description: { color: 'text.secondary' },
+  largeDivider: { my: 3 }
+};
+
 export default function ClassDetailsModal({ event, open, onClose, onBookingSuccess }: Props) {
   const { user } = useAuth();
   const { showToast } = useToast();
   const [loading, setLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
 
   if (!event) return null;
 
@@ -51,18 +60,15 @@ export default function ClassDetailsModal({ event, open, onClose, onBookingSucce
   const instructor = event.extendedProps.instructor;
   const instructorName = instructor?.fullName || event.extendedProps.instructorName || 'TBA';
 
-  // ... (booking logic remains the same)
-
   const handleBook = async () => {
     setLoading(true);
-    setError(null);
     try {
       await api.post('/bookings', { classId: event.id });
       onBookingSuccess(); // Refresh calendar
       onClose();
       showToast(isFull ? 'You have been added to the waitlist!' : 'Class booked successfully!', 'success');
     } catch (err: any) {
-      setError(err.response?.data?.message || 'Failed to book class');
+      showToast(err.response?.data?.message || 'Failed to book class', 'error');
     } finally {
       setLoading(false);
     }
@@ -70,7 +76,7 @@ export default function ClassDetailsModal({ event, open, onClose, onBookingSucce
 
   return (
     <Dialog open={open} onClose={onClose} fullWidth maxWidth="sm">
-      <DialogTitle component="div" sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+      <DialogTitle component="div" sx={styles.header}>
         {event.title}
         <Chip
           label={isFull ? "WAITLIST OPEN" : `${spotsLeft} spots left`}
@@ -80,9 +86,9 @@ export default function ClassDetailsModal({ event, open, onClose, onBookingSucce
       </DialogTitle>
 
       <DialogContent dividers>
-        {error && <Alert severity="error" sx={{ mb: 2 }}>{error}</Alert>}
 
-        <Box sx={{ display: 'flex', alignItems: 'center', mb: 1, gap: 1 }}>
+
+        <Box sx={styles.infoBox}>
           <AccessTimeIcon color="action" />
           <Typography>
             {event.start.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })} -
@@ -90,12 +96,12 @@ export default function ClassDetailsModal({ event, open, onClose, onBookingSucce
           </Typography>
         </Box>
 
-        <Box sx={{ display: 'flex', alignItems: 'center', mb: 1, gap: 1 }}>
+        <Box sx={styles.infoBox}>
           <PersonIcon color="action" />
           <Typography>
             Instructor: {' '}
             {instructor ? (
-              <Link to={`/instructors/${instructor._id}`} style={{ textDecoration: 'none', color: '#1976d2', fontWeight: 600 }}>
+              <Link to={`/instructors/${instructor._id}`} style={styles.instructorLink}>
                 {instructorName}
               </Link>
             ) : (
@@ -105,7 +111,7 @@ export default function ClassDetailsModal({ event, open, onClose, onBookingSucce
         </Box>
 
         {event.extendedProps.location && (
-          <Box sx={{ display: 'flex', alignItems: 'center', mb: 2, gap: 1 }}>
+          <Box sx={styles.locationBox}>
             <LocationOnIcon color="action" />
             <Typography>{event.extendedProps.location}</Typography>
           </Box>
@@ -113,14 +119,14 @@ export default function ClassDetailsModal({ event, open, onClose, onBookingSucce
 
         {event.extendedProps.description && (
           <>
-            <Divider sx={{ my: 1 }} />
-            <Typography variant="body2" color="text.secondary">
+            <Divider sx={styles.divider} />
+            <Typography variant="body2" sx={styles.description}>
               {event.extendedProps.description}
             </Typography>
           </>
         )}
 
-        <Divider sx={{ my: 3 }} />
+        <Divider sx={styles.largeDivider} />
         <Typography variant="h6" gutterBottom>Reviews</Typography>
         <ReviewSection
           targetType="CLASS"

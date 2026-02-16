@@ -9,11 +9,8 @@ const razorpay = new Razorpay({
 });
 
 export const RazorpayService = {
-    /**
-     * Create a Razorpay Order
-     * @param amount Amount in smallest currency unit (e.g., paise for INR)
-     * @param currency Currency code (default: INR)
-     */
+     // @param amount Amount in smallest currency unit (e.g., paise for INR)
+     // @param currency Currency code (default: INR)
     createOrder: async (amount: number, currency: string = 'INR') => {
         try {
             const options = {
@@ -29,12 +26,10 @@ export const RazorpayService = {
         }
     },
 
-    /**
-     * Verify Payment Signature
-     * @param orderId Razorpay Order ID
-     * @param paymentId Razorpay Payment ID
-     * @param signature Razorpay Signature
-     */
+     // Verify Payment Signature
+     // @param orderId Razorpay Order ID
+     // @param paymentId Razorpay Payment ID
+     // @param signature Razorpay Signature
     verifySignature: (orderId: string, paymentId: string, signature: string) => {
         const text = `${orderId}|${paymentId}`;
         const generated_signature = crypto

@@ -3,9 +3,6 @@ import { BookingModel, BookingStatus } from '../modules/bookings/booking.model.j
 import { NotificationService } from '../modules/notifications/notification.service.js';
 import { addHours, subHours } from 'date-fns';
 
-/**
- * Job to send reminders for classes starting in 24 hours
- */
 export const runReminderJob = async () => {
     try {
         console.log('Running Class Reminder Job...');
@@ -14,14 +11,12 @@ export const runReminderJob = async () => {
         const windowStart = subHours(tomorrow, 1);
         const windowEnd = addHours(tomorrow, 1);
 
-        // Find classes starting in roughly 24 hours
         const classes = await ClassSessionModel.find({
             startTime: { $gte: windowStart, $lte: windowEnd },
             isCancelled: false
         });
 
         for (const session of classes) {
-            // Find confirmed bookings
             const bookings = await BookingModel.find({
                 classSession: session._id,
                 status: BookingStatus.CONFIRMED
@@ -45,5 +40,4 @@ export const runReminderJob = async () => {
     }
 };
 
-// Start job every hour
 setInterval(runReminderJob, 60 * 60 * 1000);

@@ -40,6 +40,23 @@ interface LogWorkoutModalProps {
   initialValues?: Partial<WorkoutFormValues>;
 }
 
+const styles = {
+  formContainer: { display: 'flex', flexDirection: 'column', gap: 3 },
+  formRow: { display: 'flex', gap: 2 },
+  exerciseContainer: { mb: 3, p: 2, border: '1px solid #e2e8f0', borderRadius: 2, bgcolor: '#f8fafc' },
+  exerciseHeader: { display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2 },
+  exerciseName: { mr: 2 },
+  exerciseNotes: { mt: 2 },
+  addExerciseButton: { borderRadius: 2 },
+  setsHeader: { display: 'flex', gap: 2, mb: 1 },
+  setLabel: { width: 40, fontWeight: 'bold' },
+  fieldLabel: { width: 100, fontWeight: 'bold' },
+  setRow: { display: 'flex', gap: 2, mb: 1, alignItems: 'center' },
+  setNumber: { width: 40 },
+  setField: { width: 100 },
+  addSetButton: { mt: 1 }
+};
+
 export default function LogWorkoutModal({ open, onClose, onSuccess, initialValues }: LogWorkoutModalProps) {
   const { showToast } = useToast();
   const { control, register, handleSubmit, reset, formState: { errors } } = useForm<WorkoutFormValues>({
@@ -87,8 +104,8 @@ export default function LogWorkoutModal({ open, onClose, onSuccess, initialValue
       <DialogTitle>Log Workout</DialogTitle>
       <form onSubmit={handleSubmit(onSubmit)}>
         <DialogContent dividers>
-          <Box display="flex" flexDirection="column" gap={3}>
-            <Box display="flex" gap={2}>
+          <Box sx={styles.formContainer}>
+            <Box sx={styles.formRow}>
               <Box flex={2}>
                 <TextField
                   {...register("title")}
@@ -108,14 +125,14 @@ export default function LogWorkoutModal({ open, onClose, onSuccess, initialValue
             <Typography variant="h6">Exercises</Typography>
 
             {exerciseFields.map((field, index) => (
-              <Box key={field.id} sx={{ mb: 3, p: 2, border: '1px solid #e2e8f0', borderRadius: 2, bgcolor: '#f8fafc' }}>
-                <Box display="flex" justifyContent="space-between" alignItems="center" mb={2}>
+              <Box key={field.id} sx={styles.exerciseContainer}>
+                <Box sx={styles.exerciseHeader}>
                   <TextField
                     {...register(`exercises.${index}.name` as const)}
                     label={`Exercise ${index + 1}`}
                     size="small"
                     fullWidth
-                    sx={{ mr: 2 }}
+                    sx={styles.exerciseName}
                     error={!!errors.exercises?.[index]?.name}
                   />
                   <IconButton color="error" onClick={() => removeExercise(index)}>
@@ -125,7 +142,7 @@ export default function LogWorkoutModal({ open, onClose, onSuccess, initialValue
 
                 <SetsFieldArray nestIndex={index} control={control} register={register} errors={errors} />
 
-                <Box mt={2}>
+                <Box sx={styles.exerciseNotes}>
                   <TextField
                     {...register(`exercises.${index}.notes` as const)}
                     label="Exercise Notes"
@@ -140,6 +157,7 @@ export default function LogWorkoutModal({ open, onClose, onSuccess, initialValue
               variant="outlined"
               startIcon={<AddCircleOutlineIcon />}
               onClick={() => appendExercise({ name: '', sets: [{ reps: 10, weight: 0 }] })}
+              sx={styles.addExerciseButton}
             >
               Add Exercise
             </Button>
@@ -169,25 +187,25 @@ function SetsFieldArray({ nestIndex, control, register }: SetsFieldArrayProps) {
 
   return (
     <Box>
-      <Box display="flex" gap={2} mb={1}>
-        <Typography variant="caption" sx={{ width: 40, fontWeight: 'bold' }}>Set</Typography>
-        <Typography variant="caption" sx={{ width: 100, fontWeight: 'bold' }}>Reps</Typography>
-        <Typography variant="caption" sx={{ width: 100, fontWeight: 'bold' }}>Weight (kg)</Typography>
+      <Box sx={styles.setsHeader}>
+        <Typography variant="caption" sx={styles.setLabel}>Set</Typography>
+        <Typography variant="caption" sx={styles.fieldLabel}>Reps</Typography>
+        <Typography variant="caption" sx={styles.fieldLabel}>Weight (kg)</Typography>
       </Box>
       {fields.map((item, k) => (
-        <Box key={item.id} display="flex" gap={2} mb={1} alignItems="center">
-          <Typography variant="body2" color="textSecondary" width={40}>{k + 1}</Typography>
+        <Box key={item.id} sx={styles.setRow}>
+          <Typography variant="body2" color="textSecondary" sx={styles.setNumber}>{k + 1}</Typography>
           <TextField
             {...register(`exercises.${nestIndex}.sets.${k}.reps` as const)}
             type="number"
             size="small"
-            sx={{ width: 100 }}
+            sx={styles.setField}
           />
           <TextField
             {...register(`exercises.${nestIndex}.sets.${k}.weight` as const)}
             type="number"
             size="small"
-            sx={{ width: 100 }}
+            sx={styles.setField}
           />
           <IconButton size="small" onClick={() => remove(k)} disabled={fields.length === 1}>
             <DeleteIcon fontSize="small" />
@@ -198,6 +216,7 @@ function SetsFieldArray({ nestIndex, control, register }: SetsFieldArrayProps) {
         size="small"
         startIcon={<AddCircleOutlineIcon />}
         onClick={() => append({ reps: 10, weight: 0 })}
+        sx={styles.addSetButton}
       >
         Add Set
       </Button>

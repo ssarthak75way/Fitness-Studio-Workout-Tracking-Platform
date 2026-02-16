@@ -12,6 +12,21 @@ interface ConfirmationDialogProps {
     severity?: 'error' | 'warning' | 'info';
 }
 
+const styles = {
+    dialogPaper: { borderRadius: 3, p: 1 },
+    dialogTitle: { display: 'flex', alignItems: 'center', gap: 1.5, pb: 1 },
+    warningIcon: (color: string) => ({ color }),
+    titleText: { fontWeight: 600 },
+    dialogActions: { px: 3, pb: 2 },
+    cancelButton: { fontWeight: 600 },
+    confirmButton: (color: string) => ({
+        bgcolor: color,
+        '&:hover': { bgcolor: alpha(color, 0.9) },
+        fontWeight: 600,
+        boxShadow: 'none'
+    })
+};
+
 export default function ConfirmationDialog({
     open,
     title,
@@ -32,36 +47,33 @@ export default function ConfirmationDialog({
         }
     };
 
+    const color = getColor();
+
     return (
         <Dialog
             open={open}
             onClose={onCancel}
             maxWidth="xs"
             fullWidth
-            PaperProps={{ sx: { borderRadius: 3, p: 1 } }}
+            PaperProps={{ sx: styles.dialogPaper }}
         >
-            <DialogTitle component="div" sx={{ display: 'flex', alignItems: 'center', gap: 1.5, pb: 1 }}>
-                <WarningIcon sx={{ color: getColor() }} />
-                <Typography variant="h6" fontWeight={600}>{title}</Typography>
+            <DialogTitle component="div" sx={styles.dialogTitle}>
+                <WarningIcon sx={styles.warningIcon(color)} />
+                <Typography variant="h6" sx={styles.titleText}>{title}</Typography>
             </DialogTitle>
             <DialogContent>
                 <Typography variant="body1" color="text.secondary">
                     {message}
                 </Typography>
             </DialogContent>
-            <DialogActions sx={{ px: 3, pb: 2 }}>
-                <Button onClick={onCancel} color="inherit" sx={{ fontWeight: 600 }}>
+            <DialogActions sx={styles.dialogActions}>
+                <Button onClick={onCancel} color="inherit" sx={styles.cancelButton}>
                     {cancelText}
                 </Button>
                 <Button
                     onClick={onConfirm}
                     variant="contained"
-                    sx={{
-                        bgcolor: getColor(),
-                        '&:hover': { bgcolor: alpha(getColor(), 0.9) },
-                        fontWeight: 600,
-                        boxShadow: 'none'
-                    }}
+                    sx={styles.confirmButton(color)}
                 >
                     {confirmText}
                 </Button>

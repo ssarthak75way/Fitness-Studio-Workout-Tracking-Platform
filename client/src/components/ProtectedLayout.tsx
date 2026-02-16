@@ -31,6 +31,42 @@ const menuItems = [
     { text: 'Check-In', icon: <QrCodeScannerIcon />, path: '/check-in', roles: ['STUDIO_ADMIN', 'INSTRUCTOR'] },
 ];
 
+const styles = {
+    root: {
+        display: 'flex',
+    },
+    appBar: (theme: any) => ({
+        zIndex: theme.zIndex.drawer + 1,
+    }),
+    typographyFlex: {
+        flexGrow: 1,
+    },
+    themeToggle: {
+        mr: 2,
+    },
+    userName: {
+        mx: 2,
+    },
+    drawer: {
+        width: DRAWER_WIDTH,
+        flexShrink: 0,
+        '& .MuiDrawer-paper': {
+            width: DRAWER_WIDTH,
+            boxSizing: 'border-box',
+        },
+    },
+    drawerContent: {
+        overflow: 'auto',
+    },
+    main: {
+        flexGrow: 1,
+        p: 3,
+        bgcolor: 'background.default',
+        color: 'text.primary',
+        minHeight: '100vh',
+    },
+};
+
 export default function ProtectedLayout({ children }: { children: ReactNode }) {
     const navigate = useNavigate();
     const location = useLocation();
@@ -43,22 +79,22 @@ export default function ProtectedLayout({ children }: { children: ReactNode }) {
     };
 
     return (
-        <Box sx={{ display: 'flex' }}>
-            <AppBar position="fixed" sx={{ zIndex: (theme) => theme.zIndex.drawer + 1 }}>
+        <Box sx={styles.root}>
+            <AppBar position="fixed" sx={styles.appBar}>
                 <Toolbar>
-                    <Typography variant="h6" noWrap component="div" sx={{ flexGrow: 1 }}>
+                    <Typography variant="h6" noWrap component="div" sx={styles.typographyFlex}>
                         Fitness Studio
                     </Typography>
 
                     <Tooltip title={`Switch to ${mode === 'dark' ? 'light' : 'dark'} mode`}>
-                        <IconButton onClick={toggleTheme} color="inherit" sx={{ mr: 2 }}>
+                        <IconButton onClick={toggleTheme} color="inherit" sx={styles.themeToggle}>
                             {mode === 'dark' ? <LightModeIcon /> : <DarkModeIcon />}
                         </IconButton>
                     </Tooltip>
 
                     <NotificationPopover />
 
-                    <Typography variant="body2" sx={{ mx: 2 }}>
+                    <Typography variant="body2" sx={styles.userName}>
                         {user?.fullName} ({user?.role})
                     </Typography>
                     <Button color="inherit" onClick={handleLogout} startIcon={<LogoutIcon />}>
@@ -69,17 +105,10 @@ export default function ProtectedLayout({ children }: { children: ReactNode }) {
 
             <Drawer
                 variant="permanent"
-                sx={{
-                    width: DRAWER_WIDTH,
-                    flexShrink: 0,
-                    '& .MuiDrawer-paper': {
-                        width: DRAWER_WIDTH,
-                        boxSizing: 'border-box',
-                    },
-                }}
+                sx={styles.drawer}
             >
                 <Toolbar />
-                <Box sx={{ overflow: 'auto' }}>
+                <Box sx={styles.drawerContent}>
                     <List>
                         {menuItems.filter(item => !item.roles || (user?.role && item.roles.includes(user.role))).map((item) => (
                             <ListItem key={item.text} disablePadding>
@@ -96,7 +125,7 @@ export default function ProtectedLayout({ children }: { children: ReactNode }) {
                 </Box>
             </Drawer>
 
-            <Box component="main" sx={{ flexGrow: 1, p: 3, bgcolor: 'background.default', color: 'text.primary', minHeight: '100vh' }}>
+            <Box component="main" sx={styles.main}>
                 <Toolbar />
                 {children}
             </Box>

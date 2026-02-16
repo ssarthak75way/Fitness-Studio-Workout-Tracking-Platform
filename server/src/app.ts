@@ -25,15 +25,15 @@ import dashboardRoutes from './modules/dashboard/dashboard.routes.js';
 
 const app: Application = express();
 
-app.use(helmet()); 
+app.use(helmet());
 app.use(cors({ origin: process.env.CORS_ORIGIN || 'http://localhost:5173', credentials: true }));
-app.use(express.json({ limit: '10kb' })); 
-app.use(hpp()); 
-app.use(compression()); 
+app.use(express.json({ limit: '10kb' }));
+app.use(hpp());
+app.use(compression());
 
 const limiter = rateLimit({
-  windowMs: 15 * 60 * 1000, 
-  max: 100000000000000,
+  windowMs: 15 * 60 * 1000,
+  max: 100000000,
   message: 'Too many requests from this IP, please try again after 15 minutes',
 });
 app.use('/api', limiter);
