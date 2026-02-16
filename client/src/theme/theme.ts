@@ -1,34 +1,34 @@
 import { createTheme, alpha, type PaletteMode } from '@mui/material/styles';
 
-const primaryMain = '#6366f1'; // Indigo
-const secondaryMain = '#f43f5e'; // Rose
+const primaryMain = '#FF5722'; // Vibrant Orange
+const secondaryMain = '#FF9100'; // Amber/Orange
 
 // Dark Mode Colors
-const darkBackground = '#0f172a'; // Deep Slate
-const darkSurface = '#1e293b';
-const darkTextPrimary = '#f1f5f9';
-const darkTextSecondary = '#94a3b8';
+const darkBackground = '#0B0F19'; // Deepest Blue/Black
+const darkSurface = '#111827'; // Dark Gray/Blue
+const darkTextPrimary = '#FFFFFF';
+const darkTextSecondary = '#9CA3AF'; // Gray 400
 
 // Light Mode Colors
-const lightBackground = '#f8fafc'; // Slate 50
-const lightSurface = '#ffffff';
-const lightTextPrimary = '#1e293b'; // Slate 800
-const lightTextSecondary = '#64748b'; // Slate 500
+const lightBackground = '#F3F4F6'; // Gray 100
+const lightSurface = '#FFFFFF';
+const lightTextPrimary = '#111827'; // Gray 900
+const lightTextSecondary = '#4B5563'; // Gray 600
 
 export const getTheme = (mode: PaletteMode) => createTheme({
   palette: {
     mode,
     primary: {
       main: primaryMain,
-      light: alpha(primaryMain, 0.5),
-      dark: '#4f46e5',
+      light: '#FF8A50',
+      dark: '#C41C00',
       contrastText: '#ffffff',
     },
     secondary: {
       main: secondaryMain,
-      light: alpha(secondaryMain, 0.5),
-      dark: '#e11d48',
-      contrastText: '#ffffff',
+      light: '#FFC246',
+      dark: '#C56200',
+      contrastText: '#000000',
     },
     background: {
       default: mode === 'dark' ? darkBackground : lightBackground,
@@ -38,36 +38,38 @@ export const getTheme = (mode: PaletteMode) => createTheme({
       primary: mode === 'dark' ? darkTextPrimary : lightTextPrimary,
       secondary: mode === 'dark' ? darkTextSecondary : lightTextSecondary,
     },
+    action: {
+      active: mode === 'dark' ? '#FF5722' : '#FF5722', // Make icons orange
+      hover: mode === 'dark' ? alpha('#FF5722', 0.1) : alpha('#FF5722', 0.05),
+    }
   },
   typography: {
     fontFamily: '"Outfit", "Inter", "system-ui", sans-serif',
-    h1: { fontWeight: 800, letterSpacing: '-0.02em' },
-    h2: { fontWeight: 700, letterSpacing: '-0.01em' },
-    h3: { fontWeight: 700 },
+    h1: { fontWeight: 800, letterSpacing: '-0.02em', textTransform: 'uppercase' },
+    h2: { fontWeight: 700, letterSpacing: '-0.01em', textTransform: 'uppercase' },
+    h3: { fontWeight: 700, letterSpacing: '-0.01em' },
     h4: { fontWeight: 600 },
-    button: { fontWeight: 600, textTransform: 'none' },
+    h5: { fontWeight: 600 },
+    h6: { fontWeight: 600 },
+    button: { fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.05em' },
   },
   shape: {
-    borderRadius: 12,
+    borderRadius: 0, // Sharper, more premium/technical feel, or keeping rounded? Image shows varied. Let's go with slightly rounded.
   },
   components: {
     MuiCssBaseline: {
       styleOverrides: {
         body: {
-          scrollbarColor: mode === 'dark' ? '#6b7280 #1e293b' : '#94a3b8 #f1f5f9',
+          scrollbarColor: mode === 'dark' ? '#FF5722 #0B0F19' : '#FF5722 #F3F4F6',
           '&::-webkit-scrollbar, & *::-webkit-scrollbar': {
-            width: '8px',
-            height: '8px',
+            width: '6px',
+            height: '6px',
             backgroundColor: 'transparent',
           },
           '&::-webkit-scrollbar-thumb, & *::-webkit-scrollbar-thumb': {
-            borderRadius: 8,
-            backgroundColor: mode === 'dark' ? '#334155' : '#cbd5e1',
+            borderRadius: 3,
+            backgroundColor: primaryMain,
             minHeight: 24,
-            border: `2px solid ${mode === 'dark' ? darkBackground : lightBackground}`,
-          },
-          '&::-webkit-scrollbar-thumb:focus, & *::-webkit-scrollbar-thumb:focus': {
-            backgroundColor: mode === 'dark' ? '#475569' : '#94a3b8',
           },
         },
       },
@@ -75,28 +77,41 @@ export const getTheme = (mode: PaletteMode) => createTheme({
     MuiButton: {
       styleOverrides: {
         root: {
-          borderRadius: '8px',
+          borderRadius: '4px', // Slightly squared for stronger look
           padding: '10px 24px',
-          transition: 'all 0.2s ease-in-out',
+          transition: 'all 0.3s ease',
+          boxShadow: 'none',
           '&:hover': {
             transform: 'translateY(-2px)',
-            boxShadow: `0 4px 20px 0 ${alpha(primaryMain, 0.4)}`,
+            boxShadow: `0 8px 20px -4px ${alpha(primaryMain, 0.5)}`,
           },
         },
         containedPrimary: {
-          background: `linear-gradient(45deg, ${primaryMain} 30%, #818cf8 90%)`,
+          background: `linear-gradient(135deg, ${primaryMain} 0%, #FF8A50 100%)`,
+          color: '#ffffff',
+          '&:hover': {
+            background: `linear-gradient(135deg, #E64A19 0%, #FF5722 100%)`,
+          }
         },
+        outlinedPrimary: {
+          borderWidth: '2px',
+          '&:hover': {
+            borderWidth: '2px',
+            backgroundColor: alpha(primaryMain, 0.1),
+          }
+        }
       },
     },
     MuiCard: {
       styleOverrides: {
         root: {
           backgroundImage: 'none',
-          backgroundColor: mode === 'dark' ? alpha(darkSurface, 0.4) : alpha(lightSurface, 0.8),
-          backdropFilter: 'blur(12px)',
-          border: `1px solid ${mode === 'dark' ? alpha('#ffffff', 0.1) : alpha('#000000', 0.05)}`,
+          backgroundColor: mode === 'dark' ? alpha(darkSurface, 0.6) : alpha(lightSurface, 0.8),
+          backdropFilter: 'blur(16px)',
+          border: `1px solid ${mode === 'dark' ? alpha('#FF5722', 0.1) : alpha('#000000', 0.05)}`,
+          borderRadius: '16px',
           boxShadow: mode === 'dark'
-            ? '0 8px 32px 0 rgba(0, 0, 0, 0.37)'
+            ? '0 8px 32px 0 rgba(0, 0, 0, 0.3)'
             : '0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1)',
         },
       },
@@ -118,9 +133,9 @@ export const getTheme = (mode: PaletteMode) => createTheme({
     MuiAppBar: {
       styleOverrides: {
         root: {
-          backgroundColor: mode === 'dark' ? alpha(darkSurface, 0.8) : alpha(lightSurface, 0.8),
-          backdropFilter: 'blur(12px)',
-          borderBottom: `1px solid ${mode === 'dark' ? alpha('#ffffff', 0.1) : alpha('#000000', 0.05)}`,
+          backgroundColor: mode === 'dark' ? alpha(darkBackground, 0.8) : alpha(lightBackground, 0.9),
+          backdropFilter: 'blur(20px)',
+          borderBottom: `1px solid ${mode === 'dark' ? alpha('#ffffff', 0.05) : alpha('#000000', 0.05)}`,
           color: mode === 'dark' ? darkTextPrimary : lightTextPrimary,
           boxShadow: 'none',
         },
@@ -129,10 +144,52 @@ export const getTheme = (mode: PaletteMode) => createTheme({
     MuiDrawer: {
       styleOverrides: {
         paper: {
-          backgroundColor: mode === 'dark' ? darkSurface : lightSurface,
-          borderRight: `1px solid ${mode === 'dark' ? alpha('#ffffff', 0.1) : alpha('#000000', 0.05)}`,
+          backgroundColor: mode === 'dark' ? darkBackground : lightSurface, // Match background for seamless look
+          borderRight: `1px solid ${mode === 'dark' ? alpha('#ffffff', 0.05) : alpha('#000000', 0.05)}`,
         },
       },
     },
+    MuiChip: {
+      styleOverrides: {
+        root: {
+          fontWeight: 600,
+          borderRadius: '4px',
+        },
+        colorSuccess: {
+          backgroundColor: alpha('#00E676', 0.1),
+          color: '#00E676',
+          border: '1px solid ' + alpha('#00E676', 0.2),
+        },
+        colorError: {
+          backgroundColor: alpha('#FF1744', 0.1),
+          color: '#FF1744',
+          border: '1px solid ' + alpha('#FF1744', 0.2),
+        },
+        colorWarning: {
+          backgroundColor: alpha('#FF9100', 0.1),
+          color: '#FF9100',
+          border: '1px solid ' + alpha('#FF9100', 0.2),
+        },
+        colorPrimary: {
+          backgroundColor: alpha(primaryMain, 0.1),
+          color: primaryMain,
+          border: '1px solid ' + alpha(primaryMain, 0.2),
+        }
+      }
+    },
+    MuiTableCell: {
+      styleOverrides: {
+        root: {
+          borderBottom: `1px solid ${mode === 'dark' ? alpha('#ffffff', 0.05) : alpha('#000000', 0.05)}`,
+        },
+        head: {
+          fontWeight: 700,
+          textTransform: 'uppercase',
+          fontSize: '0.75rem',
+          color: mode === 'dark' ? alpha('#ffffff', 0.6) : alpha('#000000', 0.6),
+          backgroundColor: mode === 'dark' ? alpha(darkSurface, 0.5) : alpha(lightSurface, 0.5),
+        }
+      }
+    }
   },
 });

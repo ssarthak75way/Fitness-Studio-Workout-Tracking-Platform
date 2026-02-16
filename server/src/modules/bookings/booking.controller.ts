@@ -67,3 +67,32 @@ export const checkInHandler = async (req: Request, res: Response, next: NextFunc
     next(error);
   }
 };
+
+export const getClassBookingsHandler = async (req: Request, res: Response, next: NextFunction) => {
+  try {
+    const { classSessionId } = req.params;
+    const bookings = await BookingService.getClassBookings(classSessionId);
+
+    res.status(200).json({
+      status: 'success',
+      results: bookings.length,
+      data: { bookings },
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
+export const manualCheckInHandler = async (req: Request, res: Response, next: NextFunction) => {
+  try {
+    const { id } = req.params;
+    const booking = await BookingService.checkInById(id);
+
+    res.status(200).json({
+      status: 'success',
+      data: { booking },
+    });
+  } catch (error) {
+    next(error);
+  }
+};

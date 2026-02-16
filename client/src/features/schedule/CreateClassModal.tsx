@@ -17,10 +17,12 @@ import { z } from 'zod';
 import api from '../../services/api';
 import { instructorService } from '../../services';
 import { useAuth } from '../../context/AuthContext';
+import { useToast } from '../../context/ToastContext';
 
 // Zod Schema matches Backend Validation
 const createClassSchema = z.object({
   title: z.string().min(3, 'Title is required'),
+  description: z.string().optional(),
   type: z.enum(['YOGA', 'PILATES', 'HIIT', 'STRENGTH', 'CARDIO']),
   startTime: z.string().min(1, 'Start time is required'),
   durationMinutes: z.coerce.number().min(15).max(180),
@@ -42,12 +44,14 @@ interface Props {
 
 export default function CreateClassModal({ open, onClose, onSuccess }: Props) {
   const { user } = useAuth();
+  const { showToast } = useToast();
   const [instructors, setInstructors] = useState<any[]>([]);
 
   const { control, handleSubmit, reset, watch, formState: { errors } } = useForm<CreateClassForm>({
     resolver: zodResolver(createClassSchema) as any,
     defaultValues: {
       title: '',
+      description: '',
       type: 'YOGA',
       durationMinutes: 60,
       capacity: 20,
@@ -83,11 +87,12 @@ export default function CreateClassModal({ open, onClose, onSuccess }: Props) {
       });
 
       onSuccess();
+      showToast('Class scheduled successfully!', 'success');
       reset();
       onClose();
     } catch (error) {
       console.error('Failed to create class', error);
-      alert('Failed to create class');
+      showToast('Failed to create class', 'error');
     }
   };
 
@@ -108,6 +113,24 @@ export default function CreateClassModal({ open, onClose, onSuccess }: Props) {
                     fullWidth
                     error={!!errors.title}
                     helperText={errors.title?.message}
+                  />
+                )}
+              />
+            </Box>
+
+            <Box>
+              <Controller
+                name="description"
+                control={control}
+                render={({ field }: { field: any }) => (
+                  <TextField
+                    {...field}
+                    label="Description (Optional)"
+                    fullWidth
+                    multiline
+                    rows={3}
+                    error={!!errors.description}
+                    helperText={errors.description?.message}
                   />
                 )}
               />

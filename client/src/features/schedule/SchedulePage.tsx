@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
-import { Box, Typography, Button, Dialog, DialogTitle, DialogContent, DialogActions, Alert, useTheme, Card, alpha, Chip, Stack } from '@mui/material';
+import { Link } from 'react-router-dom';
+import { Box, Typography, Button, Dialog, DialogTitle, DialogContent, DialogActions, useTheme, Card, alpha, Chip, Stack } from '@mui/material';
 import FullCalendar from '@fullcalendar/react';
 import dayGridPlugin from '@fullcalendar/daygrid';
 import timeGridPlugin from '@fullcalendar/timegrid';
@@ -7,6 +8,7 @@ import interactionPlugin from '@fullcalendar/interaction';
 import { classService } from '../../services/class.service';
 import { bookingService } from '../../services/booking.service';
 import { useAuth } from '../../context/AuthContext';
+import { useToast } from '../../context/ToastContext';
 import CreateClassModal from './CreateClassModal';
 import AddIcon from '@mui/icons-material/Add';
 import AccessTimeIcon from '@mui/icons-material/AccessTime';
@@ -15,12 +17,12 @@ import PersonIcon from '@mui/icons-material/Person';
 
 export default function SchedulePage() {
   const { user } = useAuth();
+  const { showToast } = useToast();
   const theme = useTheme();
   const [events, setEvents] = useState<any[]>([]);
   const [selectedClass, setSelectedClass] = useState<any>(null);
   const [openDetails, setOpenDetails] = useState(false);
   const [openCreate, setOpenCreate] = useState(false);
-  const [message, setMessage] = useState('');
 
   useEffect(() => {
     fetchClasses();
@@ -54,15 +56,14 @@ export default function SchedulePage() {
       const status = response.data.booking.status;
 
       if (status === 'WAITLISTED') {
-        setMessage('You have been added to the waitlist.');
+        showToast('You have been added to the waitlist.', 'warning');
       } else {
-        setMessage('Class booked successfully!');
+        showToast('Class booked successfully!', 'success');
       }
 
       setOpenDetails(false);
-      setTimeout(() => setMessage(''), 3000);
     } catch (error: any) {
-      setMessage(error.response?.data?.message || 'Booking failed');
+      showToast(error.response?.data?.message || 'Booking failed', 'error');
     }
   };
 
@@ -118,7 +119,7 @@ export default function SchedulePage() {
         )}
       </Box>
 
-      {message && <Alert severity={message.includes('success') ? 'success' : 'error'} sx={{ mb: 3, borderRadius: 2 }}>{message}</Alert>}
+
 
       <Card sx={{
         p: 0,
@@ -212,7 +213,7 @@ export default function SchedulePage() {
       >
         {selectedClass && (
           <>
-            <DialogTitle sx={{ pb: 1 }}>
+            <DialogTitle component="div" sx={{ pb: 1 }}>
               <Typography variant="h5" fontWeight="700">{selectedClass.title}</Typography>
               <Chip
                 label={selectedClass.type}
@@ -249,7 +250,15 @@ export default function SchedulePage() {
                     <PersonIcon color="action" fontSize="small" />
                     <Box>
                       <Typography variant="caption" display="block" color="text.secondary">Instructor</Typography>
-                      <Typography variant="body2" fontWeight="600">{selectedClass.instructor?.fullName || 'TBA'}</Typography>
+                      {selectedClass.instructor ? (
+                        <Link to={`/instructors/${selectedClass.instructor._id}`} style={{ textDecoration: 'none', color: 'inherit' }}>
+                          <Typography variant="body2" fontWeight="600" sx={{ color: 'primary.main', '&:hover': { textDecoration: 'underline' } }}>
+                            {selectedClass.instructor.fullName}
+                          </Typography>
+                        </Link>
+                      ) : (
+                        <Typography variant="body2" fontWeight="600">TBA</Typography>
+                      )}
                     </Box>
                   </Box>
                 </Stack>
@@ -288,10 +297,11 @@ export default function SchedulePage() {
                   variant="contained"
                   onClick={handleBookClass}
                   size="large"
-                  disabled={selectedClass.enrolledCount >= selectedClass.capacity}
+                  disabled={false} // Always enabled to allow waitlist
+                  color={selectedClass.enrolledCount >= selectedClass.capacity ? "warning" : "primary"}
                   sx={{ borderRadius: 2, px: 4 }}
                 >
-                  {selectedClass.enrolledCount >= selectedClass.capacity ? 'Full' : 'Book Class'}
+                  {selectedClass.enrolledCount >= selectedClass.capacity ? 'Join Waitlist' : 'Book Class'}
                 </Button>
               )}
             </DialogActions>
@@ -304,9 +314,7 @@ export default function SchedulePage() {
         open={openCreate}
         onClose={() => setOpenCreate(false)}
         onSuccess={() => {
-          setMessage('Class scheduled successfully!');
           fetchClasses();
-          setTimeout(() => setMessage(''), 3000);
         }}
       />
     </Box>

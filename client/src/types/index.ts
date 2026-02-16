@@ -51,17 +51,40 @@ export interface Booking {
     qrCodeUrl?: string;
 }
 
+export interface WorkoutSet {
+    reps: number;
+    weight?: number;
+    duration?: number;
+}
+
+export interface WorkoutExercise {
+    name: string;
+    sets: WorkoutSet[];
+}
+
+export interface WorkoutLog {
+    _id: string;
+    user: string;
+    title: string;
+    exercises: WorkoutExercise[];
+    duration?: number;
+    date: string;
+}
+
 export interface DashboardStats {
     upcomingBookings?: Booking[];
+    recentWorkouts?: WorkoutLog[];
     totalWorkouts?: number;
     workoutStreak?: number;
     todaysClasses?: ClassSession[];
+    upcomingClasses?: ClassSession[];
     totalClasses?: number;
     averageRating?: number | string;
     totalUsers?: number;
     totalMembers?: number;
     totalInstructors?: number;
     totalBookings?: number;
+    recentUsers?: User[];
 }
 
 export interface BodyMetric {
@@ -89,26 +112,6 @@ export interface Membership {
     endDate?: string;
     isActive: boolean;
     creditsRemaining?: number;
-}
-
-export interface WorkoutSet {
-    reps: number;
-    weight?: number;
-    duration?: number;
-}
-
-export interface WorkoutExercise {
-    name: string;
-    sets: WorkoutSet[];
-}
-
-export interface WorkoutLog {
-    _id: string;
-    user: string;
-    title: string;
-    exercises: WorkoutExercise[];
-    duration?: number;
-    date: string;
 }
 
 export interface Notification {

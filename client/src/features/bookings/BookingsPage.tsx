@@ -27,7 +27,7 @@ import {
     AccessTime as AccessTimeIcon
 } from '@mui/icons-material';
 import { bookingService } from '../../services/booking.service';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, Link } from 'react-router-dom';
 
 interface Booking {
     _id: string;
@@ -40,6 +40,7 @@ interface Booking {
         startTime: string;
         endTime: string;
         instructor?: {
+            _id: string;
             fullName: string;
         };
     };
@@ -86,19 +87,19 @@ export default function BookingsPage() {
     const getFilteredBookings = () => {
         const now = new Date();
         return bookings.filter(booking => {
-            const startTime = new Date(booking.classSession.startTime);
-            const isCancelled = booking.status === 'CANCELLED';
+            const startTime = new Date(booking?.classSession?.startTime);
+            const isCancelled = booking?.status === 'CANCELLED';
 
             if (tabValue === 0) { // Upcoming
-                return !isCancelled && startTime > now && booking.status !== 'CHECKED_IN';
+                return !isCancelled && startTime > now && booking?.status !== 'CHECKED_IN';
             } else if (tabValue === 1) { // History
-                return !isCancelled && (startTime <= now || booking.status === 'CHECKED_IN');
+                return !isCancelled && (startTime <= now || booking?.status === 'CHECKED_IN');
             } else { // Cancelled
                 return isCancelled;
             }
         }).sort((a, b) => {
-            const dateA = new Date(a.classSession.startTime).getTime();
-            const dateB = new Date(b.classSession.startTime).getTime();
+            const dateA = new Date(a?.classSession?.startTime).getTime();
+            const dateB = new Date(b?.classSession?.startTime).getTime();
             return tabValue === 0 ? dateA - dateB : dateB - dateA; // Upcoming asc, others desc
         });
     };
@@ -181,14 +182,14 @@ export default function BookingsPage() {
                                 </Box>
 
                                 <Typography variant="h6" fontWeight="bold" gutterBottom>
-                                    {booking.classSession.title}
+                                    {booking?.classSession?.title || "NA"}
                                 </Typography>
 
                                 <Stack spacing={1.5} mt={2}>
                                     <Box display="flex" alignItems="center" gap={1.5}>
                                         <AccessTimeIcon color="action" fontSize="small" />
                                         <Typography variant="body2" color="text.secondary">
-                                            {new Date(booking.classSession.startTime).toLocaleString(undefined, {
+                                            {new Date(booking?.classSession?.startTime).toLocaleString(undefined, {
                                                 weekday: 'short', month: 'short', day: 'numeric',
                                                 hour: 'numeric', minute: '2-digit'
                                             })}
@@ -196,14 +197,22 @@ export default function BookingsPage() {
                                     </Box>
                                     <Box display="flex" alignItems="center" gap={1.5}>
                                         <PersonIcon color="action" fontSize="small" />
-                                        <Typography variant="body2" color="text.secondary">
-                                            {booking.classSession.instructor?.fullName || 'TBA'}
-                                        </Typography>
+                                        {booking?.classSession?.instructor ? (
+                                            <Link to={`/instructors/${booking.classSession.instructor._id}`} style={{ textDecoration: 'none', color: 'inherit' }}>
+                                                <Typography variant="body2" color="primary" sx={{ fontWeight: 500, '&:hover': { textDecoration: 'underline' } }}>
+                                                    {booking.classSession.instructor.fullName}
+                                                </Typography>
+                                            </Link>
+                                        ) : (
+                                            <Typography variant="body2" color="text.secondary">
+                                                TBA
+                                            </Typography>
+                                        )}
                                     </Box>
                                     <Box display="flex" alignItems="center" gap={1.5}>
                                         <LocationOnIcon color="action" fontSize="small" />
                                         <Typography variant="body2" color="text.secondary">
-                                            {booking.classSession.location}
+                                            {booking?.classSession?.location || 'NA'}
                                         </Typography>
                                     </Box>
                                 </Stack>
@@ -264,6 +273,9 @@ export default function BookingsPage() {
                     </Box>
                     <Typography variant="body2" color="text.secondary">
                         Scan this at the studio front desk.
+                    </Typography>
+                    <Typography variant="body2" color="text.secondary">
+                        {/* {booking.classSession.location} */}
                     </Typography>
                     <Button onClick={() => setOpenQR(false)} sx={{ mt: 2 }}>Close</Button>
                 </DialogContent>

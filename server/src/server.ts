@@ -1,10 +1,10 @@
 import dotenv from 'dotenv';
+// Load environment variables immediately
+dotenv.config();
+
 import app from './app.js';
 import { connectDatabase } from './config/database.js';
 import { runReminderJob } from './jobs/reminder.job.js';
-
-// Load environment variables
-dotenv.config();
 
 const PORT = process.env.PORT || 5000;
 

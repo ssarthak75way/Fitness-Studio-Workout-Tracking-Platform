@@ -11,6 +11,8 @@ import CheckCircleIcon from '@mui/icons-material/CheckCircle';
 import BlockIcon from '@mui/icons-material/Block';
 import { motion } from 'framer-motion';
 import api from '../../services/api';
+import { useToast } from '../../context/ToastContext';
+import ConfirmationDialog from '../../components/common/ConfirmationDialog';
 
 interface User {
     _id: string;
@@ -50,16 +52,30 @@ export default function UserManagementPage() {
         }
     };
 
-    const handleToggleStatus = async (user: User) => {
+    const { showToast } = useToast();
+    const [confirmDialog, setConfirmDialog] = useState<{ open: boolean; user: User | null }>({
+        open: false,
+        user: null
+    });
+
+    const handleToggleStatusClick = (user: User) => {
+        setConfirmDialog({ open: true, user });
+    };
+
+    const handleConfirmToggle = async () => {
+        if (!confirmDialog.user) return;
+        const user = confirmDialog.user;
         const action = user.isActive ? 'deactivate' : 'activate';
-        if (window.confirm(`Are you sure you want to ${action} this user?`)) {
-            try {
-                const response = await api.patch(`/users/${user._id}/toggle-status`);
-                const updatedUser = response.data.data.user;
-                setUsers(users.map(u => u._id === updatedUser._id ? updatedUser : u));
-            } catch (err: any) {
-                alert(err.response?.data?.message || `Failed to ${action} user`);
-            }
+
+        setConfirmDialog({ open: false, user: null });
+
+        try {
+            const response = await api.patch(`/users/${user._id}/toggle-status`);
+            const updatedUser = response.data.data.user;
+            setUsers(users.map(u => u._id === updatedUser._id ? updatedUser : u));
+            showToast(`User ${updatedUser.isActive ? 'activated' : 'deactivated'} successfully`, 'success');
+        } catch (err: any) {
+            showToast(err.response?.data?.message || `Failed to ${action} user`, 'error');
         }
     };
 
@@ -203,7 +219,7 @@ export default function UserManagementPage() {
                                                 variant={user.isActive ? "outlined" : "contained"}
                                                 color={user.isActive ? "error" : "success"}
                                                 size="small"
-                                                onClick={() => handleToggleStatus(user)}
+                                                onClick={() => handleToggleStatusClick(user)}
                                                 startIcon={user.isActive ? <BlockIcon /> : <CheckCircleIcon />}
                                                 sx={{ borderRadius: 2, textTransform: 'none', fontWeight: 600 }}
                                             >
@@ -239,6 +255,16 @@ export default function UserManagementPage() {
                     onRowsPerPageChange={handleChangeRowsPerPage}
                 />
             </Paper>
+
+            <ConfirmationDialog
+                open={confirmDialog.open}
+                title={confirmDialog.user?.isActive ? "Deactivate User" : "Activate User"}
+                message={`Are you sure you want to ${confirmDialog.user?.isActive ? 'deactivate' : 'activate'} ${confirmDialog.user?.fullName}?`}
+                onConfirm={handleConfirmToggle}
+                onCancel={() => setConfirmDialog({ open: false, user: null })}
+                confirmText={confirmDialog.user?.isActive ? "Deactivate" : "Activate"}
+                severity={confirmDialog.user?.isActive ? "error" : "warning"}
+            />
         </Box>
     );
 }

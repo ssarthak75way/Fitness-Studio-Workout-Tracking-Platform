@@ -1,0 +1,257 @@
+[{
+  "_id": {
+    "$oid": "6992d376dd0d897ee90b5e89"
+  },
+  "user": {
+    "$oid": "6992b53f59a44b83c4462c65"
+  },
+  "title": "Morning Yoga Flow",
+  "date": {
+    "$date": "2026-02-16T08:21:10.828Z"
+  },
+  "durationMinutes": 60,
+  "exercises": [
+    {
+      "name": "Sun Salutations",
+      "sets": [
+        {
+          "reps": 1,
+          "weight": 0
+        },
+        {
+          "reps": 1,
+          "weight": 0
+        },
+        {
+          "reps": 1,
+          "weight": 0
+        },
+        {
+          "reps": 1,
+          "weight": 0
+        },
+        {
+          "reps": 1,
+          "weight": 0
+        }
+      ],
+      "notes": ""
+    },
+    {
+      "name": "Warrior I & II",
+      "sets": [
+        {
+          "reps": 1,
+          "weight": 0
+        },
+        {
+          "reps": 1,
+          "weight": 0
+        }
+      ],
+      "notes": ""
+    },
+    {
+      "name": "Downwards Dog",
+      "sets": [
+        {
+          "reps": 1,
+          "weight": 0
+        },
+        {
+          "reps": 1,
+          "weight": 0
+        },
+        {
+          "reps": 1,
+          "weight": 0
+        }
+      ],
+      "notes": ""
+    },
+    {
+      "name": "Child's Pose",
+      "sets": [
+        {
+          "reps": 1,
+          "weight": 0
+        }
+      ],
+      "notes": ""
+    }
+  ],
+  "notes": "",
+  "createdAt": {
+    "$date": "2026-02-16T08:21:10.920Z"
+  },
+  "updatedAt": {
+    "$date": "2026-02-16T08:21:10.920Z"
+  },
+  "__v": 0
+},
+{
+  "_id": {
+    "$oid": "6992d454dd0d897ee90b6006"
+  },
+  "user": {
+    "$oid": "6992b53f59a44b83c4462c65"
+  },
+  "title": "HIIT Cardio Blast",
+  "date": {
+    "$date": "2026-02-16T08:24:52.807Z"
+  },
+  "durationMinutes": 60,
+  "exercises": [
+    {
+      "name": "Burpees",
+      "sets": [
+        {
+          "reps": 15,
+          "weight": 0
+        },
+        {
+          "reps": 15,
+          "weight": 0
+        },
+        {
+          "reps": 15,
+          "weight": 0
+        },
+        {
+          "reps": 15,
+          "weight": 0
+        }
+      ],
+      "notes": "Max effort."
+    },
+    {
+      "name": "Mountain Climbers",
+      "sets": [
+        {
+          "reps": 30,
+          "weight": 0
+        },
+        {
+          "reps": 30,
+          "weight": 0
+        },
+        {
+          "reps": 30,
+          "weight": 0
+        },
+        {
+          "reps": 30,
+          "weight": 0
+        }
+      ],
+      "notes": ""
+    },
+    {
+      "name": "Jump Squats",
+      "sets": [
+        {
+          "reps": 20,
+          "weight": 0
+        },
+        {
+          "reps": 20,
+          "weight": 0
+        },
+        {
+          "reps": 20,
+          "weight": 0
+        },
+        {
+          "reps": 20,
+          "weight": 0
+        }
+      ],
+      "notes": ""
+    },
+    {
+      "name": "Plank Jacks",
+      "sets": [
+        {
+          "reps": 20,
+          "weight": 0
+        },
+        {
+          "reps": 20,
+          "weight": 0
+        },
+        {
+          "reps": 20,
+          "weight": 0
+        },
+        {
+          "reps": 20,
+          "weight": 0
+        }
+      ],
+      "notes": ""
+    },
+    {
+      "name": "High Knees",
+      "sets": [
+        {
+          "reps": 50,
+          "weight": 0
+        },
+        {
+          "reps": 50,
+          "weight": 0
+        },
+        {
+          "reps": 50,
+          "weight": 0
+        },
+        {
+          "reps": 50,
+          "weight": 0
+        }
+      ],
+      "notes": ""
+    }
+  ],
+  "notes": "",
+  "createdAt": {
+    "$date": "2026-02-16T08:24:52.910Z"
+  },
+  "updatedAt": {
+    "$date": "2026-02-16T08:24:52.910Z"
+  },
+  "__v": 0
+},
+{
+  "_id": {
+    "$oid": "6992f6b76f43a6f3ce04f288"
+  },
+  "user": {
+    "$oid": "6992b53f59a44b83c4462c65"
+  },
+  "title": "Push Day",
+  "date": {
+    "$date": "2026-02-16T10:51:35.229Z"
+  },
+  "durationMinutes": 45,
+  "exercises": [
+    {
+      "name": "Lat pull down",
+      "sets": [
+        {
+          "reps": 10,
+          "weight": 50
+        }
+      ],
+      "notes": "NA"
+    }
+  ],
+  "notes": "NA",
+  "createdAt": {
+    "$date": "2026-02-16T10:51:35.304Z"
+  },
+  "updatedAt": {
+    "$date": "2026-02-16T10:51:35.304Z"
+  },
+  "__v": 0
+}]

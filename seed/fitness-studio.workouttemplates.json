@@ -1,0 +1,262 @@
+[{
+  "_id": {
+    "$oid": "6992c058721d4ecd89c7f1bc"
+  },
+  "name": "Full Body Power",
+  "description": "A comprehensive full-body workout focused on compound movements to build strength and muscle.",
+  "category": "STRENGTH",
+  "difficulty": "INTERMEDIATE",
+  "exercises": [
+    {
+      "name": "Barbell Back Squat",
+      "sets": 4,
+      "reps": 8,
+      "weight": 60,
+      "notes": "Focus on depth and form.",
+      "_id": {
+        "$oid": "6992c058721d4ecd89c7f1bd"
+      }
+    },
+    {
+      "name": "Bench Press",
+      "sets": 4,
+      "reps": 8,
+      "weight": 50,
+      "notes": "Full range of motion.",
+      "_id": {
+        "$oid": "6992c058721d4ecd89c7f1be"
+      }
+    },
+    {
+      "name": "Deadlift",
+      "sets": 3,
+      "reps": 5,
+      "weight": 80,
+      "notes": "Keep back flat.",
+      "_id": {
+        "$oid": "6992c058721d4ecd89c7f1bf"
+      }
+    },
+    {
+      "name": "Overhead Press",
+      "sets": 3,
+      "reps": 10,
+      "weight": 30,
+      "_id": {
+        "$oid": "6992c058721d4ecd89c7f1c0"
+      }
+    },
+    {
+      "name": "Pull Ups",
+      "sets": 3,
+      "reps": 8,
+      "_id": {
+        "$oid": "6992c058721d4ecd89c7f1c1"
+      }
+    }
+  ],
+  "createdBy": {
+    "$oid": "6992b8c759a44b83c4462d99"
+  },
+  "isPublic": true,
+  "__v": 0,
+  "createdAt": {
+    "$date": "2026-02-16T06:59:36.175Z"
+  },
+  "updatedAt": {
+    "$date": "2026-02-16T06:59:36.175Z"
+  }
+},
+{
+  "_id": {
+    "$oid": "6992c058721d4ecd89c7f1c2"
+  },
+  "name": "HIIT Cardio Blast",
+  "description": "High Intensity Interval Training to maximize calorie burn and improve cardiovascular fitness.",
+  "category": "HIIT",
+  "difficulty": "ADVANCED",
+  "exercises": [
+    {
+      "name": "Burpees",
+      "sets": 4,
+      "reps": 15,
+      "duration": 60,
+      "notes": "Max effort.",
+      "_id": {
+        "$oid": "6992c058721d4ecd89c7f1c3"
+      }
+    },
+    {
+      "name": "Mountain Climbers",
+      "sets": 4,
+      "reps": 30,
+      "duration": 60,
+      "_id": {
+        "$oid": "6992c058721d4ecd89c7f1c4"
+      }
+    },
+    {
+      "name": "Jump Squats",
+      "sets": 4,
+      "reps": 20,
+      "duration": 60,
+      "_id": {
+        "$oid": "6992c058721d4ecd89c7f1c5"
+      }
+    },
+    {
+      "name": "Plank Jacks",
+      "sets": 4,
+      "reps": 20,
+      "duration": 60,
+      "_id": {
+        "$oid": "6992c058721d4ecd89c7f1c6"
+      }
+    },
+    {
+      "name": "High Knees",
+      "sets": 4,
+      "reps": 50,
+      "duration": 60,
+      "_id": {
+        "$oid": "6992c058721d4ecd89c7f1c7"
+      }
+    }
+  ],
+  "createdBy": {
+    "$oid": "6992b8c759a44b83c4462d99"
+  },
+  "isPublic": true,
+  "__v": 0,
+  "createdAt": {
+    "$date": "2026-02-16T06:59:36.175Z"
+  },
+  "updatedAt": {
+    "$date": "2026-02-16T06:59:36.175Z"
+  }
+},
+{
+  "_id": {
+    "$oid": "6992c058721d4ecd89c7f1c8"
+  },
+  "name": "Morning Yoga Flow",
+  "description": "A gentle yoga sequence to improve flexibility and start your day with mindfulness.",
+  "category": "FLEXIBILITY",
+  "difficulty": "BEGINNER",
+  "exercises": [
+    {
+      "name": "Sun Salutations",
+      "sets": 5,
+      "reps": 1,
+      "duration": 300,
+      "_id": {
+        "$oid": "6992c058721d4ecd89c7f1c9"
+      }
+    },
+    {
+      "name": "Warrior I & II",
+      "sets": 2,
+      "reps": 1,
+      "duration": 120,
+      "_id": {
+        "$oid": "6992c058721d4ecd89c7f1ca"
+      }
+    },
+    {
+      "name": "Downwards Dog",
+      "sets": 3,
+      "reps": 1,
+      "duration": 60,
+      "_id": {
+        "$oid": "6992c058721d4ecd89c7f1cb"
+      }
+    },
+    {
+      "name": "Child's Pose",
+      "sets": 1,
+      "reps": 1,
+      "duration": 180,
+      "_id": {
+        "$oid": "6992c058721d4ecd89c7f1cc"
+      }
+    }
+  ],
+  "createdBy": {
+    "$oid": "6992b8c759a44b83c4462d99"
+  },
+  "isPublic": true,
+  "__v": 0,
+  "createdAt": {
+    "$date": "2026-02-16T06:59:36.175Z"
+  },
+  "updatedAt": {
+    "$date": "2026-02-16T06:59:36.175Z"
+  }
+},
+{
+  "_id": {
+    "$oid": "6992c058721d4ecd89c7f1cd"
+  },
+  "name": "Upper Body Pump",
+  "description": "Focused workout on chest, back, shoulders, and arms.",
+  "category": "STRENGTH",
+  "difficulty": "INTERMEDIATE",
+  "exercises": [
+    {
+      "name": "Incline Dumbbell Press",
+      "sets": 3,
+      "reps": 12,
+      "weight": 20,
+      "_id": {
+        "$oid": "6992c058721d4ecd89c7f1ce"
+      }
+    },
+    {
+      "name": "Bent Over Rows",
+      "sets": 3,
+      "reps": 12,
+      "weight": 40,
+      "_id": {
+        "$oid": "6992c058721d4ecd89c7f1cf"
+      }
+    },
+    {
+      "name": "Lateral Raises",
+      "sets": 3,
+      "reps": 15,
+      "weight": 7.5,
+      "_id": {
+        "$oid": "6992c058721d4ecd89c7f1d0"
+      }
+    },
+    {
+      "name": "Bicep Curls",
+      "sets": 3,
+      "reps": 12,
+      "weight": 12.5,
+      "_id": {
+        "$oid": "6992c058721d4ecd89c7f1d1"
+      }
+    },
+    {
+      "name": "Tricep Pushdowns",
+      "sets": 3,
+      "reps": 12,
+      "weight": 25,
+      "_id": {
+        "$oid": "6992c058721d4ecd89c7f1d2"
+      }
+    }
+  ],
+  "createdBy": {
+    "$oid": "6992b8c759a44b83c4462d99"
+  },
+  "isPublic": true,
+  "__v": 0,
+  "createdAt": {
+    "$date": "2026-02-16T06:59:36.175Z"
+  },
+  "updatedAt": {
+    "$date": "2026-02-16T06:59:36.175Z"
+  }
+}]

@@ -4,8 +4,10 @@ import {
   Button, Typography, Box, Chip, Divider, Alert
 } from '@mui/material';
 import { useState } from 'react';
+import { Link } from 'react-router-dom';
 import api from '../../services/api';
 import { useAuth } from '../../context/AuthContext';
+import { useToast } from '../../context/ToastContext';
 import AccessTimeIcon from '@mui/icons-material/AccessTime';
 import PersonIcon from '@mui/icons-material/Person';
 import LocationOnIcon from '@mui/icons-material/LocationOn';
@@ -17,7 +19,11 @@ interface ClassEventProps {
   start: Date;
   end: Date;
   extendedProps: {
-    instructorName: string;
+    instructor?: {
+      _id: string;
+      fullName: string;
+    };
+    instructorName?: string; // Fallback
     description?: string;
     capacity: number;
     enrolledCount: number;
@@ -34,6 +40,7 @@ interface Props {
 
 export default function ClassDetailsModal({ event, open, onClose, onBookingSuccess }: Props) {
   const { user } = useAuth();
+  const { showToast } = useToast();
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -41,6 +48,10 @@ export default function ClassDetailsModal({ event, open, onClose, onBookingSucce
 
   const isFull = event.extendedProps.enrolledCount >= event.extendedProps.capacity;
   const spotsLeft = event.extendedProps.capacity - event.extendedProps.enrolledCount;
+  const instructor = event.extendedProps.instructor;
+  const instructorName = instructor?.fullName || event.extendedProps.instructorName || 'TBA';
+
+  // ... (booking logic remains the same)
 
   const handleBook = async () => {
     setLoading(true);
@@ -49,7 +60,7 @@ export default function ClassDetailsModal({ event, open, onClose, onBookingSucce
       await api.post('/bookings', { classId: event.id });
       onBookingSuccess(); // Refresh calendar
       onClose();
-      alert('Class booked successfully!');
+      showToast(isFull ? 'You have been added to the waitlist!' : 'Class booked successfully!', 'success');
     } catch (err: any) {
       setError(err.response?.data?.message || 'Failed to book class');
     } finally {
@@ -59,11 +70,11 @@ export default function ClassDetailsModal({ event, open, onClose, onBookingSucce
 
   return (
     <Dialog open={open} onClose={onClose} fullWidth maxWidth="sm">
-      <DialogTitle sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+      <DialogTitle component="div" sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
         {event.title}
         <Chip
-          label={isFull ? "FULL" : `${spotsLeft} spots left`}
-          color={isFull ? "error" : "success"}
+          label={isFull ? "WAITLIST OPEN" : `${spotsLeft} spots left`}
+          color={isFull ? "warning" : "success"}
           size="small"
         />
       </DialogTitle>
@@ -81,7 +92,16 @@ export default function ClassDetailsModal({ event, open, onClose, onBookingSucce
 
         <Box sx={{ display: 'flex', alignItems: 'center', mb: 1, gap: 1 }}>
           <PersonIcon color="action" />
-          <Typography>Instructor: {event.extendedProps.instructorName}</Typography>
+          <Typography>
+            Instructor: {' '}
+            {instructor ? (
+              <Link to={`/instructors/${instructor._id}`} style={{ textDecoration: 'none', color: '#1976d2', fontWeight: 600 }}>
+                {instructorName}
+              </Link>
+            ) : (
+              instructorName
+            )}
+          </Typography>
         </Box>
 
         {event.extendedProps.location && (
@@ -115,10 +135,10 @@ export default function ClassDetailsModal({ event, open, onClose, onBookingSucce
           <Button
             variant="contained"
             onClick={handleBook}
-            disabled={loading || isFull}
-            color="primary"
+            disabled={loading}
+            color={isFull ? "warning" : "primary"}
           >
-            {loading ? 'Booking...' : isFull ? 'Join Waitlist' : 'Book Class'}
+            {loading ? 'Processing...' : isFull ? 'Join Waitlist' : 'Book Class'}
           </Button>
         )}
       </DialogActions>

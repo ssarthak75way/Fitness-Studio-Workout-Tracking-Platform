@@ -1,0 +1,121 @@
+[{
+  "_id": {
+    "$oid": "6992b58059a44b83c4462cd1"
+  },
+  "user": {
+    "$oid": "6992b53f59a44b83c4462c65"
+  },
+  "type": "MONTHLY",
+  "endDate": {
+    "$date": "2026-03-16T06:13:20.139Z"
+  },
+  "isActive": false,
+  "startDate": {
+    "$date": "2026-02-16T06:13:20.140Z"
+  },
+  "__v": 0
+},
+{
+  "_id": {
+    "$oid": "6992b58259a44b83c4462cd7"
+  },
+  "user": {
+    "$oid": "6992b53f59a44b83c4462c65"
+  },
+  "type": "ANNUAL",
+  "endDate": {
+    "$date": "2027-02-16T06:13:22.050Z"
+  },
+  "isActive": false,
+  "startDate": {
+    "$date": "2026-02-16T06:13:22.050Z"
+  },
+  "__v": 0
+},
+{
+  "_id": {
+    "$oid": "6992b58259a44b83c4462cdd"
+  },
+  "user": {
+    "$oid": "6992b53f59a44b83c4462c65"
+  },
+  "type": "CLASS_PACK_10",
+  "creditsRemaining": 4,
+  "isActive": true,
+  "startDate": {
+    "$date": "2026-02-16T06:13:22.646Z"
+  },
+  "__v": 0
+},
+{
+  "_id": {
+    "$oid": "6992bf51b03cb462f3459415"
+  },
+  "user": {
+    "$oid": "6992b8c759a44b83c4462d99"
+  },
+  "type": "MONTHLY",
+  "endDate": {
+    "$date": "2026-03-16T06:55:13.983Z"
+  },
+  "isActive": false,
+  "startDate": {
+    "$date": "2026-02-16T06:55:13.985Z"
+  },
+  "__v": 0
+},
+{
+  "_id": {
+    "$oid": "6992e605dd0d897ee90b63e2"
+  },
+  "user": {
+    "$oid": "6992b8c759a44b83c4462d99"
+  },
+  "type": "ANNUAL",
+  "endDate": {
+    "$date": "2027-02-16T09:40:21.326Z"
+  },
+  "isActive": false,
+  "startDate": {
+    "$date": "2026-02-16T09:40:21.328Z"
+  },
+  "__v": 0
+},
+{
+  "_id": {
+    "$oid": "6992fd89bb4513e9c255ceea"
+  },
+  "user": {
+    "$oid": "6992b8c759a44b83c4462d99"
+  },
+  "type": "MONTHLY",
+  "endDate": {
+    "$date": "2026-03-16T11:20:41.203Z"
+  },
+  "isActive": false,
+  "paymentId": "pay_SGnZFOpUipHTil",
+  "paymentOrderId": "order_SGnYcJAsFtnZ0h",
+  "startDate": {
+    "$date": "2026-02-16T11:20:41.206Z"
+  },
+  "__v": 0
+},
+{
+  "_id": {
+    "$oid": "6992ffccbb4513e9c255cf4f"
+  },
+  "user": {
+    "$oid": "6992b8c759a44b83c4462d99"
+  },
+  "type": "ANNUAL",
+  "endDate": {
+    "$date": "2027-02-16T11:30:20.620Z"
+  },
+  "isActive": true,
+  "paymentId": "pay_SGnjSsQVq0tnIV",
+  "paymentOrderId": "order_SGniQsnkn9yURH",
+  "startDate": {
+    "$date": "2026-02-16T11:30:20.621Z"
+  },
+  "__v": 0
+}]

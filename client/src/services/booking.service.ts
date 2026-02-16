@@ -20,4 +20,14 @@ export const bookingService = {
         const response = await api.post('/bookings/check-in', { qrCode });
         return response.data;
     },
+
+    getClassBookings: async (classSessionId: string) => {
+        const response = await api.get(`/bookings/class/${classSessionId}`);
+        return response.data;
+    },
+
+    manualCheckIn: async (id: string) => {
+        const response = await api.post(`/bookings/${id}/manual-check-in`);
+        return response.data;
+    },
 };

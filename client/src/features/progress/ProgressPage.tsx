@@ -479,7 +479,7 @@ export default function ProgressPage() {
         fullWidth
         PaperProps={{ sx: { borderRadius: 3 } }}
       >
-        <DialogTitle sx={{ pb: 1 }}>
+        <DialogTitle component="div" sx={{ pb: 1 }}>
           <Typography variant="h5" fontWeight={700}>Add Body Metrics</Typography>
         </DialogTitle>
         <DialogContent>

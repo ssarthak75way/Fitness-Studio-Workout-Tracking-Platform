@@ -241,7 +241,7 @@ export default function WorkoutTemplatesPage() {
             >
                 {viewTemplate && (
                     <>
-                        <DialogTitle sx={{ pb: 1 }}>
+                        <DialogTitle component="div" sx={{ pb: 1 }}>
                             <Typography variant="h5" fontWeight="800">{viewTemplate.name}</Typography>
                             <Typography variant="body2" color="text.secondary">{viewTemplate.description}</Typography>
                         </DialogTitle>
