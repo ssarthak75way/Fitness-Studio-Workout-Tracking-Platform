@@ -2,7 +2,7 @@ import mongoose, { Schema, Document, Types } from 'mongoose';
 
 export interface INotification extends Document {
     user: Types.ObjectId;
-    type: 'CLASS_REMINDER' | 'CLASS_CANCELLED' | 'WAITLIST_PROMOTED' | 'PROMOTION' | 'BOOKING_CONFIRMATION';
+    type: 'CLASS_REMINDER' | 'CLASS_CANCELLED' | 'WAITLIST_NOTIFICATION' | 'PROMOTION' | 'BOOKING_CONFIRMATION';
     message: string;
     relatedClass?: Types.ObjectId;
     isRead: boolean;
@@ -14,7 +14,7 @@ const NotificationSchema = new Schema<INotification>(
         user: { type: Schema.Types.ObjectId, ref: 'User', required: true, index: true },
         type: {
             type: String,
-            enum: ['CLASS_REMINDER', 'CLASS_CANCELLED', 'WAITLIST_PROMOTED', 'PROMOTION', 'BOOKING_CONFIRMATION'],
+            enum: ['CLASS_REMINDER', 'CLASS_CANCELLED', 'WAITLIST_NOTIFICATION', 'PROMOTION', 'BOOKING_CONFIRMATION'],
             required: true,
         },
         message: { type: String, required: true },

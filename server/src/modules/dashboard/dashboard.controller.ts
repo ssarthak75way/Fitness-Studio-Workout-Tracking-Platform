@@ -76,8 +76,16 @@ export const getDashboardStatsHandler = async (req: Request, res: Response, next
         ? ratings.reduce((sum, r) => sum + r.rating, 0) / ratings.length
         : 0;
 
+      const upcomingClasses = await ClassSessionModel.find({
+        instructor: userId,
+        startTime: { $gt: todayEnd },
+      })
+        .sort({ startTime: 1 })
+        .limit(5);
+
       stats = {
         todaysClasses,
+        upcomingClasses,
         totalClasses,
         averageRating: avgRating.toFixed(1),
         totalRatings: ratings.length,
@@ -90,12 +98,18 @@ export const getDashboardStatsHandler = async (req: Request, res: Response, next
       const totalClasses = await ClassSessionModel.countDocuments();
       const totalBookings = await BookingModel.countDocuments({ status: BookingStatus.CONFIRMED });
 
+      const recentUsers = await UserModel.find()
+        .sort({ createdAt: -1 })
+        .limit(5)
+        .select('fullName email role createdAt');
+
       stats = {
         totalUsers,
         totalMembers,
         totalInstructors,
         totalClasses,
         totalBookings,
+        recentUsers,
       };
     }
 

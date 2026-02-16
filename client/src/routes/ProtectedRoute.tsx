@@ -16,7 +16,7 @@ export default function ProtectedRoute({ allowedRoles }: { allowedRoles?: string
 
   // 1. Check if user is logged in
   if (!isAuthenticated) {
-    return <Navigate to="/auth/login" state={{ from: location }} replace />;
+    return <Navigate to="/login" state={{ from: location }} replace />;
   }
 
   // 2. Check Role (Optional RBAC)

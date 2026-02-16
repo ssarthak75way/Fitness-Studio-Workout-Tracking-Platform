@@ -13,6 +13,8 @@ export interface IMembership extends Document {
   endDate?: Date; // For subscriptions
   creditsRemaining?: number; // For class packs
   isActive: boolean;
+  paymentId?: string;
+  paymentOrderId?: string;
 }
 
 const MembershipSchema = new Schema<IMembership>({
@@ -22,6 +24,8 @@ const MembershipSchema = new Schema<IMembership>({
   endDate: { type: Date },
   creditsRemaining: { type: Number }, // Only for packs
   isActive: { type: Boolean, default: true },
+  paymentId: { type: String },
+  paymentOrderId: { type: String },
 });
 
 export const MembershipModel = mongoose.model<IMembership>('Membership', MembershipSchema);

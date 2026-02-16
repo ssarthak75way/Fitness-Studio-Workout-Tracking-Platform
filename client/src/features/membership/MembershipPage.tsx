@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import {
-    Box, Typography, Card, CardContent, Button, Alert, Chip, Divider,
+    Box, Typography, Card, CardContent, Button, Chip, Divider,
     List, ListItem, ListItemIcon, ListItemText, useTheme, alpha, Grid
 } from '@mui/material';
 import { membershipService } from '../../services/index';
@@ -10,12 +10,16 @@ import ScheduleIcon from '@mui/icons-material/Schedule';
 import FitnessCenterIcon from '@mui/icons-material/FitnessCenter';
 import WorkspacePremiumIcon from '@mui/icons-material/WorkspacePremium';
 import { motion } from 'framer-motion';
+import api from '../../services/api';
+import { useAuth } from '../../context/AuthContext';
+import { useToast } from '../../context/ToastContext';
+import ConfirmationDialog from '../../components/common/ConfirmationDialog';
 
 const PLANS = [
     {
         type: 'MONTHLY',
         name: 'Monthly Unlimited',
-        price: '$99',
+        price: '₹99',
         period: '/month',
         description: 'Perfect for consistent training.',
         features: ['Unlimited classes', 'Access to all locations', 'Free towel service', '1 Guest pass/month'],
@@ -25,7 +29,7 @@ const PLANS = [
     {
         type: 'ANNUAL',
         name: 'Annual Unlimited',
-        price: '$999',
+        price: '₹10',
         period: '/year',
         description: 'Best value for committed athletes.',
         features: ['All Monthly benefits', 'Save $189/year', 'Exlusive workshops', 'Priority booking', 'Free merchandise pack'],
@@ -35,7 +39,7 @@ const PLANS = [
     {
         type: 'CLASS_PACK_10',
         name: '10 Class Pack',
-        price: '$150',
+        price: '₹150',
         period: '',
         description: 'Flexible option for busy schedules.',
         features: ['10 class credits', 'Never expires', 'Shareable with 1 friend', 'Valid at home location'],
@@ -46,8 +50,9 @@ const PLANS = [
 
 export default function MembershipPage() {
     const theme = useTheme();
+    const { user } = useAuth();
     const [membership, setMembership] = useState<any>(null);
-    const [message, setMessage] = useState('');
+
     const [loading, setLoading] = useState(false);
 
     useEffect(() => {
@@ -63,17 +68,76 @@ export default function MembershipPage() {
         }
     };
 
-    const handlePurchase = async (type: string) => {
-        if (!window.confirm(`Are you sure you want to purchase the ${type.replace('_', ' ')} plan?`)) return;
+    const { showToast } = useToast();
+    const [confirmDialog, setConfirmDialog] = useState<{ open: boolean; type: string | null }>({ open: false, type: null });
 
+    const initiatePurchase = (type: string) => {
+        setConfirmDialog({ open: true, type });
+    };
+
+    const handlePurchaseConfirm = async () => {
+        if (!confirmDialog.type) return;
+        const type = confirmDialog.type;
+        setConfirmDialog({ open: false, type: null });
         setLoading(true);
+
         try {
-            await membershipService.createMembership(type);
-            setMessage('Membership purchased successfully!');
-            fetchMembership();
-            setTimeout(() => setMessage(''), 3000);
+            // 0. Check if Razorpay is loaded
+            if (!(window as any).Razorpay) {
+                showToast('Razorpay SDK failed to load. Please check your internet connection.', 'error');
+                setLoading(false);
+                return;
+            }
+
+            // 1. Create Order
+            const orderRes = await api.post('/memberships/create-order', { type });
+            const { order, key } = orderRes.data.data;
+
+            // 2. Open Razorpay
+            const options = {
+                key: import.meta.env.VITE_RAZORPAY_KEY_ID || key,
+                amount: order.amount,
+                currency: order.currency,
+                name: "Fitness Studio",
+                description: `Membership: ${type.replace('_', ' ')}`,
+                order_id: order.id,
+                handler: async (response: any) => {
+                    try {
+                        // 3. Verify Payment
+                        await api.post('/memberships/verify-payment', {
+                            razorpay_order_id: response.razorpay_order_id,
+                            razorpay_payment_id: response.razorpay_payment_id,
+                            razorpay_signature: response.razorpay_signature,
+                            type
+                        });
+                        showToast('Membership activated successfully!', 'success');
+                        fetchMembership();
+                    } catch (verifyError) {
+                        console.error(verifyError);
+                        showToast('Payment verification failed. Please contact support.', 'error');
+                    }
+                },
+                prefill: {
+                    name: user?.fullName || "User",
+                    email: user?.email || "",
+                },
+                theme: {
+                    color: theme.palette.primary.main,
+                },
+            };
+
+            const rzp = new (window as any).Razorpay(options);
+
+            rzp.on('payment.failed', (response: any) => {
+                console.error('Razorpay Payment Failed:', response.error);
+                showToast(`Payment failed: ${response.error.description}`, 'error');
+            });
+
+            rzp.open();
+
         } catch (error: any) {
-            setMessage(error.response?.data?.message || 'Purchase failed');
+            console.error(error);
+            showToast(error.response?.data?.message || 'Failed to initiate payment', 'error');
         } finally {
             setLoading(false);
         }
@@ -98,14 +162,7 @@ export default function MembershipPage() {
                 </Typography>
             </Box>
 
-            {message && (
-                <Alert
-                    severity={message.includes('success') ? 'success' : 'error'}
-                    sx={{ mb: 4, borderRadius: 2, boxShadow: theme.shadows[2] }}
-                >
-                    {message}
-                </Alert>
-            )}
+
 
             {/* Current Membership Card */}
             <Card sx={{
@@ -297,7 +354,7 @@ export default function MembershipPage() {
                                         fullWidth
                                         variant={plan.popular ? "contained" : "outlined"}
                                         color={plan.popular ? "secondary" : "primary"}
-                                        onClick={() => handlePurchase(plan.type)}
+                                        onClick={() => initiatePurchase(plan.type)}
                                         disabled={loading || (membership?.isActive && membership?.type === plan.type)}
                                         size="large"
                                         sx={{
@@ -319,6 +376,15 @@ export default function MembershipPage() {
                     </Grid>
                 ))}
             </Grid>
+
+            <ConfirmationDialog
+                open={confirmDialog.open}
+                title="Confirm Purchase"
+                message={`Are you sure you want to purchase the ${confirmDialog.type?.replace('_', ' ')} plan?`}
+                onConfirm={handlePurchaseConfirm}
+                onCancel={() => setConfirmDialog({ open: false, type: null })}
+                confirmText="Proceed to Pay"
+            />
         </Box>
     );
 }

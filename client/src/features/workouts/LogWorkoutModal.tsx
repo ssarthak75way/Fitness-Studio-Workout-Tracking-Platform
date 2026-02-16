@@ -10,6 +10,7 @@ import {
 import DeleteIcon from '@mui/icons-material/Delete';
 import AddCircleOutlineIcon from '@mui/icons-material/AddCircleOutline';
 import api from '../../services/api';
+import { useToast } from '../../context/ToastContext';
 
 // Validation Schema
 const setSchema = z.object({
@@ -40,6 +41,7 @@ interface LogWorkoutModalProps {
 }
 
 export default function LogWorkoutModal({ open, onClose, onSuccess, initialValues }: LogWorkoutModalProps) {
+  const { showToast } = useToast();
   const { control, register, handleSubmit, reset, formState: { errors } } = useForm<WorkoutFormValues>({
     resolver: zodResolver(workoutSchema) as any,
     defaultValues: {
@@ -71,11 +73,12 @@ export default function LogWorkoutModal({ open, onClose, onSuccess, initialValue
     try {
       await api.post('/workouts', { ...data, date: new Date().toISOString() });
       onSuccess();
+      showToast('Workout logged successfully!', 'success');
       reset();
       onClose();
     } catch (err) {
       console.error(err);
-      alert('Failed to save workout');
+      showToast('Failed to save workout', 'error');
     }
   };
 

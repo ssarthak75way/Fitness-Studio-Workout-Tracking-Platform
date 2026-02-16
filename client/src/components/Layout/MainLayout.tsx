@@ -4,7 +4,32 @@ import { Box, CssBaseline, AppBar, Toolbar, IconButton, Typography } from '@mui/
 import MenuIcon from '@mui/icons-material/Menu';
 import Sidebar from './Sidebar';
 
-const drawerWidth = 240;
+const drawerWidth = 280;
+
+const styles = {
+  root: {
+    display: 'flex',
+  },
+  appBar: {
+    width: { sm: `calc(100% - ${drawerWidth}px)` },
+    ml: { sm: `${drawerWidth}px` },
+  },
+  menuButton: {
+    mr: 2,
+    display: { sm: 'none' },
+  },
+  sidebar: {
+    width: { sm: drawerWidth },
+    flexShrink: { sm: 0 },
+  },
+  mainContent: {
+    flexGrow: 1,
+    p: 3,
+    width: { sm: `calc(100% - ${drawerWidth}px)` },
+    minHeight: '100vh',
+    bgcolor: 'background.default',
+  },
+};
 
 export default function MainLayout() {
   const [mobileOpen, setMobileOpen] = useState(false);
@@ -14,16 +39,13 @@ export default function MainLayout() {
   };
 
   return (
-    <Box sx={{ display: 'flex' }}>
+    <Box sx={styles.root}>
       <CssBaseline />
-      
+
       {/* Top App Bar */}
       <AppBar
         position="fixed"
-        sx={{
-          width: { sm: `calc(100% - ${drawerWidth}px)` },
-          ml: { sm: `${drawerWidth}px` },
-        }}
+        sx={styles.appBar}
       >
         <Toolbar>
           <IconButton
@@ -31,7 +53,7 @@ export default function MainLayout() {
             aria-label="open drawer"
             edge="start"
             onClick={handleDrawerToggle}
-            sx={{ mr: 2, display: { sm: 'none' } }}
+            sx={styles.menuButton}
           >
             <MenuIcon />
           </IconButton>
@@ -47,16 +69,10 @@ export default function MainLayout() {
       {/* Main Content Area */}
       <Box
         component="main"
-        sx={{
-          flexGrow: 1,
-          p: 3,
-          width: { sm: `calc(100% - ${drawerWidth}px)` },
-          minHeight: '100vh',
-          bgcolor: 'background.default'
-        }}
+        sx={styles.mainContent}
       >
         <Toolbar /> {/* Spacer for AppBar */}
-        
+
         {/* React Router v7 Outlet - This is where your page content renders */}
         <Outlet />
       </Box>

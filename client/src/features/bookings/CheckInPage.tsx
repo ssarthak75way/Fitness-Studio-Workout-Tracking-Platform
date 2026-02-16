@@ -9,15 +9,134 @@ import CheckCircleIcon from '@mui/icons-material/CheckCircle';
 import ErrorIcon from '@mui/icons-material/Error';
 import { Html5QrcodeScanner } from 'html5-qrcode';
 import { bookingService } from '../../services/booking.service';
+import { classService } from '../../services/class.service';
+import { useToast } from '../../context/ToastContext';
 import { motion, AnimatePresence } from 'framer-motion';
+import PeopleIcon from '@mui/icons-material/People';
+import {
+    List, ListItem, ListItemAvatar, Avatar, ListItemText,
+    Divider, Chip, MenuItem, Select, FormControl, InputLabel
+} from '@mui/material';
+
+const styles = {
+    pageTitle: (theme: any) => ({
+        background: `linear-gradient(45deg, ${theme.palette.primary.main} 30%, ${theme.palette.secondary.main} 90%)`,
+        WebkitBackgroundClip: 'text',
+        WebkitTextFillColor: 'transparent',
+        mb: 1
+    }),
+    toggleButtonGroup: (theme: any) => ({
+        bgcolor: theme.palette.background.paper,
+        boxShadow: theme.shadows[1],
+        borderRadius: 2,
+        '& .MuiToggleButton-root': {
+            px: 3,
+            py: 1,
+            borderRadius: 2,
+            border: 'none',
+            textTransform: 'none',
+            fontWeight: 600,
+            '&.Mui-selected': {
+                bgcolor: alpha(theme.palette.primary.main, 0.1),
+                color: theme.palette.primary.main,
+                '&:hover': {
+                    bgcolor: alpha(theme.palette.primary.main, 0.2),
+                }
+            }
+        }
+    }),
+    toggleIcon: { mr: 1 },
+    resultCard: (theme: any, success: boolean) => ({
+        borderRadius: 4,
+        boxShadow: theme.shadows[4],
+        textAlign: 'center',
+        overflow: 'hidden',
+        border: `1px solid ${success ? theme.palette.success.light : theme.palette.error.light}`
+    }),
+    resultIconContainer: (theme: any, success: boolean) => ({
+        bgcolor: success ? alpha(theme.palette.success.main, 0.1) : alpha(theme.palette.error.main, 0.1),
+        py: 4
+    }),
+    resultIcon: (theme: any, success: boolean) => ({
+        fontSize: 80,
+        color: success ? theme.palette.success.main : theme.palette.error.main
+    }),
+    resultButton: { borderRadius: 2, px: 4 },
+    contentCard: (theme: any) => ({
+        borderRadius: 4,
+        boxShadow: theme.shadows[2],
+        overflow: 'hidden',
+        background: theme.palette.background.paper
+    }),
+    cameraContainer: (theme: any) => ({
+        borderRadius: 2,
+        overflow: 'hidden',
+        border: `2px dashed ${theme.palette.divider}`,
+        bgcolor: '#000',
+        minHeight: 300,
+        position: 'relative'
+    }),
+    manualField: { mb: 3 },
+    manualFieldInput: { borderRadius: 2 },
+    manualSubmitButton: { borderRadius: 2, py: 1.5, fontWeight: 700 },
+    classSelect: { borderRadius: 2 },
+    attendeesList: (theme: any) => ({
+        bgcolor: theme.palette.background.paper,
+        borderRadius: 2,
+        border: `1px solid ${theme.palette.divider}`,
+        overflow: 'hidden'
+    }),
+    attendeeAvatar: (theme: any) => ({ bgcolor: theme.palette.primary.main }),
+    attendeeChip: { fontWeight: 700, fontSize: '0.65rem', borderRadius: 1 },
+    attendeeButton: { borderRadius: 1.5, minWidth: 80, fontSize: '0.75rem' }
+};
 
 export default function CheckInPage() {
     const theme = useTheme();
+    const { showToast } = useToast();
     const [qrData, setQrData] = useState('');
     const [loading, setLoading] = useState(false);
     const [result, setResult] = useState<{ success: boolean; message: string } | null>(null);
-    const [mode, setMode] = useState<'camera' | 'manual'>('camera');
+    const [mode, setMode] = useState<'camera' | 'manual' | 'list'>('camera');
+    const [classes, setClasses] = useState<any[]>([]);
+    const [selectedClassId, setSelectedClassId] = useState('');
+    const [attendees, setAttendees] = useState<any[]>([]);
     const scannerRef = useRef<Html5QrcodeScanner | null>(null);
+
+    useEffect(() => {
+        fetchTodayClasses();
+    }, []);
+
+    const fetchTodayClasses = async () => {
+        try {
+            const today = new Date().toISOString().split('T')[0];
+            const response = await classService.getClasses({
+                startDate: today,
+                endDate: today
+            });
+            setClasses(response.data.classes);
+        } catch (error) {
+            console.error("Failed to fetch classes:", error);
+        }
+    };
+
+    const fetchAttendees = async (classId: string) => {
+        setLoading(true);
+        try {
+            const response = await bookingService.getClassBookings(classId);
+            setAttendees(response.data.bookings);
+        } catch (error) {
+            console.error("Failed to fetch attendees:", error);
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    useEffect(() => {
+        if (selectedClassId) {
+            fetchAttendees(selectedClassId);
+        }
+    }, [selectedClassId]);
 
     useEffect(() => {
         // Cleanup function to clear scanner when component unmounts or mode changes
@@ -88,6 +207,16 @@ export default function CheckInPage() {
         if (qrData) processCheckIn(qrData);
     };
 
+    const handleManualCheckIn = async (bookingId: string) => {
+        try {
+            await bookingService.manualCheckIn(bookingId);
+            if (selectedClassId) fetchAttendees(selectedClassId);
+            showToast('Student checked in successfully!', 'success');
+        } catch (error: any) {
+            showToast(error.response?.data?.message || 'Check-in failed', 'error');
+        }
+    };
+
     const handleReset = () => {
         setResult(null);
         setQrData('');
@@ -100,16 +229,11 @@ export default function CheckInPage() {
     return (
         <Box maxWidth={600} mx="auto" px={2} py={4}>
             <Box mb={4} textAlign="center">
-                <Typography variant="h3" fontWeight={800} sx={{
-                    background: `linear-gradient(45deg, ${theme.palette.primary.main} 30%, ${theme.palette.secondary.main} 90%)`,
-                    WebkitBackgroundClip: 'text',
-                    WebkitTextFillColor: 'transparent',
-                    mb: 1
-                }}>
+                <Typography variant="h3" fontWeight={800} sx={styles.pageTitle(theme)}>
                     Check-In
                 </Typography>
                 <Typography variant="body1" color="text.secondary">
-                    Scan member QR code or enter code manually.
+                    Scan member QR code, enter code, or select from class list.
                 </Typography>
             </Box>
 
@@ -124,32 +248,16 @@ export default function CheckInPage() {
                         }
                     }}
                     aria-label="check-in mode"
-                    sx={{
-                        bgcolor: theme.palette.background.paper,
-                        boxShadow: theme.shadows[1],
-                        borderRadius: 2,
-                        '& .MuiToggleButton-root': {
-                            px: 3,
-                            py: 1,
-                            borderRadius: 2,
-                            border: 'none',
-                            textTransform: 'none',
-                            fontWeight: 600,
-                            '&.Mui-selected': {
-                                bgcolor: alpha(theme.palette.primary.main, 0.1),
-                                color: theme.palette.primary.main,
-                                '&:hover': {
-                                    bgcolor: alpha(theme.palette.primary.main, 0.2),
-                                }
-                            }
-                        }
-                    }}
+                    sx={styles.toggleButtonGroup(theme)}
                 >
                     <ToggleButton value="camera" aria-label="camera scan">
-                        <QrCodeScannerIcon sx={{ mr: 1 }} /> Camera
+                        <QrCodeScannerIcon sx={styles.toggleIcon} /> QR Scan
                     </ToggleButton>
                     <ToggleButton value="manual" aria-label="manual entry">
-                        <KeyboardIcon sx={{ mr: 1 }} /> Manual
+                        <KeyboardIcon sx={styles.toggleIcon} /> Code
+                    </ToggleButton>
+                    <ToggleButton value="list" aria-label="class list">
+                        <PeopleIcon sx={styles.toggleIcon} /> Class List
                     </ToggleButton>
                 </ToggleButtonGroup>
             </Box>
@@ -162,21 +270,12 @@ export default function CheckInPage() {
                         animate={{ opacity: 1, scale: 1 }}
                         exit={{ opacity: 0, scale: 0.9 }}
                     >
-                        <Card sx={{
-                            borderRadius: 4,
-                            boxShadow: theme.shadows[4],
-                            textAlign: 'center',
-                            overflow: 'hidden',
-                            border: `1px solid ${result.success ? theme.palette.success.light : theme.palette.error.light}`
-                        }}>
-                            <Box sx={{
-                                bgcolor: result.success ? alpha(theme.palette.success.main, 0.1) : alpha(theme.palette.error.main, 0.1),
-                                py: 4
-                            }}>
+                        <Card sx={styles.resultCard(theme, result.success)}>
+                            <Box sx={styles.resultIconContainer(theme, result.success)}>
                                 {result.success ? (
-                                    <CheckCircleIcon sx={{ fontSize: 80, color: theme.palette.success.main }} />
+                                    <CheckCircleIcon sx={styles.resultIcon(theme, true)} />
                                 ) : (
-                                    <ErrorIcon sx={{ fontSize: 80, color: theme.palette.error.main }} />
+                                    <ErrorIcon sx={styles.resultIcon(theme, false)} />
                                 )}
                             </Box>
                             <CardContent sx={{ pt: 3, pb: 4 }}>
@@ -191,7 +290,7 @@ export default function CheckInPage() {
                                     color={result.success ? 'primary' : 'inherit'}
                                     onClick={handleReset}
                                     size="large"
-                                    sx={{ borderRadius: 2, px: 4 }}
+                                    sx={styles.resultButton}
                                 >
                                     Scan Next
                                 </Button>
@@ -205,32 +304,18 @@ export default function CheckInPage() {
                         animate={{ opacity: 1 }}
                         exit={{ opacity: 0 }}
                     >
-                        <Card sx={{
-                            borderRadius: 4,
-                            boxShadow: theme.shadows[2],
-                            overflow: 'hidden',
-                            background: theme.palette.background.paper
-                        }}>
+                        <Card sx={styles.contentCard(theme)}>
                             <CardContent sx={{ p: { xs: 2, sm: 4 } }}>
                                 {mode === 'camera' ? (
                                     <Box>
-                                        <Box
-                                            sx={{
-                                                borderRadius: 2,
-                                                overflow: 'hidden',
-                                                border: `2px dashed ${theme.palette.divider}`,
-                                                bgcolor: '#000',
-                                                minHeight: 300,
-                                                position: 'relative'
-                                            }}
-                                        >
+                                        <Box sx={styles.cameraContainer(theme)}>
                                             <div id="reader" style={{ width: '100%' }}></div>
                                         </Box>
                                         <Typography variant="caption" display="block" textAlign="center" color="text.secondary" mt={2}>
                                             Position the QR code within the frame.
                                         </Typography>
                                     </Box>
-                                ) : (
+                                ) : mode === 'manual' ? (
                                     <form onSubmit={handleManualSubmit}>
                                         <Typography variant="h6" gutterBottom fontWeight={600}>
                                             Enter Code Manually
@@ -245,8 +330,8 @@ export default function CheckInPage() {
                                             value={qrData}
                                             onChange={(e) => setQrData(e.target.value)}
                                             placeholder="e.g., BOOK-123456"
-                                            sx={{ mb: 3 }}
-                                            InputProps={{ sx: { borderRadius: 2 } }}
+                                            sx={styles.manualField}
+                                            InputProps={{ sx: styles.manualFieldInput }}
                                             autoFocus
                                         />
                                         <Button
@@ -256,11 +341,94 @@ export default function CheckInPage() {
                                             type="submit"
                                             disabled={loading || !qrData}
                                             startIcon={loading ? <CircularProgress size={20} color="inherit" /> : <CheckCircleIcon />}
-                                            sx={{ borderRadius: 2, py: 1.5, fontWeight: 700 }}
+                                            sx={styles.manualSubmitButton}
                                         >
                                             {loading ? 'Verifying...' : 'Check In'}
                                         </Button>
                                     </form>
+                                ) : (
+                                    <Box>
+                                        <FormControl fullWidth sx={{ mb: 3 }}>
+                                            <InputLabel id="class-select-label">Select Class Session</InputLabel>
+                                            <Select
+                                                labelId="class-select-label"
+                                                id="class-select"
+                                                value={selectedClassId}
+                                                label="Select Class Session"
+                                                onChange={(e) => setSelectedClassId(e.target.value)}
+                                                sx={styles.classSelect}
+                                            >
+                                                {classes.length === 0 ? (
+                                                    <MenuItem disabled value="">
+                                                        No classes scheduled for today
+                                                    </MenuItem>
+                                                ) : (
+                                                    classes.map((cls: any) => (
+                                                        <MenuItem key={cls._id} value={cls._id}>
+                                                            {cls.title} ({new Date(cls.startTime).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })})
+                                                        </MenuItem>
+                                                    ))
+                                                )}
+                                            </Select>
+                                        </FormControl>
+
+                                        {selectedClassId && (
+                                            <Box>
+                                                <Typography variant="h6" gutterBottom fontWeight={600} display="flex" alignItems="center" gap={1}>
+                                                    <PeopleIcon color="primary" /> Attendees
+                                                </Typography>
+                                                {loading && attendees.length === 0 ? (
+                                                    <Box display="flex" justifyContent="center" py={4}>
+                                                        <CircularProgress />
+                                                    </Box>
+                                                ) : attendees.length === 0 ? (
+                                                    <Typography color="text.secondary" textAlign="center" py={4} bgcolor={alpha(theme.palette.background.default, 0.5)} borderRadius={2}>
+                                                        No students booked for this class.
+                                                    </Typography>
+                                                ) : (
+                                                    <List sx={styles.attendeesList(theme)}>
+                                                        {attendees.map((booking: any, index: number) => (
+                                                            <Box key={booking._id}>
+                                                                <ListItem sx={{ py: 1.5 }}>
+                                                                    <ListItemAvatar>
+                                                                        <Avatar src={booking.user?.profileImage} sx={styles.attendeeAvatar(theme)}>
+                                                                            {booking.user?.fullName?.[0]}
+                                                                        </Avatar>
+                                                                    </ListItemAvatar>
+                                                                    <ListItemText
+                                                                        primary={<Typography fontWeight={600}>{booking.user?.fullName}</Typography>}
+                                                                        secondary={booking.user?.email}
+                                                                        sx={{ mr: 2 }}
+                                                                    />
+                                                                    <Box display="flex" alignItems="center" gap={1}>
+                                                                        <Chip
+                                                                            label={booking.status.replace('_', ' ')}
+                                                                            size="small"
+                                                                            color={booking.status === 'CHECKED_IN' ? 'success' : booking.status === 'WAITLISTED' ? 'warning' : 'primary'}
+                                                                            variant={booking.status === 'CHECKED_IN' ? 'filled' : 'outlined'}
+                                                                            sx={styles.attendeeChip}
+                                                                        />
+                                                                        {booking.status === 'CONFIRMED' && (
+                                                                            <Button
+                                                                                size="small"
+                                                                                variant="contained"
+                                                                                onClick={() => handleManualCheckIn(booking._id)}
+                                                                                disabled={loading}
+                                                                                sx={styles.attendeeButton}
+                                                                            >
+                                                                                Check In
+                                                                            </Button>
+                                                                        )}
+                                                                    </Box>
+                                                                </ListItem>
+                                                                {index < attendees.length - 1 && <Divider component="li" />}
+                                                            </Box>
+                                                        ))}
+                                                    </List>
+                                                )}
+                                            </Box>
+                                        )}
+                                    </Box>
                                 )}
                             </CardContent>
                         </Card>
