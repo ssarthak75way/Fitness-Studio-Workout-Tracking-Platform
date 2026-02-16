@@ -10,10 +10,12 @@ export const BookingService = {
   //Create a booking for a user
   createBooking: async (userId: string, classId: string) => {
     // 1. CHECK MEMBERSHIP
+    console.log(`[BookingService] Checking membership for User ID: ${userId}`);
     const membership = await MembershipModel.findOne({
       user: userId,
       isActive: true,
     });
+    console.log(`[BookingService] Membership found:`, membership);
 
     if (!membership) {
       throw new AppError('No active membership found. Please purchase a plan.', 403);
