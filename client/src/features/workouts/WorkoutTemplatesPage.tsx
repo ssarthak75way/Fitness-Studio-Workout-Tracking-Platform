@@ -17,18 +17,20 @@ import ArrowBackIcon from '@mui/icons-material/ArrowBack';
 import { workoutService } from '../../services';
 import LogWorkoutModal from './LogWorkoutModal';
 import { useNavigate } from 'react-router-dom';
+import type { Theme } from '@mui/material';
+import type { WorkoutTemplate, WorkoutFormValues } from '../../types';
 
 const CATEGORIES = ['ALL', 'STRENGTH', 'CARDIO', 'HIIT', 'FLEXIBILITY'];
 
 const styles = {
     pageContainer: { maxWidth: 1200, mx: 'auto', p: { xs: 2, md: 3 } },
-    headerTitle: (theme: any) => ({
+    headerTitle: (theme: Theme) => ({
         background: `linear-gradient(45deg, ${theme.palette.text.primary} 30%, ${theme.palette.primary.main} 90%)`,
         WebkitBackgroundClip: 'text',
         WebkitTextFillColor: 'transparent',
     }),
     backButton: { borderRadius: 2 },
-    filterContainer: (theme: any) => ({
+    filterContainer: (theme: Theme) => ({
         p: 3,
         borderRadius: 3,
         bgcolor: alpha(theme.palette.background.paper, 0.6),
@@ -44,7 +46,7 @@ const styles = {
         height: 48,
         px: 1
     },
-    card: (theme: any) => ({
+    card: (theme: Theme) => ({
         height: '100%',
         display: 'flex',
         flexDirection: 'column',
@@ -58,7 +60,7 @@ const styles = {
         borderRadius: 3
     }),
     categoryChipSmall: { fontWeight: 600, borderRadius: 1 },
-    difficultyChip: (theme: any, difficulty: string) => ({
+    difficultyChip: (theme: Theme, difficulty: string) => ({
         bgcolor: difficulty === 'BEGINNER' ? alpha(theme.palette.info.main, 0.1) :
             difficulty === 'INTERMEDIATE' ? alpha(theme.palette.warning.main, 0.1) : alpha(theme.palette.error.main, 0.1),
         color: difficulty === 'BEGINNER' ? theme.palette.info.main :
@@ -75,7 +77,7 @@ const styles = {
         overflow: 'hidden'
     },
     cardFooter: { color: 'text.secondary' },
-    startButton: (theme: any) => ({
+    startButton: (theme: Theme) => ({
         borderRadius: 2,
         py: 1,
         fontWeight: 600,
@@ -86,12 +88,12 @@ const styles = {
     dialogTitle: { pb: 1 },
     dialogContent: { border: 'none' },
     exercisesLabel: { mt: 1, fontWeight: 700, letterSpacing: '0.05em' },
-    listItem: (theme: any, isLast: boolean) => ({
+    listItem: (theme: Theme, isLast: boolean) => ({
         py: 2,
         px: 0,
         borderBottom: !isLast ? `1px dashed ${theme.palette.divider}` : 'none'
     }),
-    statBadge: (theme: any) => ({
+    statBadge: (theme: Theme) => ({
         bgcolor: alpha(theme.palette.background.default, 0.5),
         px: 1,
         py: 0.5,
@@ -102,12 +104,12 @@ const styles = {
 
 export default function WorkoutTemplatesPage() {
     const theme = useTheme();
-    const [templates, setTemplates] = useState<any[]>([]);
-    const [filteredTemplates, setFilteredTemplates] = useState<any[]>([]);
+    const [templates, setTemplates] = useState<WorkoutTemplate[]>([]);
+    const [filteredTemplates, setFilteredTemplates] = useState<WorkoutTemplate[]>([]);
     const [searchTerm, setSearchTerm] = useState('');
     const [selectedCategory, setSelectedCategory] = useState('ALL');
-    const [selectedTemplate, setSelectedTemplate] = useState<any>(null);
-    const [viewTemplate, setViewTemplate] = useState<any>(null);
+    const [selectedTemplate, setSelectedTemplate] = useState<Partial<WorkoutFormValues> | null>(null);
+    const [viewTemplate, setViewTemplate] = useState<WorkoutTemplate | null>(null);
     const [openLog, setOpenLog] = useState(false);
     const navigate = useNavigate();
 
@@ -138,10 +140,10 @@ export default function WorkoutTemplatesPage() {
         }
     };
 
-    const handleUseTemplate = (template: any) => {
+    const handleUseTemplate = (template: WorkoutTemplate) => {
         setSelectedTemplate({
             title: template.name,
-            exercises: template.exercises.map((ex: any) => ({
+            exercises: template.exercises.map((ex) => ({
                 name: ex.name,
                 sets: Array(ex.sets).fill(0).map(() => ({ reps: ex.reps, weight: ex.weight || 0 })),
                 notes: ex.notes
@@ -279,7 +281,7 @@ export default function WorkoutTemplatesPage() {
                                 EXERCISES ({viewTemplate.exercises.length})
                             </Typography>
                             <List disablePadding>
-                                {viewTemplate.exercises.map((ex: any, idx: number) => (
+                                {viewTemplate.exercises.map((ex, idx: number) => (
                                     <Box key={idx}>
                                         <ListItem sx={styles.listItem(theme, idx === viewTemplate.exercises.length - 1)}>
                                             <ListItemText
@@ -293,7 +295,7 @@ export default function WorkoutTemplatesPage() {
                                                         <Box display="flex" alignItems="center" gap={0.5} sx={styles.statBadge(theme)}>
                                                             <Typography variant="body2" fontWeight={600}>{ex.reps} reps</Typography>
                                                         </Box>
-                                                        {ex.weight > 0 && (
+                                                        {(ex.weight || 0) > 0 && (
                                                             <Box display="flex" alignItems="center" gap={0.5} sx={styles.statBadge(theme)}>
                                                                 <Typography variant="body2" fontWeight={600}>@{ex.weight}kg</Typography>
                                                             </Box>

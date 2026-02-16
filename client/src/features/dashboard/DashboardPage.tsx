@@ -15,7 +15,8 @@ import {
   Settings as SettingsIcon,
   CalendarMonth as CalendarIcon
 } from '@mui/icons-material';
-import type { DashboardStats } from '../../types';
+import type { DashboardStats, Booking, WorkoutLog, ClassSession, User } from '../../types';
+import type { Theme } from '@mui/material';
 
 const containerVariants: Variants = {
   hidden: { opacity: 0 },
@@ -98,7 +99,7 @@ const styles = {
   pageContainer: {
     p: { xs: 2, md: 4 },
   },
-  headerTitle: (theme: any) => ({
+  headerTitle: (theme: Theme) => ({
     background: `linear-gradient(45deg, ${theme.palette.mode === 'dark' ? '#fff' : theme.palette.text.primary} 30%, ${theme.palette.primary.main} 90%)`,
     WebkitBackgroundClip: 'text',
     WebkitTextFillColor: 'transparent',
@@ -107,9 +108,9 @@ const styles = {
   viewProfileButton: { borderRadius: 2 },
   memberStatsGrid: { gridColumn: { md: 'span 2' } },
   instructorStatsGrid: { gridColumn: { md: 'span 2' } },
-  adminStatsGrid: (theme: any) => ({ gridColumn: { md: 'span 2' } }),
+  adminStatsGrid: () => ({ gridColumn: { md: 'span 2' } }),
   cardFullHeight: { height: '100%' },
-  upcomingItem: (theme: any) => ({
+  upcomingItem: (theme: Theme) => ({
     mb: 2,
     p: 2,
     borderRadius: 2,
@@ -118,7 +119,7 @@ const styles = {
     alignItems: 'center',
     justifyContent: 'space-between',
   }),
-  recentWorkoutItem: (theme: any) => ({
+  recentWorkoutItem: (theme: Theme) => ({
     mb: 2,
     p: 2,
     borderRadius: 2,
@@ -127,19 +128,19 @@ const styles = {
     alignItems: 'center',
     justifyContent: 'space-between',
   }),
-  instructorClassItem: (theme: any) => ({
+  instructorClassItem: (theme: Theme) => ({
     p: 2,
     borderRadius: 2,
     bgcolor: alpha(theme.palette.primary.main, 0.05),
     border: `1px solid ${alpha(theme.palette.primary.main, 0.1)}`
   }),
-  adminUserItem: (theme: any) => ({
+  adminUserItem: (theme: Theme) => ({
     p: 2,
     borderRadius: 2,
     bgcolor: alpha(theme.palette.background.paper, 0.5),
     border: `1px solid ${theme.palette.divider}`
   }),
-  adminAvatar: (theme: any) => ({
+  adminAvatar: (theme: Theme) => ({
     width: 40,
     height: 40,
     borderRadius: '50%',
@@ -152,7 +153,7 @@ const styles = {
   })
 };
 
-const StatCard = ({ title, value, icon: Icon, color }: { title: string, value: string | number, icon: any, color: string }) => (
+const StatCard = ({ title, value, icon: Icon, color }: { title: string, value: string | number, icon: React.ElementType, color: string }) => (
   <motion.div variants={itemVariants} style={{ height: '100%' }}>
     <Card sx={styles.statCard}>
       <Box sx={styles.statIconBackground(color)}>
@@ -175,7 +176,7 @@ const StatCard = ({ title, value, icon: Icon, color }: { title: string, value: s
   </motion.div>
 );
 
-const QuickActionCard = ({ title, description, icon: Icon, onClick, color }: { title: string, description: string, icon: any, onClick: () => void, color: string }) => (
+const QuickActionCard = ({ title, description, icon: Icon, onClick, color }: { title: string, description: string, icon: React.ElementType, onClick: () => void, color: string }) => (
   <motion.div variants={itemVariants}>
     <Card sx={styles.quickActionCard(color)} onClick={onClick}>
       <CardContent sx={styles.quickActionContent}>
@@ -344,12 +345,16 @@ export default function DashboardPage() {
               <CardContent>
                 <Typography variant="h6" fontWeight={700} mb={2}>Your Schedule</Typography>
                 {stats?.upcomingBookings && stats.upcomingBookings.length > 0 ? (
-                  stats.upcomingBookings.map((booking: any) => (
+                  stats.upcomingBookings.map((booking: Booking) => (
                     <Box key={booking._id} sx={styles.upcomingItem(theme)}>
                       <Box>
-                        <Typography variant="subtitle2" fontWeight={700}>{booking?.classSession?.title || "NA"}</Typography>
+                        <Typography variant="subtitle2" fontWeight={700}>
+                          {(typeof booking.classSession !== 'string' && booking.classSession?.title) || "NA"}
+                        </Typography>
                         <Typography variant="body2" color="text.secondary">
-                          {new Date(booking?.classSession?.startTime).toLocaleDateString()} @ {new Date(booking?.classSession?.startTime).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                          {typeof booking.classSession !== 'string' && booking.classSession?.startTime
+                            ? `${new Date(booking.classSession.startTime).toLocaleDateString()} @ ${new Date(booking.classSession.startTime).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}`
+                            : ''}
                         </Typography>
                       </Box>
                       <Button size="small" variant="outlined" color="primary" onClick={() => navigate('/schedule')}>View</Button>
@@ -364,7 +369,7 @@ export default function DashboardPage() {
               <CardContent>
                 <Typography variant="h6" fontWeight={700} mb={2}>Recent Workouts</Typography>
                 {stats?.recentWorkouts && stats.recentWorkouts.length > 0 ? (
-                  stats.recentWorkouts.map((workout: any) => (
+                  stats.recentWorkouts.map((workout: WorkoutLog) => (
                     <Box key={workout._id} sx={styles.recentWorkoutItem(theme)}>
                       <Box>
                         <Typography variant="subtitle2" fontWeight={700}>{workout?.title || "NA"}</Typography>
@@ -390,7 +395,7 @@ export default function DashboardPage() {
               <Typography variant="h6" fontWeight={700} mb={2}>Upcoming Sessions</Typography>
               <Box display="grid" gridTemplateColumns={{ xs: '1fr', sm: '1fr 1fr' }} gap={2}>
                 {stats?.upcomingClasses && stats.upcomingClasses.length > 0 ? (
-                  stats.upcomingClasses.map((session: any) => (
+                  stats.upcomingClasses.map((session: ClassSession) => (
                     <Box key={session._id} sx={styles.instructorClassItem(theme)}>
                       <Typography variant="subtitle1" fontWeight={700} gutterBottom>{session?.title || "NA"}</Typography>
                       <Box display="flex" alignItems="center" gap={1} mb={1}>
@@ -420,7 +425,7 @@ export default function DashboardPage() {
               <Typography variant="h6" fontWeight={700} mb={2}>Newest Members</Typography>
               {stats?.recentUsers && stats.recentUsers.length > 0 ? (
                 <Box display="grid" gridTemplateColumns={{ xs: '1fr', sm: '1fr 1fr', md: 'repeat(3, 1fr)' }} gap={2}>
-                  {stats.recentUsers.map((newUser: any) => (
+                  {stats.recentUsers.map((newUser: User) => (
                     <Box key={newUser._id} sx={styles.adminUserItem(theme)}>
                       <Box display="flex" alignItems="center" gap={2} mb={1}>
                         <Box sx={styles.adminAvatar(theme)}>

@@ -4,6 +4,7 @@ import { Box, Typography, Avatar, Paper, Chip, Button, List, ListItem, ListItemT
 import api from '../../services/api';
 import CalendarMonthIcon from '@mui/icons-material/CalendarMonth';
 import ReviewSection from '../../components/reviews/ReviewSection';
+import type { User, ClassSession } from '../../types';
 
 const styles = {
   backButton: { mb: 2 },
@@ -11,13 +12,13 @@ const styles = {
   avatar: { width: 120, height: 120, fontSize: 40 },
   specialtiesContainer: { display: 'flex', gap: 1, my: 2, flexWrap: 'wrap' },
   certificationsContainer: { display: 'flex', gap: 1, flexWrap: 'wrap' },
-  certificationChip: { bgcolor: '#eff6ff' }
+  certificationChip: { bgcolor: '#eff6ff', color: '#8e0b0bff' }
 };
 
 export default function InstructorProfilePage() {
   const { id } = useParams();
   const navigate = useNavigate();
-  const [data, setData] = useState<any>(null);
+  const [data, setData] = useState<{ instructor: User; upcomingClasses: ClassSession[] } | null>(null);
 
   useEffect(() => {
     const fetchProfile = async () => {
@@ -91,7 +92,7 @@ export default function InstructorProfilePage() {
           <Typography variant="h5" gutterBottom>Upcoming Classes</Typography>
           <Paper>
             <List>
-              {upcomingClasses.map((cls: any) => (
+              {upcomingClasses.map((cls: ClassSession) => (
                 <ListItem
                   key={cls._id}
                   divider

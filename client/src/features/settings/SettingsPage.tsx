@@ -14,6 +14,7 @@ import Visibility from '@mui/icons-material/Visibility';
 import VisibilityOff from '@mui/icons-material/VisibilityOff';
 import SaveIcon from '@mui/icons-material/Save';
 import { motion, AnimatePresence } from 'framer-motion';
+import type { Theme } from '@mui/material';
 
 interface TabPanelProps {
   children?: React.ReactNode;
@@ -50,47 +51,6 @@ function CustomTabPanel(props: TabPanelProps) {
   );
 }
 
-const styles = {
-  pageContainer: { maxWidth: 1000, mx: 'auto', px: { xs: 2, md: 4 }, py: 4 },
-  header: { mb: 5, textAlign: 'center' },
-  headerTitle: (theme: any) => ({
-    background: `linear-gradient(45deg, ${theme.palette.primary.main} 30%, ${theme.palette.secondary.main} 90%)`,
-    WebkitBackgroundClip: 'text',
-    WebkitTextFillColor: 'transparent',
-    mb: 1
-  }),
-  card: (theme: any) => ({
-    borderRadius: 4,
-    background: theme.palette.background.paper,
-    boxShadow: theme.shadows[2],
-    border: `1px solid ${theme.palette.divider}`,
-    overflow: 'hidden'
-  }),
-  tabsContainer: (theme: any) => ({
-    borderBottom: 1,
-    borderColor: 'divider',
-    bgcolor: alpha(theme.palette.primary.main, 0.05)
-  }),
-  tabs: {
-    '& .MuiTab-root': {
-      textTransform: 'none',
-      fontWeight: 600,
-      fontSize: '1rem',
-      minHeight: 60,
-    }
-  },
-  tabPanelContainer: { p: { xs: 2, md: 4 } },
-  sectionTitle: { mb: 3 },
-  textField: { borderRadius: 2 },
-  caption: { ml: 1, mt: 0.5, display: 'block' },
-  buttonContainer: { display: 'flex', justifyContent: 'flex-end', mt: 2 },
-  saveButton: { borderRadius: 2, px: 4, fontWeight: 700 },
-  passwordContainer: { maxWidth: 600, mx: 'auto' },
-  preferencesContainer: { maxWidth: 800, mx: 'auto' },
-  preferenceCard: { borderRadius: 2 },
-  preferenceLabel: { width: '100%', alignItems: 'flex-start', ml: 0 },
-  autoSaveButton: { mt: 4, display: 'flex', justifyContent: 'center' }
-};
 
 export default function SettingsPage() {
   const theme = useTheme();
@@ -130,8 +90,8 @@ export default function SettingsPage() {
       };
       await api.patch('/users/profile', payload);
       showToast('Profile updated successfully!', 'success');
-    } catch (error: any) {
-      showToast(error.response?.data?.message || 'Update failed', 'error');
+    } catch (error: unknown) {
+      showToast((error as Error)?.message || 'Update failed', 'error');
     }
   };
 
@@ -148,8 +108,8 @@ export default function SettingsPage() {
       });
       showToast('Password changed successfully!', 'success');
       setPasswords({ currentPassword: '', newPassword: '', confirmPassword: '' });
-    } catch (error: any) {
-      showToast(error.response?.data?.message || 'Password change failed', 'error');
+    } catch (error: unknown) {
+      showToast((error as Error).message || 'Password change failed', 'error');
     }
   };
 
@@ -411,3 +371,46 @@ export default function SettingsPage() {
     </Box>
   );
 }
+
+
+const styles = {
+  pageContainer: { maxWidth: 1000, mx: 'auto', px: { xs: 2, md: 4 }, py: 4 },
+  header: { mb: 5, textAlign: 'center' },
+  headerTitle: (theme: Theme) => ({
+    background: `linear-gradient(45deg, ${theme.palette.primary.main} 30%, ${theme.palette.secondary.main} 90%)`,
+    WebkitBackgroundClip: 'text',
+    WebkitTextFillColor: 'transparent',
+    mb: 1
+  }),
+  card: (theme: Theme) => ({
+    borderRadius: 4,
+    background: theme.palette.background.paper,
+    boxShadow: theme.shadows[2],
+    border: `1px solid ${theme.palette.divider}`,
+    overflow: 'hidden'
+  }),
+  tabsContainer: (theme: Theme) => ({
+    borderBottom: 1,
+    borderColor: 'divider',
+    bgcolor: alpha(theme.palette.primary.main, 0.05)
+  }),
+  tabs: {
+    '& .MuiTab-root': {
+      textTransform: 'none',
+      fontWeight: 600,
+      fontSize: '1rem',
+      minHeight: 60,
+    }
+  },
+  tabPanelContainer: { p: { xs: 2, md: 4 } },
+  sectionTitle: { mb: 3 },
+  textField: { borderRadius: 2 },
+  caption: { ml: 1, mt: 0.5, display: 'block' },
+  buttonContainer: { display: 'flex', justifyContent: 'flex-end', mt: 2 },
+  saveButton: { borderRadius: 2, px: 4, fontWeight: 700 },
+  passwordContainer: { maxWidth: 600, mx: 'auto' },
+  preferencesContainer: { maxWidth: 800, mx: 'auto' },
+  preferenceCard: { borderRadius: 2 },
+  preferenceLabel: { width: '100%', alignItems: 'flex-start', ml: 0 },
+  autoSaveButton: { mt: 4, display: 'flex', justifyContent: 'center' }
+};

@@ -62,7 +62,7 @@ const styles = {
     p: 8,
     color: 'white',
   },
-  logoIcon: (theme: any) => ({
+  logoIcon: (theme: Theme) => ({
     fontSize: 48,
     color: theme.palette.primary.main,
   }),
@@ -149,8 +149,8 @@ export default function LoginPage() {
           navigate('/dashboard');
         }
       }
-    } catch (err: any) {
-      showToast(err.response?.data?.message || 'Authentication failed', 'error');
+    } catch (err: unknown) {
+      showToast((err as Error).message || 'Authentication failed', 'error');
     } finally {
       setLoading(false);
     }

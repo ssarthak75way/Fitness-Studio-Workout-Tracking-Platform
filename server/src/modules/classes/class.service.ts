@@ -44,7 +44,7 @@ export const ClassService = {
     }
 
     // 2. Prepare base data object
-    const classData: any = {
+    const classData = {
       title: input.title,
       description: input.description,
       type: input.type,
@@ -86,7 +86,7 @@ export const ClassService = {
     return newClass;
   },
 
-   //Cancel a class and notify participants
+  //Cancel a class and notify participants
   cancelClass: async (classId: string): Promise<IClassSession> => {
     const session = await mongoose.startSession();
     session.startTransaction();
@@ -136,7 +136,7 @@ export const ClassService = {
     }
   },
 
-   //Get classes within a date range (for Calendar)
+  //Get classes within a date range (for Calendar)
   getClassesByDateRange: async (start: Date, end: Date): Promise<IClassSession[]> => {
     return ClassSessionModel.find({
       startTime: { $gte: start, $lte: end },

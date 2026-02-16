@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { Box, Typography, Button, Dialog, DialogTitle, DialogContent, DialogActions, useTheme, Card, alpha, Chip, Stack } from '@mui/material';
+import type { EventInput, EventClickArg } from '@fullcalendar/core';
 import FullCalendar from '@fullcalendar/react';
 import dayGridPlugin from '@fullcalendar/daygrid';
 import timeGridPlugin from '@fullcalendar/timegrid';
@@ -14,20 +15,21 @@ import AddIcon from '@mui/icons-material/Add';
 import AccessTimeIcon from '@mui/icons-material/AccessTime';
 import LocationOnIcon from '@mui/icons-material/LocationOn';
 import PersonIcon from '@mui/icons-material/Person';
-
+import type { Theme } from '@mui/material';
+import type { ClassSession } from '../../types';
 const styles = {
   pageContainer: { maxWidth: 1200, mx: 'auto', p: { xs: 2, md: 3 } },
-  headerTitle: (theme: any) => ({
+  headerTitle: (theme: Theme) => ({
     background: `linear-gradient(45deg, ${theme.palette.text.primary} 30%, ${theme.palette.primary.main} 90%)`,
     WebkitBackgroundClip: 'text',
     WebkitTextFillColor: 'transparent'
   }),
-  createButton: (theme: any) => ({
+  createButton: (theme: Theme) => ({
     borderRadius: 2,
     px: 3,
     boxShadow: `0 8px 16px -4px ${alpha(theme.palette.primary.main, 0.3)}`
   }),
-  calendarCard: (theme: any) => ({
+  calendarCard: (theme: Theme) => ({
     p: 0,
     overflow: 'hidden',
     boxShadow: theme.shadows[3],
@@ -90,7 +92,7 @@ const styles = {
       fontSize: '0.875rem'
     }
   }),
-  eventContent: (theme: any) => ({
+  eventContent: (theme: Theme) => ({
     bgcolor: alpha(theme.palette.primary.main, 0.15),
     color: theme.palette.primary.main,
     borderLeft: `3px solid ${theme.palette.primary.main}`,
@@ -108,7 +110,7 @@ const styles = {
   dialogPaper: { borderRadius: 3 },
   dialogTitleChip: { mt: 1, fontWeight: 600 },
   dialogContentContainer: { display: 'flex', flexDirection: 'column', gap: 2, mt: 1 },
-  detailsStack: (theme: any) => ({
+  detailsStack: (theme: Theme) => ({
     bgcolor: alpha(theme.palette.background.default, 0.5),
     p: 2,
     borderRadius: 2
@@ -116,13 +118,13 @@ const styles = {
   instructorLink: { textDecoration: 'none', color: 'inherit' },
   instructorText: { color: 'primary.main', '&:hover': { textDecoration: 'underline' } },
   capacityContainer: { width: '100%', mr: 1, position: 'relative' },
-  progressBarBackground: (theme: any) => ({
+  progressBarBackground: (theme: Theme) => ({
     height: 8,
     borderRadius: 4,
     bgcolor: alpha(theme.palette.primary.main, 0.1),
     overflow: 'hidden'
   }),
-  progressBarFill: (theme: any, percentage: number) => ({
+  progressBarFill: (theme: Theme, percentage: number) => ({
     height: '100%',
     width: `${percentage}%`,
     bgcolor: theme.palette.primary.main,
@@ -136,8 +138,8 @@ export default function SchedulePage() {
   const { user } = useAuth();
   const { showToast } = useToast();
   const theme = useTheme();
-  const [events, setEvents] = useState<any[]>([]);
-  const [selectedClass, setSelectedClass] = useState<any>(null);
+  const [events, setEvents] = useState<EventInput[]>([]);
+  const [selectedClass, setSelectedClass] = useState<ClassSession | null>(null);
   const [openDetails, setOpenDetails] = useState(false);
   const [openCreate, setOpenCreate] = useState(false);
 
@@ -149,7 +151,7 @@ export default function SchedulePage() {
     try {
       const response = await classService.getClasses();
       const classes = response.data.classes;
-      const calendarEvents = classes.map((cls: any) => ({
+      const calendarEvents = classes.map((cls: ClassSession) => ({
         id: cls._id,
         title: cls.title,
         start: cls.startTime,
@@ -162,12 +164,13 @@ export default function SchedulePage() {
     }
   };
 
-  const handleEventClick = (info: any) => {
-    setSelectedClass(info.event.extendedProps);
+  const handleEventClick = (info: EventClickArg) => {
+    setSelectedClass(info.event.extendedProps as ClassSession);
     setOpenDetails(true);
   };
 
   const handleBookClass = async () => {
+    if (!selectedClass) return;
     try {
       const response = await bookingService.createBooking(selectedClass._id);
       const status = response.data.booking.status;
@@ -179,12 +182,12 @@ export default function SchedulePage() {
       }
 
       setOpenDetails(false);
-    } catch (error: any) {
-      showToast(error.response?.data?.message || 'Booking failed', 'error');
+    } catch (error: unknown) { // axios error catch is usually any or unknown
+      showToast((error as Error)?.message || 'Booking failed', 'error');
     }
   };
 
-  const renderEventContent = (eventInfo: any) => {
+  const renderEventContent = (eventInfo: { timeText: string, event: { title: string } }) => {
     return (
       <Box sx={styles.eventContent(theme)}>
         <Typography variant="caption" noWrap fontWeight="bold" sx={styles.eventTime}>
@@ -287,14 +290,16 @@ export default function SchedulePage() {
                     <PersonIcon color="action" fontSize="small" />
                     <Box>
                       <Typography variant="caption" display="block" color="text.secondary">Instructor</Typography>
-                      {selectedClass.instructor ? (
+                      {selectedClass.instructor && typeof selectedClass.instructor === 'object' ? (
                         <Link to={`/instructors/${selectedClass.instructor._id}`} style={styles.instructorLink}>
                           <Typography variant="body2" fontWeight="600" sx={styles.instructorText}>
                             {selectedClass.instructor.fullName}
                           </Typography>
                         </Link>
                       ) : (
-                        <Typography variant="body2" fontWeight="600">TBA</Typography>
+                        <Typography variant="body2" fontWeight="600">
+                          {typeof selectedClass.instructor === 'string' ? selectedClass.instructor : "TBA"}
+                        </Typography>
                       )}
                     </Box>
                   </Box>

@@ -1,5 +1,6 @@
 import { Request, Response, NextFunction } from 'express';
-import { ClassSessionModel } from './class.model.js';
+import { FilterQuery, Types } from 'mongoose';
+import { ClassSessionModel, IClassSession, ClassType } from './class.model.js';
 import { ClassService } from './class.service.js';
 import { createClassSchema } from './class.schema.js';
 import { AppError } from '../../utils/AppError.js';
@@ -24,7 +25,7 @@ export const getClassesHandler = async (req: Request, res: Response, next: NextF
   try {
     const { startDate, endDate, type, instructor } = req.query;
 
-    const filter: any = {};
+    const filter: FilterQuery<IClassSession> = {};
 
     if (startDate && endDate) {
       filter.startTime = {
@@ -33,8 +34,8 @@ export const getClassesHandler = async (req: Request, res: Response, next: NextF
       };
     }
 
-    if (type) filter.type = type;
-    if (instructor) filter.instructor = instructor;
+    if (type) filter.type = type as ClassType;
+    if (instructor) filter.instructor = new Types.ObjectId(instructor as string);
 
     const classes = await ClassSessionModel.find(filter)
       .populate('instructor', 'fullName profileImage specialties')

@@ -12,6 +12,7 @@ export interface IBooking extends Document {
   classSession: Types.ObjectId;
   status: BookingStatus;
   bookedAt: Date;
+  qrCodeUrl?: string;
   qrCode?: string; // Could be a generated string/hash
 }
 
@@ -19,10 +20,10 @@ const BookingSchema = new Schema<IBooking>(
   {
     user: { type: Schema.Types.ObjectId, ref: 'User', required: true },
     classSession: { type: Schema.Types.ObjectId, ref: 'ClassSession', required: true },
-    status: { 
-      type: String, 
-      enum: Object.values(BookingStatus), 
-      default: BookingStatus.CONFIRMED 
+    status: {
+      type: String,
+      enum: Object.values(BookingStatus),
+      default: BookingStatus.CONFIRMED
     },
     qrCode: { type: String },
     bookedAt: { type: Date, default: Date.now },

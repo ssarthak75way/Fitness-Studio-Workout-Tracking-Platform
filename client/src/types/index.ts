@@ -15,6 +15,9 @@ export interface User {
     bio?: string;
     specialties?: string[];
     certifications?: string[];
+    averageRating?: number;
+    totalRatings?: number;
+    isActive?: boolean;
     createdAt: string;
 }
 
@@ -32,6 +35,7 @@ export interface AuthResponse {
 export interface ClassSession {
     _id: string;
     title: string;
+    description?: string;
     type: string;
     instructor: User | string;
     startTime: string;
@@ -54,7 +58,7 @@ export interface Booking {
 
 export interface WorkoutSet {
     reps: number;
-    weight?: number;
+    weight: number;
     duration?: number;
 }
 
@@ -103,6 +107,8 @@ export interface BodyMetric {
         thighs?: number;
     };
     date: string;
+    createdAt?: string;
+    updatedAt?: string;
 }
 
 export interface Membership {
@@ -134,21 +140,50 @@ export interface Rating {
     createdAt: string;
 }
 
+export interface TemplateExercise {
+    name: string;
+    sets: number;
+    reps: number;
+    weight?: number;
+    notes?: string;
+}
+
 export interface WorkoutTemplate {
     _id: string;
     name: string;
     description: string;
     category: string;
     difficulty: string;
-    exercises: WorkoutExercise[];
+    exercises: TemplateExercise[];
     createdBy: string;
+    reps?: number;
+    weight?: number;
     isPublic: boolean;
     createdAt: string;
 }
 
+export interface PersonalRecord {
+    weight: number;
+    reps: number;
+    date: string;
+}
+
 export interface WorkoutAnalytics {
-    totalWorkouts: number;
-    totalDuration: number;
-    averageIntensity?: number;
-    muscleGroupDistribution: Record<string, number>;
+    volumeHistory: Array<{ date: string; volume: number; name: string }>;
+    exerciseProgression: Record<string, Array<{ date: string; weight: number }>>;
+    monthlyConsistency: Array<{ month: string; count: number }>;
+}
+
+export interface WorkoutFormValues {
+    title: string;
+    durationMinutes?: number;
+    exercises: {
+        name: string;
+        sets: {
+            reps: number;
+            weight: number;
+        }[];
+        notes?: string;
+    }[];
+    notes?: string;
 }

@@ -1,6 +1,7 @@
 import { Box, Typography, Paper, Avatar, Chip, Divider, Button } from '@mui/material';
 import { useAuth } from '../../context/AuthContext';
 import { useTheme, alpha } from '@mui/material/styles';
+import type { Theme } from '@mui/material/styles';
 import EditIcon from '@mui/icons-material/Edit';
 import EmailIcon from '@mui/icons-material/Email';
 import CalendarTodayIcon from '@mui/icons-material/CalendarToday';
@@ -14,13 +15,13 @@ const styles = {
         px: { xs: 2, md: 4 },
         py: 4
     },
-    headerTitle: (theme: any) => ({
+    headerTitle: (theme: Theme) => ({
         background: `linear-gradient(45deg, ${theme.palette.primary.main} 30%, ${theme.palette.secondary.main} 90%)`,
         WebkitBackgroundClip: 'text',
         WebkitTextFillColor: 'transparent',
         mb: 1
     }),
-    userCard: (theme: any) => ({
+    userCard: (theme: Theme) => ({
         p: 4,
         borderRadius: 4,
         textAlign: 'center',
@@ -29,7 +30,7 @@ const styles = {
         backdropFilter: 'blur(20px)',
         border: `1px solid ${theme.palette.divider}`
     }),
-    avatar: (theme: any) => ({
+    avatar: (theme: Theme) => ({
         width: 120,
         height: 120,
         mx: 'auto',
@@ -44,7 +45,7 @@ const styles = {
     infoBox: { display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 1, mb: 1, color: 'text.secondary' },
     infoBoxAlt: { display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 1, color: 'text.secondary' },
     editButton: { mt: 4, borderRadius: 2 },
-    detailsCard: (theme: any) => ({
+    detailsCard: (theme: Theme) => ({
         p: 4,
         borderRadius: 4,
         boxShadow: theme.shadows[2],

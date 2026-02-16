@@ -1,4 +1,5 @@
 import { Box, Drawer, List, ListItem, ListItemButton, ListItemIcon, ListItemText, Avatar, Typography, Chip, alpha } from '@mui/material';
+import type { Theme } from '@mui/material';
 import { NavLink } from 'react-router-dom';
 import React from 'react';
 import DashboardIcon from '@mui/icons-material/Dashboard';
@@ -43,151 +44,7 @@ const menuItems: MenuItem[] = [
   { text: 'Settings', icon: <SettingsIcon />, path: '/settings', roles: ['STUDIO_ADMIN', 'INSTRUCTOR', 'MEMBER'] },
 ];
 
-const styles = {
-  drawer: {
-    width: drawerWidth,
-    flexShrink: 0,
-    '& .MuiDrawer-paper': {
-      width: drawerWidth,
-      boxSizing: 'border-box',
-      borderRight: '1px solid',
-      borderColor: (theme: any) => theme.palette.mode === 'dark' ? alpha('#fff', 0.05) : alpha('#000', 0.05),
-      backgroundColor: 'background.default',
-      backgroundImage: (theme: any) => theme.palette.mode === 'dark'
-        ? 'linear-gradient(rgba(255, 255, 255, 0.02), rgba(255, 255, 255, 0.01))'
-        : 'linear-gradient(rgba(0, 0, 0, 0.01), rgba(0, 0, 0, 0.005))',
-    },
-  },
-  content: {
-    height: '100%',
-    display: 'flex',
-    flexDirection: 'column',
-    position: 'relative',
-    overflow: 'hidden',
-  },
-  toolbar: {
-    display: 'flex',
-    flexDirection: 'column',
-    alignItems: 'center',
-    justifyContent: 'center',
-    py: 4,
-    gap: 2,
-    background: (theme: any) => `linear-gradient(to bottom, ${alpha(theme.palette.primary.main, 0.05)}, transparent)`,
-  },
-  logoContainer: {
-    display: 'flex',
-    flexDirection: 'column',
-    alignItems: 'center',
-    gap: 1.5,
-  },
-  avatar: {
-    width: 64,
-    height: 64,
-    border: (theme: any) => `2px solid ${theme.palette.primary.main}`,
-    boxShadow: (theme: any) => `0 0 20px ${alpha(theme.palette.primary.main, 0.3)}`,
-    mb: 1,
-    cursor: 'pointer',
-    transition: 'transform 0.3s ease',
-    '&:hover': {
-      transform: 'scale(1.05)',
-    }
-  },
-  userName: {
-    fontWeight: 800,
-    letterSpacing: '0.5px',
-    color: 'text.primary',
-    mb: 0.5,
-  },
-  roleChip: {
-    fontSize: '0.65rem',
-    fontWeight: 800,
-    height: 20,
-    borderRadius: 1,
-    textTransform: 'uppercase',
-    letterSpacing: '1px',
-    bgcolor: (theme: any) => alpha(theme.palette.primary.main, 0.1),
-    color: 'primary.main',
-    border: (theme: any) => `1px solid ${alpha(theme.palette.primary.main, 0.2)}`,
-  },
-  list: {
-    px: 2,
-    pt: 2,
-    flexGrow: 1,
-    overflowY: 'auto',
-    scrollbarWidth: 'thin',
-    '&::-webkit-scrollbar': { width: 4 },
-    '&::-webkit-scrollbar-thumb': {
-      borderRadius: 10,
-      backgroundColor: (theme: any) => alpha(theme.palette.primary.main, 0.2),
-    },
-  },
-  listItem: {
-    mb: 1,
-    px: 0,
-  },
-  navLink: {
-    borderRadius: '12px',
-    py: 1.2,
-    px: 2,
-    color: 'text.secondary',
-    transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
-    position: 'relative',
-    overflow: 'hidden',
-    '& .MuiListItemIcon-root': {
-      minWidth: 38,
-      color: 'inherit',
-      transition: 'all 0.3s',
-    },
-    '& .MuiListItemText-primary': {
-      fontWeight: 600,
-      fontSize: '0.9rem',
-      letterSpacing: '0.3px',
-    },
-    '&.active': {
-      color: 'primary.main',
-      bgcolor: (theme: any) => alpha(theme.palette.primary.main, 0.08),
-      '&::before': {
-        content: '""',
-        position: 'absolute',
-        left: 0,
-        top: '20%',
-        bottom: '20%',
-        width: 3,
-        bgcolor: 'primary.main',
-        borderRadius: '0 4px 4px 0',
-      },
-      '& .MuiListItemIcon-root': {
-        color: 'primary.main',
-        transform: 'scale(1.1)',
-      },
-    },
-    '&:hover:not(.active)': {
-      bgcolor: (theme: any) => alpha(theme.palette.primary.main, 0.04),
-      color: 'text.primary',
-      transform: 'translateX(4px)',
-      '& .MuiListItemIcon-root': {
-        color: 'primary.main',
-      },
-    },
-  },
-  footer: {
-    p: 3,
-    borderTop: '1px solid',
-    borderColor: 'divider',
-    background: (theme: any) => alpha(theme.palette.background.paper, 0.5),
-  },
-  version: {
-    fontSize: '0.7rem',
-    fontWeight: 700,
-    color: 'text.disabled',
-    letterSpacing: '1px',
-    textAlign: 'center',
-    textTransform: 'uppercase',
-  },
-  navContainer: (theme: any) => ({ width: { sm: drawerWidth }, flexShrink: { sm: 0 } }),
-  mobileDrawer: { display: { xs: 'block', sm: 'none' } },
-  desktopDrawer: { display: { xs: 'none', sm: 'block' } }
-};
+
 
 export default function Sidebar({ mobileOpen, handleDrawerToggle }: SidebarProps) {
   const { user } = useAuth();
@@ -284,3 +141,149 @@ export default function Sidebar({ mobileOpen, handleDrawerToggle }: SidebarProps
     </Box>
   );
 }
+
+const styles = {
+  drawer: {
+    width: drawerWidth,
+    flexShrink: 0,
+    '& .MuiDrawer-paper': {
+      width: drawerWidth,
+      boxSizing: 'border-box',
+      borderRight: '1px solid',
+      borderColor: (theme: Theme) => theme.palette.mode === 'dark' ? alpha('#fff', 0.05) : alpha('#000', 0.05),
+      backgroundColor: 'background.default',
+      backgroundImage: (theme: Theme) => theme.palette.mode === 'dark'
+        ? 'linear-gradient(rgba(255, 255, 255, 0.02), rgba(255, 255, 255, 0.01))'
+        : 'linear-gradient(rgba(0, 0, 0, 0.01), rgba(0, 0, 0, 0.005))',
+    },
+  },
+  content: {
+    height: '100%',
+    display: 'flex',
+    flexDirection: 'column',
+    position: 'relative',
+    overflow: 'hidden',
+  },
+  toolbar: {
+    display: 'flex',
+    flexDirection: 'column',
+    alignItems: 'center',
+    justifyContent: 'center',
+    py: 4,
+    gap: 2,
+    background: (theme: Theme) => `linear-gradient(to bottom, ${alpha(theme.palette.primary.main, 0.05)}, transparent)`,
+  },
+  logoContainer: {
+    display: 'flex',
+    flexDirection: 'column',
+    alignItems: 'center',
+    gap: 1.5,
+  },
+  avatar: {
+    width: 64,
+    height: 64,
+    border: (theme: Theme) => `2px solid ${theme.palette.primary.main}`,
+    boxShadow: (theme: Theme) => `0 0 20px ${alpha(theme.palette.primary.main, 0.3)}`,
+    mb: 1,
+    cursor: 'pointer',
+    transition: 'transform 0.3s ease',
+    '&:hover': {
+      transform: 'scale(1.05)',
+    }
+  },
+  userName: {
+    fontWeight: 800,
+    letterSpacing: '0.5px',
+    color: 'text.primary',
+    mb: 0.5,
+  },
+  roleChip: {
+    fontSize: '0.65rem',
+    fontWeight: 800,
+    height: 20,
+    borderRadius: 1,
+    textTransform: 'uppercase',
+    letterSpacing: '1px',
+    bgcolor: (theme: Theme) => alpha(theme.palette.primary.main, 0.5),
+    color: 'primary.main',
+    border: (theme: Theme) => `1px solid ${alpha(theme.palette.primary.main, 0.2)}`,
+  },
+  list: {
+    px: 2,
+    pt: 2,
+    flexGrow: 1,
+    overflowY: 'auto',
+    scrollbarWidth: 'thin',
+    '&::-webkit-scrollbar': { width: 4 },
+    '&::-webkit-scrollbar-thumb': {
+      borderRadius: 10,
+      backgroundColor: (theme: Theme) => alpha(theme.palette.primary.main, 0.2),
+    },
+  },
+  listItem: {
+    mb: 1,
+    px: 0,
+  },
+  navLink: {
+    borderRadius: '12px',
+    py: 1.2,
+    px: 2,
+    color: 'text.secondary',
+    transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
+    position: 'relative',
+    overflow: 'hidden',
+    '& .MuiListItemIcon-root': {
+      minWidth: 38,
+      color: 'inherit',
+      transition: 'all 0.3s',
+    },
+    '& .MuiListItemText-primary': {
+      fontWeight: 600,
+      fontSize: '0.9rem',
+      letterSpacing: '0.3px',
+    },
+    '&.active': {
+      color: 'primary.main',
+      bgcolor: (theme: Theme) => alpha(theme.palette.primary.main, 0.08),
+      '&::before': {
+        content: '""',
+        position: 'absolute',
+        left: 0,
+        top: '20%',
+        bottom: '20%',
+        width: 3,
+        bgcolor: 'primary.main',
+        borderRadius: '0 4px 4px 0',
+      },
+      '& .MuiListItemIcon-root': {
+        color: 'primary.main',
+        transform: 'scale(1.1)',
+      },
+    },
+    '&:hover:not(.active)': {
+      bgcolor: (theme: Theme) => alpha(theme.palette.primary.main, 0.04),
+      color: 'text.primary',
+      transform: 'translateX(4px)',
+      '& .MuiListItemIcon-root': {
+        color: 'primary.main',
+      },
+    },
+  },
+  footer: {
+    p: 3,
+    borderTop: '1px solid',
+    borderColor: 'divider',
+    background: (theme: Theme) => alpha(theme.palette.background.paper, 0.5),
+  },
+  version: {
+    fontSize: '0.7rem',
+    fontWeight: 700,
+    color: 'text.disabled',
+    letterSpacing: '1px',
+    textAlign: 'center',
+    textTransform: 'uppercase',
+  },
+  navContainer: () => ({ width: { sm: drawerWidth }, flexShrink: { sm: 0 } }),
+  mobileDrawer: { display: { xs: 'block', sm: 'none' } },
+  desktopDrawer: { display: { xs: 'none', sm: 'block' } }
+};

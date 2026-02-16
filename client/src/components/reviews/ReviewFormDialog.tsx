@@ -66,8 +66,8 @@ export default function ReviewFormDialog({
             onSuccess();
             showToast('Review submitted successfully!', 'success');
             onClose();
-        } catch (err: any) {
-            showToast(err.response?.data?.message || 'Failed to submit review', 'error');
+        } catch (err: unknown) {
+            showToast((err as Error).message || 'Failed to submit review', 'error');
         } finally {
             setLoading(false);
         }

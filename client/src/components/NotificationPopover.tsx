@@ -14,6 +14,7 @@ import {
 import { Notifications as NotificationsIcon, DoneAll as DoneAllIcon } from '@mui/icons-material';
 import { notificationService } from '../services/index';
 import { formatDistanceToNow } from 'date-fns';
+import type { Notification } from '../types';
 
 const styles = {
     popoverPaper: { width: 360, maxHeight: 400, overflow: 'auto' },
@@ -26,15 +27,15 @@ const styles = {
         cursor: 'pointer'
     }),
     notificationPrimary: (isRead: boolean) => ({
-        variant: 'body2',
+        variant: 'body2' as const,
         fontWeight: isRead ? 'normal' : 'bold'
     }),
-    notificationSecondary: { variant: 'caption' }
+    notificationSecondary: { variant: 'caption' as const }
 };
 
 export default function NotificationPopover() {
     const [anchorEl, setAnchorEl] = useState<HTMLButtonElement | null>(null);
-    const [notifications, setNotifications] = useState<any[]>([]);
+    const [notifications, setNotifications] = useState<Notification[]>([]);
     const [unreadCount, setUnreadCount] = useState(0);
     const [loading, setLoading] = useState(false);
 
@@ -44,7 +45,7 @@ export default function NotificationPopover() {
             const res = await notificationService.getNotifications();
             const news = res.data.notifications || [];
             setNotifications(news);
-            setUnreadCount(news.filter((n: any) => !n.isRead).length);
+            setUnreadCount(news.filter((n: Notification) => !n.isRead).length);
         } catch (error) {
             console.error('Failed to fetch notifications:', error);
         } finally {
@@ -141,8 +142,8 @@ export default function NotificationPopover() {
                                     <ListItemText
                                         primary={notification.message}
                                         secondary={formatDistanceToNow(new Date(notification.createdAt), { addSuffix: true })}
-                                        primaryTypographyProps={styles.notificationPrimary(notification.isRead) as any}
-                                        secondaryTypographyProps={styles.notificationSecondary as any}
+                                        primaryTypographyProps={styles.notificationPrimary(notification.isRead)}
+                                        secondaryTypographyProps={styles.notificationSecondary}
                                     />
                                 </ListItem>
                             ))

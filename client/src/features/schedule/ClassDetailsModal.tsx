@@ -67,8 +67,8 @@ export default function ClassDetailsModal({ event, open, onClose, onBookingSucce
       onBookingSuccess(); // Refresh calendar
       onClose();
       showToast(isFull ? 'You have been added to the waitlist!' : 'Class booked successfully!', 'success');
-    } catch (err: any) {
-      showToast(err.response?.data?.message || 'Failed to book class', 'error');
+    } catch (err: unknown) {
+      showToast((err as Error)?.message || 'Failed to book class', 'error');
     } finally {
       setLoading(false);
     }

@@ -103,7 +103,7 @@ function AppContent() {
         <Route
           path="/workouts/templates"
           element={
-            <ProtectedRoute>
+            <ProtectedRoute allowedRoles={['STUDIO_ADMIN', 'INSTRUCTOR']}>
               <WorkoutTemplatesPage />
             </ProtectedRoute>
           }
@@ -135,7 +135,7 @@ function AppContent() {
         <Route
           path="/check-in"
           element={
-            <ProtectedRoute>
+            <ProtectedRoute allowedRoles={['STUDIO_ADMIN', 'INSTRUCTOR']}>
               <CheckInPage />
             </ProtectedRoute>
           }

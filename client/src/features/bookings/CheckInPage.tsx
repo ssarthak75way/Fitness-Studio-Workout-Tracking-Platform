@@ -17,79 +17,10 @@ import {
     List, ListItem, ListItemAvatar, Avatar, ListItemText,
     Divider, Chip, MenuItem, Select, FormControl, InputLabel
 } from '@mui/material';
+import type { Theme } from '@mui/material';
+import type { ClassSession, Booking, User } from '../../types';
 
-const styles = {
-    pageTitle: (theme: any) => ({
-        background: `linear-gradient(45deg, ${theme.palette.primary.main} 30%, ${theme.palette.secondary.main} 90%)`,
-        WebkitBackgroundClip: 'text',
-        WebkitTextFillColor: 'transparent',
-        mb: 1
-    }),
-    toggleButtonGroup: (theme: any) => ({
-        bgcolor: theme.palette.background.paper,
-        boxShadow: theme.shadows[1],
-        borderRadius: 2,
-        '& .MuiToggleButton-root': {
-            px: 3,
-            py: 1,
-            borderRadius: 2,
-            border: 'none',
-            textTransform: 'none',
-            fontWeight: 600,
-            '&.Mui-selected': {
-                bgcolor: alpha(theme.palette.primary.main, 0.1),
-                color: theme.palette.primary.main,
-                '&:hover': {
-                    bgcolor: alpha(theme.palette.primary.main, 0.2),
-                }
-            }
-        }
-    }),
-    toggleIcon: { mr: 1 },
-    resultCard: (theme: any, success: boolean) => ({
-        borderRadius: 4,
-        boxShadow: theme.shadows[4],
-        textAlign: 'center',
-        overflow: 'hidden',
-        border: `1px solid ${success ? theme.palette.success.light : theme.palette.error.light}`
-    }),
-    resultIconContainer: (theme: any, success: boolean) => ({
-        bgcolor: success ? alpha(theme.palette.success.main, 0.1) : alpha(theme.palette.error.main, 0.1),
-        py: 4
-    }),
-    resultIcon: (theme: any, success: boolean) => ({
-        fontSize: 80,
-        color: success ? theme.palette.success.main : theme.palette.error.main
-    }),
-    resultButton: { borderRadius: 2, px: 4 },
-    contentCard: (theme: any) => ({
-        borderRadius: 4,
-        boxShadow: theme.shadows[2],
-        overflow: 'hidden',
-        background: theme.palette.background.paper
-    }),
-    cameraContainer: (theme: any) => ({
-        borderRadius: 2,
-        overflow: 'hidden',
-        border: `2px dashed ${theme.palette.divider}`,
-        bgcolor: '#000',
-        minHeight: 300,
-        position: 'relative'
-    }),
-    manualField: { mb: 3 },
-    manualFieldInput: { borderRadius: 2 },
-    manualSubmitButton: { borderRadius: 2, py: 1.5, fontWeight: 700 },
-    classSelect: { borderRadius: 2 },
-    attendeesList: (theme: any) => ({
-        bgcolor: theme.palette.background.paper,
-        borderRadius: 2,
-        border: `1px solid ${theme.palette.divider}`,
-        overflow: 'hidden'
-    }),
-    attendeeAvatar: (theme: any) => ({ bgcolor: theme.palette.primary.main }),
-    attendeeChip: { fontWeight: 700, fontSize: '0.65rem', borderRadius: 1 },
-    attendeeButton: { borderRadius: 1.5, minWidth: 80, fontSize: '0.75rem' }
-};
+
 
 export default function CheckInPage() {
     const theme = useTheme();
@@ -98,9 +29,9 @@ export default function CheckInPage() {
     const [loading, setLoading] = useState(false);
     const [result, setResult] = useState<{ success: boolean; message: string } | null>(null);
     const [mode, setMode] = useState<'camera' | 'manual' | 'list'>('camera');
-    const [classes, setClasses] = useState<any[]>([]);
+    const [classes, setClasses] = useState<ClassSession[]>([]);
     const [selectedClassId, setSelectedClassId] = useState('');
-    const [attendees, setAttendees] = useState<any[]>([]);
+    const [attendees, setAttendees] = useState<Booking[]>([]);
     const scannerRef = useRef<Html5QrcodeScanner | null>(null);
 
     useEffect(() => {
@@ -192,10 +123,10 @@ export default function CheckInPage() {
                 message: `Welcome, ${response.data.user?.fullName}! Checked in for ${response.data.classSession?.title || 'class'}.`
             });
             setQrData('');
-        } catch (error: any) {
+        } catch (error: unknown) {
             setResult({
                 success: false,
-                message: error.response?.data?.message || 'Check-in failed. Invalid QR code or booking not found.'
+                message: (error as Error).message || 'Check-in failed. Invalid QR code or booking not found.'
             });
         } finally {
             setLoading(false);
@@ -212,8 +143,8 @@ export default function CheckInPage() {
             await bookingService.manualCheckIn(bookingId);
             if (selectedClassId) fetchAttendees(selectedClassId);
             showToast('Student checked in successfully!', 'success');
-        } catch (error: any) {
-            showToast(error.response?.data?.message || 'Check-in failed', 'error');
+        } catch (error: unknown) {
+            showToast((error as Error).message || 'Check-in failed', 'error');
         }
     };
 
@@ -363,7 +294,7 @@ export default function CheckInPage() {
                                                         No classes scheduled for today
                                                     </MenuItem>
                                                 ) : (
-                                                    classes.map((cls: any) => (
+                                                    classes.map((cls: ClassSession) => (
                                                         <MenuItem key={cls._id} value={cls._id}>
                                                             {cls.title} ({new Date(cls.startTime).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })})
                                                         </MenuItem>
@@ -387,17 +318,17 @@ export default function CheckInPage() {
                                                     </Typography>
                                                 ) : (
                                                     <List sx={styles.attendeesList(theme)}>
-                                                        {attendees.map((booking: any, index: number) => (
+                                                        {attendees.map((booking: Booking, index: number) => (
                                                             <Box key={booking._id}>
                                                                 <ListItem sx={{ py: 1.5 }}>
                                                                     <ListItemAvatar>
-                                                                        <Avatar src={booking.user?.profileImage} sx={styles.attendeeAvatar(theme)}>
-                                                                            {booking.user?.fullName?.[0]}
+                                                                        <Avatar src={(booking.user as User)?.profileImage} sx={styles.attendeeAvatar(theme)}>
+                                                                            {(booking.user as User)?.fullName?.[0]}
                                                                         </Avatar>
                                                                     </ListItemAvatar>
                                                                     <ListItemText
-                                                                        primary={<Typography fontWeight={600}>{booking.user?.fullName}</Typography>}
-                                                                        secondary={booking.user?.email}
+                                                                        primary={<Typography fontWeight={600}>{(booking.user as User)?.fullName}</Typography>}
+                                                                        secondary={(booking.user as User)?.email}
                                                                         sx={{ mr: 2 }}
                                                                     />
                                                                     <Box display="flex" alignItems="center" gap={1}>
@@ -438,3 +369,77 @@ export default function CheckInPage() {
         </Box>
     );
 }
+
+
+const styles = {
+    pageTitle: (theme: Theme) => ({
+        background: `linear-gradient(45deg, ${theme.palette.primary.main} 30%, ${theme.palette.secondary.main} 90%)`,
+        WebkitBackgroundClip: 'text',
+        WebkitTextFillColor: 'transparent',
+        mb: 1
+    }),
+    toggleButtonGroup: (theme: Theme) => ({
+        bgcolor: theme.palette.background.paper,
+        boxShadow: theme.shadows[1],
+        borderRadius: 2,
+        '& .MuiToggleButton-root': {
+            px: 3,
+            py: 1,
+            borderRadius: 2,
+            border: 'none',
+            textTransform: 'none',
+            fontWeight: 600,
+            '&.Mui-selected': {
+                bgcolor: alpha(theme.palette.primary.main, 0.1),
+                color: theme.palette.primary.main,
+                '&:hover': {
+                    bgcolor: alpha(theme.palette.primary.main, 0.2),
+                }
+            }
+        }
+    }),
+    toggleIcon: { mr: 1 },
+    resultCard: (theme: Theme, success: boolean) => ({
+        borderRadius: 4,
+        boxShadow: theme.shadows[4],
+        textAlign: 'center',
+        overflow: 'hidden',
+        border: `1px solid ${success ? theme.palette.success.light : theme.palette.error.light}`
+    }),
+    resultIconContainer: (theme: Theme, success: boolean) => ({
+        bgcolor: success ? alpha(theme.palette.success.main, 0.1) : alpha(theme.palette.error.main, 0.1),
+        py: 4
+    }),
+    resultIcon: (theme: Theme, success: boolean) => ({
+        fontSize: 80,
+        color: success ? theme.palette.success.main : theme.palette.error.main
+    }),
+    resultButton: { borderRadius: 2, px: 4 },
+    contentCard: (theme: Theme) => ({
+        borderRadius: 4,
+        boxShadow: theme.shadows[2],
+        overflow: 'hidden',
+        background: theme.palette.background.paper
+    }),
+    cameraContainer: (theme: Theme) => ({
+        borderRadius: 2,
+        overflow: 'hidden',
+        border: `2px dashed ${theme.palette.divider}`,
+        bgcolor: '#000',
+        minHeight: 300,
+        position: 'relative'
+    }),
+    manualField: { mb: 3 },
+    manualFieldInput: { borderRadius: 2 },
+    manualSubmitButton: { borderRadius: 2, py: 1.5, fontWeight: 700 },
+    classSelect: { borderRadius: 2 },
+    attendeesList: (theme: Theme) => ({
+        bgcolor: theme.palette.background.paper,
+        borderRadius: 2,
+        border: `1px solid ${theme.palette.divider}`,
+        overflow: 'hidden'
+    }),
+    attendeeAvatar: (theme: Theme) => ({ bgcolor: theme.palette.primary.main }),
+    attendeeChip: { fontWeight: 700, fontSize: '0.65rem', borderRadius: 1 },
+    attendeeButton: { borderRadius: 1.5, minWidth: 80, fontSize: '0.75rem' }
+};

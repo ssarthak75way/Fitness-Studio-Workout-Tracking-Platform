@@ -14,6 +14,7 @@ import {
 import { RateReview as RateReviewIcon } from '@mui/icons-material';
 import { ratingService } from '../../services/index';
 import { useAuth } from '../../context/AuthContext';
+import type { Rating as RatingModel, User } from '../../types';
 import ReviewFormDialog from './ReviewFormDialog';
 import { format } from 'date-fns';
 
@@ -72,7 +73,7 @@ const styles = {
 
 export default function ReviewSection({ targetType, targetId, targetName }: Props) {
     const { user } = useAuth();
-    const [data, setData] = useState<{ ratings: any[], averageRating: string }>({ ratings: [], averageRating: '0.0' });
+    const [data, setData] = useState<{ ratings: RatingModel[], averageRating: string }>({ ratings: [], averageRating: '0.0' });
     const [loading, setLoading] = useState(true);
     const [modalOpen, setModalOpen] = useState(false);
 
@@ -138,13 +139,13 @@ export default function ReviewSection({ targetType, targetId, targetName }: Prop
                                     <Box sx={styles.reviewHeader}>
                                         <Box sx={styles.userInfo}>
                                             <Avatar
-                                                src={review.user?.profileImage}
+                                                src={(review.user as User)?.profileImage}
                                                 sx={styles.avatar}
                                             >
-                                                {review.user?.fullName?.[0]}
+                                                {(review.user as User)?.fullName?.[0]}
                                             </Avatar>
                                             <Typography variant="subtitle2" fontWeight="bold">
-                                                {review.user?.fullName}
+                                                {(review.user as User)?.fullName}
                                             </Typography>
                                         </Box>
                                         <Typography variant="caption" color="text.secondary">
@@ -170,7 +171,7 @@ export default function ReviewSection({ targetType, targetId, targetName }: Prop
                 targetId={targetId}
                 targetName={targetName}
                 onSuccess={fetchReviews}
-                initialData={data.ratings.find(r => r.user?._id === user?._id)}
+                initialData={data.ratings.find(r => (r.user as User)?._id === user?._id)}
             />
         </Box>
     );

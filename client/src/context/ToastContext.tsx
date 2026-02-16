@@ -1,6 +1,6 @@
 import React, { createContext, useContext, useState, useCallback } from 'react';
 import { Snackbar, Slide, Box, Typography, IconButton, useTheme, alpha, Paper } from '@mui/material';
-import type { AlertColor, SlideProps } from '@mui/material';
+import type { AlertColor, SlideProps, Theme } from '@mui/material';
 import {
     CheckCircleOutline as SuccessIcon,
     ErrorOutline as ErrorIcon,
@@ -22,7 +22,7 @@ const ToastContext = createContext<ToastContextType | undefined>(undefined);
 
 const styles = {
     snackbar: { marginTop: '16px', marginRight: '16px' },
-    toastRoot: (theme: any, severity: AlertColor) => ({
+    toastRoot: (theme: Theme, severity: AlertColor) => ({
         minWidth: '320px',
         display: 'flex',
         alignItems: 'center',
@@ -47,7 +47,7 @@ const styles = {
             pointerEvents: 'none',
         }
     }),
-    iconWrapper: (theme: any, severity: AlertColor) => ({
+    iconWrapper: (theme: Theme, severity: AlertColor) => ({
         display: 'flex',
         alignItems: 'center',
         justifyContent: 'center',

@@ -1,6 +1,5 @@
 import { useEffect } from 'react';
-import { useForm, useFieldArray } from 'react-hook-form';
-import type { UseFormRegister } from 'react-hook-form';
+import { useForm, useFieldArray, type Resolver } from 'react-hook-form';
 import { z } from 'zod';
 import { zodResolver } from '@hookform/resolvers/zod';
 import {
@@ -11,6 +10,7 @@ import DeleteIcon from '@mui/icons-material/Delete';
 import AddCircleOutlineIcon from '@mui/icons-material/AddCircleOutline';
 import api from '../../services/api';
 import { useToast } from '../../context/ToastContext';
+import SetsFieldArray from './SetsFieldArray';
 
 // Validation Schema
 const setSchema = z.object({
@@ -31,13 +31,13 @@ const workoutSchema = z.object({
   notes: z.string().optional(),
 });
 
-type WorkoutFormValues = z.infer<typeof workoutSchema>;
+import type { WorkoutFormValues } from '../../types';
 
 interface LogWorkoutModalProps {
   open: boolean;
   onClose: () => void;
   onSuccess: () => void;
-  initialValues?: Partial<WorkoutFormValues>;
+  initialValues?: Partial<WorkoutFormValues> | null;
 }
 
 const styles = {
@@ -60,7 +60,7 @@ const styles = {
 export default function LogWorkoutModal({ open, onClose, onSuccess, initialValues }: LogWorkoutModalProps) {
   const { showToast } = useToast();
   const { control, register, handleSubmit, reset, formState: { errors } } = useForm<WorkoutFormValues>({
-    resolver: zodResolver(workoutSchema) as any,
+    resolver: zodResolver(workoutSchema) as unknown as Resolver<WorkoutFormValues>,
     defaultValues: {
       title: '',
       durationMinutes: 60,
@@ -140,7 +140,7 @@ export default function LogWorkoutModal({ open, onClose, onSuccess, initialValue
                   </IconButton>
                 </Box>
 
-                <SetsFieldArray nestIndex={index} control={control} register={register} errors={errors} />
+                <SetsFieldArray nestIndex={index} control={control} register={register} />
 
                 <Box sx={styles.exerciseNotes}>
                   <TextField
@@ -169,57 +169,5 @@ export default function LogWorkoutModal({ open, onClose, onSuccess, initialValue
         </DialogActions>
       </form>
     </Dialog>
-  );
-}
-
-interface SetsFieldArrayProps {
-  nestIndex: number;
-  control: any;
-  register: UseFormRegister<WorkoutFormValues>;
-  errors: any;
-}
-
-function SetsFieldArray({ nestIndex, control, register }: SetsFieldArrayProps) {
-  const { fields, append, remove } = useFieldArray({
-    control,
-    name: `exercises.${nestIndex}.sets` as const
-  });
-
-  return (
-    <Box>
-      <Box sx={styles.setsHeader}>
-        <Typography variant="caption" sx={styles.setLabel}>Set</Typography>
-        <Typography variant="caption" sx={styles.fieldLabel}>Reps</Typography>
-        <Typography variant="caption" sx={styles.fieldLabel}>Weight (kg)</Typography>
-      </Box>
-      {fields.map((item, k) => (
-        <Box key={item.id} sx={styles.setRow}>
-          <Typography variant="body2" color="textSecondary" sx={styles.setNumber}>{k + 1}</Typography>
-          <TextField
-            {...register(`exercises.${nestIndex}.sets.${k}.reps` as const)}
-            type="number"
-            size="small"
-            sx={styles.setField}
-          />
-          <TextField
-            {...register(`exercises.${nestIndex}.sets.${k}.weight` as const)}
-            type="number"
-            size="small"
-            sx={styles.setField}
-          />
-          <IconButton size="small" onClick={() => remove(k)} disabled={fields.length === 1}>
-            <DeleteIcon fontSize="small" />
-          </IconButton>
-        </Box>
-      ))}
-      <Button
-        size="small"
-        startIcon={<AddCircleOutlineIcon />}
-        onClick={() => append({ reps: 10, weight: 0 })}
-        sx={styles.addSetButton}
-      >
-        Add Set
-      </Button>
-    </Box>
   );
 }
