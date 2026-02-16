@@ -4,6 +4,7 @@ import {
   Dialog, DialogTitle, DialogContent, DialogActions,
   Select, MenuItem, FormControl, InputLabel, useTheme, alpha
 } from '@mui/material';
+import type { Theme } from '@mui/material';
 import {
   LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend,
   ResponsiveContainer, BarChart, Bar
@@ -17,6 +18,7 @@ import {
 } from '@mui/icons-material';
 import { metricsService, workoutService } from '../../services/index';
 import { motion, type Variants } from 'framer-motion';
+import type { BodyMetric, WorkoutAnalytics, PersonalRecord } from '../../types';
 
 const containerVariants: Variants = {
   hidden: { opacity: 0 },
@@ -40,10 +42,10 @@ const styles = {
     height: '100%',
     position: 'relative',
     overflow: 'hidden',
-    boxShadow: (theme: any) => theme.shadows[2],
+    boxShadow: (theme: Theme) => theme.shadows[2],
     borderRadius: 4,
-    background: (theme: any) => `linear-gradient(135deg, ${theme.palette.background.paper} 0%, ${alpha(color, 0.05)} 100%)`,
-    border: (theme: any) => `1px solid ${theme.palette.divider}`
+    background: (theme: Theme) => `linear-gradient(135deg, ${theme.palette.background.paper} 0%, ${alpha(color, 0.05)} 100%)`,
+    border: (theme: Theme) => `1px solid ${theme.palette.divider}`
   }),
   statIconBackground: () => ({
     position: 'absolute',
@@ -71,7 +73,7 @@ const styles = {
     letterSpacing: '0.05em'
   },
   statValue: { color: 'text.primary' },
-  tooltipContainer: (theme: any) => ({
+  tooltipContainer: (theme: Theme) => ({
     bgcolor: alpha(theme.palette.background.paper, 0.9),
     p: 2,
     border: `1px solid ${theme.palette.divider}`,
@@ -90,25 +92,25 @@ const styles = {
     mx: 'auto',
     p: { xs: 2, md: 3 }
   },
-  headerTitle: (theme: any) => ({
+  headerTitle: (theme: Theme) => ({
     background: `linear-gradient(45deg, ${theme.palette.text.primary} 30%, ${theme.palette.primary.main} 90%)`,
     WebkitBackgroundClip: 'text',
     WebkitTextFillColor: 'transparent',
   }),
-  addMetricsButton: (theme: any) => ({
+  addMetricsButton: (theme: Theme) => ({
     borderRadius: 2,
     px: 3,
     fontWeight: 600,
     boxShadow: theme.shadows[4]
   }),
-  chartCard: (theme: any) => ({
+  chartCard: (theme: Theme) => ({
     mb: 6,
     p: 3,
     borderRadius: 3,
     boxShadow: theme.shadows[2],
     border: `1px solid ${theme.palette.divider}`
   }),
-  barChartCard: (theme: any) => ({
+  barChartCard: (theme: Theme) => ({
     p: 3,
     borderRadius: 3,
     boxShadow: theme.shadows[2],
@@ -118,7 +120,7 @@ const styles = {
   }),
   exerciseSelect: { minWidth: 200 },
   selectControl: { borderRadius: 2 },
-  prCard: (theme: any) => ({
+  prCard: (theme: Theme) => ({
     borderRadius: 3,
     border: `1px solid ${alpha(theme.palette.secondary.main, 0.2)}`,
     background: alpha(theme.palette.background.paper, 0.8),
@@ -138,7 +140,7 @@ const styles = {
   genericButton: { borderRadius: 2, fontWeight: 600 }
 };
 
-const StatCard = ({ title, value, unit, icon: Icon, color }: { title: string, value: string | number, unit?: string, icon: any, color: string }) => (
+const StatCard = ({ title, value, unit, icon: Icon, color }: { title: string, value: string | number, unit?: string, icon: React.ElementType, color: string }) => (
   <Card sx={styles.statCard(color)}>
     <Box sx={styles.statIconBackground()}>
       <Icon sx={styles.statIconLarge(color)} />
@@ -166,15 +168,25 @@ const StatCard = ({ title, value, unit, icon: Icon, color }: { title: string, va
   </Card>
 );
 
-const CustomTooltip = ({ active, payload, label }: any) => {
+interface CustomTooltipProps {
+  active?: boolean;
+  payload?: Array<{
+    name: string;
+    value: string | number;
+    color?: string;
+  }>;
+  label?: string | number;
+}
+
+const CustomTooltip = ({ active, payload, label }: CustomTooltipProps) => {
   const theme = useTheme();
   if (active && payload && payload.length) {
     return (
       <Box sx={styles.tooltipContainer(theme)}>
         <Typography variant="subtitle2" fontWeight={700} mb={1}>{label}</Typography>
-        {payload.map((entry: any, index: number) => (
+        {payload.map((entry, index) => (
           <Box key={index} display="flex" alignItems="center" gap={1} mb={0.5}>
-            <Box sx={styles.tooltipMarker(entry.color)} />
+            <Box sx={styles.tooltipMarker(entry.color || theme.palette.primary.main)} />
             <Typography variant="body2" color="text.primary">
               {entry.name}: <span style={{ fontWeight: 600 }}>{entry.value}</span>
             </Typography>
@@ -188,10 +200,10 @@ const CustomTooltip = ({ active, payload, label }: any) => {
 
 export default function ProgressPage() {
   const theme = useTheme();
-  const [metrics, setMetrics] = useState<any[]>([]);
-  const [records, setRecords] = useState<any>({});
+  const [metrics, setMetrics] = useState<BodyMetric[]>([]);
+  const [records, setRecords] = useState<Record<string, PersonalRecord>>({});
   const [streak, setStreak] = useState(0);
-  const [analytics, setAnalytics] = useState<any>(null);
+  const [analytics, setAnalytics] = useState<WorkoutAnalytics | null>(null);
   const [selectedExercise, setSelectedExercise] = useState('');
   const [openAddMetric, setOpenAddMetric] = useState(false);
   const [newMetric, setNewMetric] = useState({
@@ -300,8 +312,8 @@ export default function ProgressPage() {
         <motion.div variants={itemVariants}>
           <StatCard
             title="Current Weight"
-            value={metrics[0]?.weight || 'N/A'}
-            unit={metrics[0]?.weight ? 'lbs' : ''}
+            value={metrics[0]?.weight?.toFixed(2) || 'N/A'}
+            unit={metrics[0]?.weight?.toFixed(2) ? 'lbs' : ''}
             icon={ChartIcon}
             color={theme.palette.primary.main}
           />
@@ -309,8 +321,8 @@ export default function ProgressPage() {
         <motion.div variants={itemVariants}>
           <StatCard
             title="Body Fat %"
-            value={metrics[0]?.bodyFatPercentage || 'N/A'}
-            unit={metrics[0]?.bodyFatPercentage ? '%' : ''}
+            value={metrics[0]?.bodyFatPercentage?.toFixed(2) || 'N/A'}
+            unit={metrics[0]?.bodyFatPercentage?.toFixed(2) ? '%' : ''}
             icon={RulerIcon}
             color={theme.palette.info.main}
           />
@@ -494,7 +506,7 @@ export default function ProgressPage() {
         Personal Records
       </Typography>
       <Box display="grid" gridTemplateColumns={{ xs: '1fr', sm: '1fr 1fr', md: 'repeat(3, 1fr)' }} gap={3}>
-        {Object.entries(records).map(([exercise, record]: [string, any]) => (
+        {Object.entries(records).map(([exercise, record]: [string, PersonalRecord]) => (
           <motion.div variants={itemVariants} key={exercise}>
             <Card sx={styles.prCard(theme)}>
               <CardContent>
@@ -554,7 +566,7 @@ export default function ProgressPage() {
                   key={field}
                   label={field.charAt(0).toUpperCase() + field.slice(1)}
                   type="number"
-                  value={(newMetric as any)[field]}
+                  value={newMetric[field as keyof typeof newMetric]}
                   onChange={(e) => setNewMetric({ ...newMetric, [field]: e.target.value })}
                   InputProps={{ sx: styles.textFieldInput }}
                   size="small"

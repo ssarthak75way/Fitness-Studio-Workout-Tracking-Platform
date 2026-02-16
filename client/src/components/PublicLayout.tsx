@@ -1,8 +1,8 @@
 import { type ReactNode } from 'react';
-import { Box, useTheme } from '@mui/material';
+import { Box, useTheme, type Theme } from '@mui/material';
 
 const styles = {
-    container: (theme: any) => ({
+    container: (theme: Theme) => ({
         minHeight: '100vh',
         display: 'flex',
         flexDirection: 'column',

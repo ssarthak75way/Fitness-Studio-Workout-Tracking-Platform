@@ -7,12 +7,11 @@ import type {
     BodyMetric,
     Membership,
     WorkoutLog,
-    Membership,
-    WorkoutLog,
     Notification,
     Rating,
     WorkoutTemplate,
-    WorkoutAnalytics
+    WorkoutAnalytics,
+    PersonalRecord
 } from '../types';
 
 export const dashboardService = {
@@ -69,7 +68,7 @@ export const workoutService = {
         return response.data;
     },
 
-    getPersonalRecords: async (): Promise<ApiResponse<{ records: Record<string, any> }>> => {
+    getPersonalRecords: async (): Promise<ApiResponse<{ records: Record<string, PersonalRecord> }>> => {
         const response = await api.get('/workouts/records');
         return response.data;
     },

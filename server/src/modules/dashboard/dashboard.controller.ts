@@ -1,16 +1,44 @@
 import { Request, Response, NextFunction } from 'express';
-import { BookingModel, BookingStatus } from '../bookings/booking.model.js';
-import { WorkoutLogModel } from '../workouts/workout.model.js';
-import { ClassSessionModel } from '../classes/class.model.js';
-import { UserModel, UserRole } from '../users/user.model.js';
+import { BookingModel, BookingStatus, IBooking } from '../bookings/booking.model.js';
+import { WorkoutLogModel, IWorkoutLog } from '../workouts/workout.model.js';
+import { ClassSessionModel, IClassSession } from '../classes/class.model.js';
+import { UserModel, UserRole, IUser } from '../users/user.model.js';
 import { RatingModel } from '../ratings/rating.model.js';
+
+type PopulatedClassSession = Pick<IClassSession, '_id' | 'title' | 'startTime'>;
+
+interface MemberStats {
+  upcomingBookings: (Omit<IBooking, 'classSession'> & { classSession: PopulatedClassSession })[];
+  recentWorkouts: IWorkoutLog[];
+  totalWorkouts: number;
+  workoutStreak: number;
+}
+
+interface InstructorStats {
+  todaysClasses: IClassSession[];
+  upcomingClasses: IClassSession[];
+  totalClasses: number;
+  averageRating: string;
+  totalRatings: number;
+}
+
+interface AdminStats {
+  totalUsers: number;
+  totalMembers: number;
+  totalInstructors: number;
+  totalClasses: number;
+  totalBookings: number;
+  recentUsers: Partial<IUser>[];
+}
+
+type DashboardStats = MemberStats | InstructorStats | AdminStats | Record<string, never>;
 
 export const getDashboardStatsHandler = async (req: Request, res: Response, next: NextFunction) => {
   try {
     const userId = req.user?._id;
     const userRole = req.user?.role;
 
-    let stats: any = {};
+    let stats: DashboardStats = {};
 
     if (userRole === UserRole.MEMBER) {
       // Member Dashboard Stats

@@ -18,6 +18,7 @@ import {
     IconButton,
     Stack
 } from '@mui/material';
+import type { Theme } from '@mui/material';
 import {
     Event as EventIcon,
     LocationOn as LocationOnIcon,
@@ -49,13 +50,13 @@ interface Booking {
 
 const styles = {
     pageContainer: { maxWidth: 1200, mx: 'auto', p: { xs: 2, md: 3 } },
-    headerTitle: (theme: any) => ({
+    headerTitle: (theme: Theme) => ({
         background: `linear-gradient(45deg, ${theme.palette.text.primary} 30%, ${theme.palette.primary.main} 90%)`,
         WebkitBackgroundClip: 'text',
         WebkitTextFillColor: 'transparent',
     }),
     tabsContainer: { borderBottom: 1, borderColor: 'divider', mb: 3 },
-    card: (theme: any) => ({
+    card: (theme: Theme) => ({
         height: '100%',
         display: 'flex',
         flexDirection: 'column',
@@ -69,7 +70,7 @@ const styles = {
     }),
     cardContent: { flexGrow: 1, p: 3 },
     chip: { fontWeight: 600, borderRadius: 1 },
-    qrIconButton: (theme: any) => ({
+    qrIconButton: (theme: Theme) => ({
         bgcolor: alpha(theme.palette.primary.main, 0.1),
         color: 'primary.main',
         '&:hover': { bgcolor: alpha(theme.palette.primary.main, 0.2) }
@@ -141,7 +142,7 @@ export default function BookingsPage() {
         });
     };
 
-    const getStatusColor = (status: string) => {
+    const getStatusColor = (status: Booking['status']): 'success' | 'warning' | 'info' | 'error' | 'default' => {
         switch (status) {
             case 'CONFIRMED': return 'success';
             case 'WAITLISTED': return 'warning';
@@ -180,7 +181,7 @@ export default function BookingsPage() {
                                 <Box display="flex" justifyContent="space-between" alignItems="start" mb={2}>
                                     <Chip
                                         label={booking.status}
-                                        color={getStatusColor(booking.status) as any}
+                                        color={getStatusColor(booking.status)}
                                         size="small"
                                         variant="filled"
                                         sx={styles.chip}

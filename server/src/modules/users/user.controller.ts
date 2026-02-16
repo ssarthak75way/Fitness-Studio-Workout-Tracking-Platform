@@ -31,11 +31,13 @@ export const updateProfile = async (req: Request, res: Response, next: NextFunct
 export const getInstructors = async (req: Request, res: Response, next: NextFunction) => {
   try {
     const { specialty } = req.query;
-    const filter: any = { role: 'INSTRUCTOR' };
+    const filter: { role: string; specialty?: string } = { role: 'INSTRUCTOR' };
+
+    if (specialty) filter.specialty = specialty as string;
 
     const instructors = await User.find(filter).select('-passwordHash');
 
-    // Get ratings for each instructor
+
     const instructorsWithRatings = await Promise.all(
       instructors.map(async (instructor) => {
         const ratings = await Rating.find({

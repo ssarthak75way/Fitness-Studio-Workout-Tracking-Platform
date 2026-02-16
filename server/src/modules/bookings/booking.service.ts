@@ -1,7 +1,7 @@
 import mongoose from 'mongoose';
 import QRCode from 'qrcode';
-import { BookingModel, BookingStatus } from './booking.model.js';
-import { ClassSessionModel } from '../classes/class.model.js';
+import { BookingModel, BookingStatus, IBooking } from './booking.model.js';
+import { ClassSessionModel, IClassSession } from '../classes/class.model.js';
 import { MembershipModel, PlanType } from '../memberships/membership.model.js';
 import { NotificationService } from '../notifications/notification.service.js';
 import { AppError } from '../../utils/AppError.js';
@@ -101,7 +101,7 @@ export const BookingService = {
     return { ...booking.toObject(), qrCodeUrl };
   },
 
-//  Cancel a booking
+  //  Cancel a booking
   cancelBooking: async (bookingId: string, userId: string) => {
     // 1. Find the booking
     const booking = await BookingModel.findOne({
@@ -114,7 +114,7 @@ export const BookingService = {
       throw new AppError('Booking not found or already cancelled', 404);
     }
 
-    const classSession: any = booking.classSession;
+    const classSession = booking.classSession as unknown as IClassSession;
     if (!classSession) {
       throw new AppError('Associated class session not found', 404);
     }
@@ -159,7 +159,7 @@ export const BookingService = {
     return booking;
   },
 
-   // Get User's Bookings
+  // Get User's Bookings
   getUserBookings: async (userId: string) => {
     const bookings = await BookingModel.find({ user: userId })
       .populate({
@@ -172,7 +172,7 @@ export const BookingService = {
     // Generate QR code URLs for confirmed bookings
     const bookingsWithQR = await Promise.all(
       bookings.map(async (booking) => {
-        const bookingObj: any = booking.toObject();
+        const bookingObj: IBooking = booking.toObject();
         if (booking.qrCode && booking.status === BookingStatus.CONFIRMED) {
           bookingObj.qrCodeUrl = await QRCode.toDataURL(booking.qrCode);
         }
@@ -183,7 +183,7 @@ export const BookingService = {
     return bookingsWithQR;
   },
 
-   //Check-in via QR code
+  //Check-in via QR code
   checkIn: async (qrCode: string) => {
     const booking = await BookingModel.findOne({
       qrCode,
@@ -200,15 +200,15 @@ export const BookingService = {
     return booking;
   },
 
-  
-   // Get all bookings for a specific class session (for instructors/admins)
+
+  // Get all bookings for a specific class session (for instructors/admins)
   getClassBookings: async (classSessionId: string) => {
     return await BookingModel.find({ classSession: classSessionId })
       .populate('user', 'fullName email profileImage')
       .sort({ bookedAt: 1 });
   },
 
-   // Manual check-in by booking ID
+  // Manual check-in by booking ID
   checkInById: async (bookingId: string) => {
     const booking = await BookingModel.findById(bookingId).populate('classSession user');
 

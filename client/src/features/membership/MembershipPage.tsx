@@ -14,6 +14,8 @@ import api from '../../services/api';
 import { useAuth } from '../../context/AuthContext';
 import { useToast } from '../../context/ToastContext';
 import ConfirmationDialog from '../../components/common/ConfirmationDialog';
+import type { Theme } from '@mui/material';
+import type { Membership } from '../../types';
 
 const PLANS = [
     {
@@ -56,13 +58,13 @@ const styles = {
         py: 4
     },
     pageHeader: { mb: 6, textAlign: 'center' },
-    pageTitle: (theme: any) => ({
+    pageTitle: (theme: Theme) => ({
         background: `linear-gradient(45deg, ${theme.palette.primary.main} 30%, ${theme.palette.secondary.main} 90%)`,
         WebkitBackgroundClip: 'text',
         WebkitTextFillColor: 'transparent',
         mb: 1
     }),
-    currentMembershipCard: (theme: any, isActive: boolean) => ({
+    currentMembershipCard: (theme: Theme, isActive: boolean) => ({
         mb: 8,
         borderRadius: 4,
         overflow: 'visible',
@@ -71,7 +73,7 @@ const styles = {
         boxShadow: isActive ? `0 8px 32px ${alpha(theme.palette.success.main, 0.1)}` : theme.shadows[1],
         position: 'relative'
     }),
-    activeBadge: (theme: any) => ({
+    activeBadge: (theme: Theme) => ({
         position: 'absolute',
         top: -12,
         left: '50%',
@@ -90,13 +92,13 @@ const styles = {
         gap: 0.5
     }),
     badgeIcon: { fontSize: 16 },
-    membershipDetailsBox: (theme: any) => ({
+    membershipDetailsBox: (theme: Theme) => ({
         bgcolor: alpha(theme.palette.background.default, 0.5),
         p: 3,
         borderRadius: 3,
         border: `1px solid ${theme.palette.divider}`
     }),
-    noMembershipBox: (theme: any) => ({
+    noMembershipBox: (theme: Theme) => ({
         display: 'flex',
         alignItems: 'center',
         gap: 2,
@@ -106,7 +108,7 @@ const styles = {
         bgcolor: alpha(theme.palette.info.main, 0.05)
     }),
     noMembershipIcon: { fontSize: 40, opacity: 0.8 },
-    planCard: (theme: any, popular: boolean) => ({
+    planCard: (theme: Theme, popular: boolean) => ({
         height: '100%',
         display: 'flex',
         flexDirection: 'column',
@@ -116,7 +118,7 @@ const styles = {
         border: popular ? `2px solid ${theme.palette.secondary.main}` : `1px solid ${theme.palette.divider}`,
         boxShadow: popular ? `0 12px 48px ${alpha(theme.palette.secondary.main, 0.15)}` : theme.shadows[2],
     }),
-    popularBadge: (theme: any) => ({
+    popularBadge: (theme: Theme) => ({
         position: 'absolute',
         top: -16,
         left: '50%',
@@ -145,7 +147,7 @@ const styles = {
     }),
     planFeatureItem: { py: 0.75 },
     planFeatureIcon: (color: string) => ({ fontSize: 20, color: color }),
-    purchaseButton: (theme: any, popular: boolean) => ({
+    purchaseButton: (theme: Theme, popular: boolean) => ({
         py: 1.5,
         fontWeight: 700,
         borderRadius: 2,
@@ -160,7 +162,7 @@ const styles = {
 export default function MembershipPage() {
     const theme = useTheme();
     const { user } = useAuth();
-    const [membership, setMembership] = useState<any>(null);
+    const [membership, setMembership] = useState<Membership | null>(null);
 
     const [loading, setLoading] = useState(false);
 
@@ -172,7 +174,7 @@ export default function MembershipPage() {
         try {
             const response = await membershipService.getMyMembership();
             setMembership(response.data.membership);
-        } catch (error: any) {
+        } catch (error: unknown) { // axios error
             console.error('Failed to fetch membership:', error);
         }
     };
@@ -192,7 +194,7 @@ export default function MembershipPage() {
 
         try {
             // 0. Check if Razorpay is loaded
-            if (!(window as any).Razorpay) {
+            if (!window.Razorpay) {
                 showToast('Razorpay SDK failed to load. Please check your internet connection.', 'error');
                 setLoading(false);
                 return;
@@ -210,7 +212,7 @@ export default function MembershipPage() {
                 name: "Fitness Studio",
                 description: `Membership: ${type.replace('_', ' ')}`,
                 order_id: order.id,
-                handler: async (response: any) => {
+                handler: async (response: { razorpay_order_id: string, razorpay_payment_id: string, razorpay_signature: string }) => {
                     try {
                         // 3. Verify Payment
                         await api.post('/memberships/verify-payment', {
@@ -235,18 +237,18 @@ export default function MembershipPage() {
                 },
             };
 
-            const rzp = new (window as any).Razorpay(options);
+            const rzp = new window.Razorpay(options);
 
-            rzp.on('payment.failed', (response: any) => {
+            rzp.on('payment.failed', (response: { error: { description: string } }) => {
                 console.error('Razorpay Payment Failed:', response.error);
                 showToast(`Payment failed: ${response.error.description}`, 'error');
             });
 
             rzp.open();
 
-        } catch (error: any) {
+        } catch (error: unknown) { // axios error
             console.error(error);
-            showToast(error.response?.data?.message || 'Failed to initiate payment', 'error');
+            showToast((error as Error).message || 'Failed to initiate payment', 'error');
         } finally {
             setLoading(false);
         }
@@ -267,7 +269,7 @@ export default function MembershipPage() {
             </Box>
 
             {/* Current Membership Card */}
-            <Card sx={styles.currentMembershipCard(theme, membership?.isActive)}>
+            <Card sx={styles.currentMembershipCard(theme, !!membership?.isActive)}>
                 {membership?.isActive && (
                     <Box sx={styles.activeBadge(theme)}>
                         <CheckCircleIcon sx={styles.badgeIcon} /> ACTIVE MEMBERSHIP

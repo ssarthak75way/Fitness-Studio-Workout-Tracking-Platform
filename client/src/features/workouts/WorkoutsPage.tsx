@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import {
   Box, Typography, Button, Card, CardContent, useTheme, alpha, IconButton, Chip
 } from '@mui/material';
+import type { Theme } from '@mui/material';
 import {
   Add as AddIcon,
   EmojiEvents as StreakIcon,
@@ -13,7 +14,7 @@ import {
 import { useNavigate } from 'react-router-dom';
 import { motion, type Variants } from 'framer-motion';
 import { workoutService } from '../../services';
-import type { WorkoutLog } from '../../types';
+import type { WorkoutLog, PersonalRecord, WorkoutTemplate } from '../../types';
 import LogWorkoutModal from './LogWorkoutModal';
 
 const containerVariants: Variants = {
@@ -35,16 +36,16 @@ const itemVariants: Variants = {
 
 const styles = {
   pageContainer: { maxWidth: 1200, mx: 'auto', p: { xs: 2, md: 3 } },
-  headerTitle: (theme: any) => ({
+  headerTitle: (theme: Theme) => ({
     background: `linear-gradient(45deg, ${theme.palette.text.primary} 30%, ${theme.palette.primary.main} 90%)`,
     WebkitBackgroundClip: 'text',
     WebkitTextFillColor: 'transparent',
   }),
   headerSubtitle: { fontWeight: 400, mt: 0.5 },
   templatesButton: { borderStyle: 'solid', borderRadius: 2, px: 3, fontWeight: 600 },
-  logSessionButton: (theme: any) => ({ borderRadius: 2, px: 3, fontWeight: 600, boxShadow: theme.shadows[4] }),
+  logSessionButton: (theme: Theme) => ({ borderRadius: 2, px: 3, fontWeight: 600, boxShadow: theme.shadows[4] }),
   statsGrid: { display: 'grid', gridTemplateColumns: { xs: '1fr', sm: '1fr 1fr', md: 'repeat(4, 1fr)' }, gap: 3, mb: 6 },
-  statCard: (color: string) => (theme: any) => ({
+  statCard: (color: string) => (theme: Theme) => ({
     height: '100%',
     position: 'relative',
     overflow: 'hidden',
@@ -68,7 +69,7 @@ const styles = {
   statValue: { color: 'text.primary' },
   sectionTitle: { fontWeight: 800, mb: 3 },
   recordsGrid: { display: 'grid', gridTemplateColumns: { xs: '1fr', sm: '1fr 1fr', md: 'repeat(3, 1fr)' }, gap: 2, mb: 6 },
-  recordCard: (theme: any) => ({
+  recordCard: (theme: Theme) => ({
     borderRadius: 3,
     border: `1px solid ${alpha(theme.palette.secondary.main, 0.2)}`,
     background: alpha(theme.palette.background.paper, 0.8),
@@ -78,7 +79,7 @@ const styles = {
   recordUnit: { opacity: 0.7, fontWeight: 600 },
   recordSpacer: { mx: 1, color: 'text.disabled' },
   recordDate: { display: 'block', mt: 1 },
-  noRecordsBox: (theme: any) => ({
+  noRecordsBox: (theme: Theme) => ({
     gridColumn: '1/-1',
     p: 4,
     textAlign: 'center',
@@ -87,7 +88,7 @@ const styles = {
     border: `1px dashed ${theme.palette.divider}`
   }),
   historyList: { display: 'flex', flexDirection: 'column', gap: 2 },
-  historyCard: (theme: any) => ({
+  historyCard: (theme: Theme) => ({
     borderRadius: 3,
     transition: 'transform 0.2s, box-shadow 0.2s',
     '&:hover': {
@@ -97,13 +98,13 @@ const styles = {
     border: `1px solid ${theme.palette.divider}`
   }),
   dateChip: { borderRadius: 1, fontSize: '0.75rem' },
-  durationChip: (theme: any) => ({
+  durationChip: (theme: Theme) => ({
     borderRadius: 1,
     fontSize: '0.75rem',
     border: 'none',
     bgcolor: alpha(theme.palette.primary.main, 0.1)
   }),
-  exerciseBadge: (theme: any) => ({
+  exerciseBadge: (theme: Theme) => ({
     px: 1.5,
     py: 0.75,
     borderRadius: 1.5,
@@ -113,10 +114,10 @@ const styles = {
     maxWidth: 'fit-content'
   }),
   exerciseName: { fontWeight: 600, fontSize: '0.85rem' },
-  exerciseSets: (theme: any) => ({ borderLeft: `1px solid ${theme.palette.divider}`, pl: 1, ml: 0.5 })
+  exerciseSets: (theme: Theme) => ({ borderLeft: `1px solid ${theme.palette.divider}`, pl: 1, ml: 0.5 })
 };
 
-const StatCard = ({ title, value, icon: Icon, color }: { title: string, value: string | number, icon: any, color: string }) => {
+const StatCard = ({ title, value, icon: Icon, color }: { title: string, value: string | number, icon: React.ElementType, color: string }) => {
   const theme = useTheme();
   return (
     <Card sx={styles.statCard(color)(theme)}>
@@ -143,10 +144,10 @@ const StatCard = ({ title, value, icon: Icon, color }: { title: string, value: s
 export default function WorkoutsPage() {
   const theme = useTheme();
   const [workouts, setWorkouts] = useState<WorkoutLog[]>([]);
-  const [records, setRecords] = useState<Record<string, any>>({});
+  const [records, setRecords] = useState<Record<string, PersonalRecord>>({});
   const [streak, setStreak] = useState(0);
   const [openLog, setOpenLog] = useState(false);
-  const [selectedTemplate, setSelectedTemplate] = useState<any>(null);
+  const [selectedTemplate, setSelectedTemplate] = useState<WorkoutTemplate | null>(null);
   const navigate = useNavigate();
 
   const fetchData = async () => {
@@ -223,7 +224,7 @@ export default function WorkoutsPage() {
       </Typography>
       <Box sx={styles.recordsGrid}>
         {Object.entries(records).length > 0 ? (
-          Object.entries(records).map(([exercise, record]: [string, any]) => (
+          Object.entries(records).map(([exercise, record]) => (
             <motion.div variants={itemVariants} key={exercise}>
               <Card sx={styles.recordCard(theme)}>
                 <CardContent>
@@ -314,7 +315,14 @@ export default function WorkoutsPage() {
           setOpenLog(false);
           setSelectedTemplate(null);
         }}
-        initialValues={selectedTemplate}
+        initialValues={selectedTemplate ? {
+          title: selectedTemplate.name,
+          exercises: selectedTemplate.exercises.map(ex => ({
+            name: ex.name,
+            sets: Array(ex.sets).fill({ reps: ex.reps, weight: ex.weight || 0 }),
+            notes: ex.notes
+          }))
+        } : null}
       />
     </Box>
   );

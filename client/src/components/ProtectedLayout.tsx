@@ -15,7 +15,10 @@ import QrCodeScannerIcon from '@mui/icons-material/QrCodeScanner';
 import UserIcon from '@mui/icons-material/People';
 import DarkModeIcon from '@mui/icons-material/DarkMode';
 import LightModeIcon from '@mui/icons-material/LightMode';
+import NoteAddIcon from '@mui/icons-material/NoteAdd';
+import AccountCircleIcon from '@mui/icons-material/AccountCircle';
 import NotificationPopover from './NotificationPopover';
+import type { Theme } from '@mui/material';
 
 const DRAWER_WIDTH = 240;
 
@@ -24,8 +27,10 @@ const menuItems = [
     { text: 'Schedule', icon: <CalendarMonthIcon />, path: '/schedule' },
     { text: 'My Bookings', icon: <BookmarkIcon />, path: '/bookings' },
     { text: 'Workouts', icon: <FitnessCenterIcon />, path: '/workouts' },
+    { text: 'Workout Templates', icon: <NoteAddIcon />, path: '/workouts/templates', roles: ['STUDIO_ADMIN', 'INSTRUCTOR'] },
     { text: 'Progress', icon: <TrendingUpIcon />, path: '/progress' },
     { text: 'Membership', icon: <CardMembershipIcon />, path: '/membership' },
+    { text: 'My Profile', icon: <AccountCircleIcon />, path: '/profile' },
     { text: 'Settings', icon: <SettingsIcon />, path: '/settings' },
     { text: 'User Management', icon: <UserIcon />, path: '/admin/users', roles: ['STUDIO_ADMIN'] },
     { text: 'Check-In', icon: <QrCodeScannerIcon />, path: '/check-in', roles: ['STUDIO_ADMIN', 'INSTRUCTOR'] },
@@ -35,7 +40,7 @@ const styles = {
     root: {
         display: 'flex',
     },
-    appBar: (theme: any) => ({
+    appBar: (theme: Theme) => ({
         zIndex: theme.zIndex.drawer + 1,
     }),
     typographyFlex: {

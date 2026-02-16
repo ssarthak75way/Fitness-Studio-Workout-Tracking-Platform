@@ -6,7 +6,7 @@ import compression from 'compression';
 import rateLimit from 'express-rate-limit';
 import hpp from 'hpp';
 import swaggerUi from 'swagger-ui-express';
-import { ZodError } from 'zod';
+import { ZodError, ZodIssue } from 'zod';
 
 import swaggerSpec from './config/swagger.js';
 import logger from './utils/logger.js';
@@ -33,7 +33,7 @@ app.use(compression());
 
 const limiter = rateLimit({
   windowMs: 15 * 60 * 1000,
-  max: 100000000,
+  max: 1000,
   message: 'Too many requests from this IP, please try again after 15 minutes',
 });
 app.use('/api', limiter);
@@ -64,7 +64,18 @@ app.all('*', (req: Request, _res: Response, next: NextFunction) => {
   next(new AppError(`Can't find ${req.originalUrl} on this server!`, 404));
 });
 
-app.use((err: any, _req: Request, res: Response, _next: NextFunction) => {
+interface IResponseError extends Error {
+  statusCode?: number;
+  status?: string;
+  isOperational?: boolean;
+  code?: number | string;
+  errmsg?: string;
+  path?: string;
+  value?: string;
+  issues?: ZodIssue[]; // For ZodError
+}
+
+app.use((err: IResponseError, _req: Request, res: Response, _next: NextFunction) => {
   err.statusCode = err.statusCode || 500;
   err.status = err.status || 'error';
 
@@ -85,8 +96,9 @@ app.use((err: any, _req: Request, res: Response, _next: NextFunction) => {
   }
 
   if (err.code === 11000) {
-    const value = err.errmsg.match(/(["'])(\\?.)*?\1/)[0];
-    res.status(400).json({ status: 'fail', message: `Duplicate field value: ${value}. Please use another value!` });
+    const value = err.errmsg?.match(/(["'])(\\?.)*?\1/);
+    const message = value ? `Duplicate field value: ${value[0]}. Please use another value!` : 'Duplicate field value. Please use another value!';
+    res.status(400).json({ status: 'fail', message });
     return;
   }
 

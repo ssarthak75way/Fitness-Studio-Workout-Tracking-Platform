@@ -42,9 +42,9 @@ export const getWorkoutStreak = async (req: Request, res: Response, next: NextFu
 export const getTemplates = async (req: Request, res: Response, next: NextFunction) => {
   try {
     const { category, difficulty } = req.query;
-    const filter: any = { isPublic: true };
-    if (category) filter.category = category;
-    if (difficulty) filter.difficulty = difficulty;
+    const filter: { isPublic: boolean; category?: string; difficulty?: string } = { isPublic: true };
+    if (category) filter.category = category as string;
+    if (difficulty) filter.difficulty = difficulty as string;
 
     const templates = await WorkoutTemplate.find(filter).populate('createdBy', 'fullName');
     res.status(200).json({ status: 'success', data: { templates } });

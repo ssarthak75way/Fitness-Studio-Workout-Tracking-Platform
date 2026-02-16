@@ -13,15 +13,10 @@ import { motion } from 'framer-motion';
 import api from '../../services/api';
 import { useToast } from '../../context/ToastContext';
 import ConfirmationDialog from '../../components/common/ConfirmationDialog';
+import type { User } from '../../types';
+import type { Theme } from '@mui/material';
 
-interface User {
-    _id: string;
-    fullName: string;
-    email: string;
-    role: string;
-    createdAt: string;
-    isActive: boolean;
-}
+// Local interface removed in favor of global User from types
 
 const styles = {
     loadingContainer: {
@@ -30,26 +25,26 @@ const styles = {
         alignItems: 'center',
         minHeight: '60vh'
     },
-    loadingSpinner: (theme: any) => ({ color: theme.palette.primary.main }),
+    loadingSpinner: (theme: Theme) => ({ color: theme.palette.primary.main }),
     pageContainer: {
         maxWidth: 1200,
         mx: 'auto',
         px: { xs: 2, md: 4 },
         py: 4
     },
-    headerTitle: (theme: any) => ({
+    headerTitle: (theme: Theme) => ({
         background: `linear-gradient(45deg, ${theme.palette.primary.main} 30%, ${theme.palette.secondary.main} 90%)`,
         WebkitBackgroundClip: 'text',
         WebkitTextFillColor: 'transparent',
         mb: 1
     }),
-    paper: (theme: any) => ({
+    paper: (theme: Theme) => ({
         borderRadius: 4,
         boxShadow: theme.shadows[2],
         overflow: 'hidden',
         border: `1px solid ${theme.palette.divider}`
     }),
-    toolbar: (theme: any) => ({
+    toolbar: (theme: Theme) => ({
         p: 3,
         bgcolor: alpha(theme.palette.background.default, 0.4),
         display: 'flex',
@@ -58,15 +53,15 @@ const styles = {
         flexWrap: 'wrap',
         gap: 2
     }),
-    searchInput: (theme: any) => ({
+    searchInput: (theme: Theme) => ({
         borderRadius: 3,
         bgcolor: theme.palette.background.paper,
         width: { xs: '100%', sm: 300 }
     }),
-    tableHead: (theme: any) => ({ bgcolor: alpha(theme.palette.primary.main, 0.05) }),
+    tableHead: (theme: Theme) => ({ bgcolor: alpha(theme.palette.primary.main, 0.05) }),
     tableCellHead: { fontWeight: 700, py: 2 },
     tableRow: { '&:last-child td, &:last-child th': { border: 0 } },
-    avatar: (theme: any) => ({ bgcolor: theme.palette.primary.light, fontWeight: 700 }),
+    avatar: (theme: Theme) => ({ bgcolor: theme.palette.primary.light, fontWeight: 700 }),
     roleChip: { fontWeight: 600, borderRadius: 1.5 },
     statusChip: { fontWeight: 600, borderRadius: 1.5 },
     actionButton: { borderRadius: 2, textTransform: 'none', fontWeight: 600 },
@@ -91,12 +86,12 @@ export default function UserManagementPage() {
             setLoading(true);
             const response = await api.get('/users');
             // Filter out STUDIO_ADMIN only, show both active and inactive
-            const nonAdminUsers = response.data.data.users.filter((user: any) =>
+            const nonAdminUsers = response.data.data.users.filter((user: User) =>
                 user.role !== 'STUDIO_ADMIN'
             );
             setUsers(nonAdminUsers);
-        } catch (err: any) {
-            showToast(err.response?.data?.message || 'Failed to fetch users', 'error');
+        } catch (err: unknown) { // axios error catch is usually any or unknown
+            showToast((err as Error).message || 'Failed to fetch users', 'error');
         } finally {
             setLoading(false);
         }
@@ -123,8 +118,8 @@ export default function UserManagementPage() {
             const updatedUser = response.data.data.user;
             setUsers(users.map(u => u._id === updatedUser._id ? updatedUser : u));
             showToast(`User ${updatedUser.isActive ? 'activated' : 'deactivated'} successfully`, 'success');
-        } catch (err: any) {
-            showToast(err.response?.data?.message || `Failed to ${action} user`, 'error');
+        } catch (err: unknown) {
+            showToast((err as Error).message || `Failed to ${action} user`, 'error');
         }
     };
 

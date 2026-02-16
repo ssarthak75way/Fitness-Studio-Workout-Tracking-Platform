@@ -11,13 +11,14 @@ import {
   FormControlLabel,
   Checkbox,
 } from '@mui/material';
-import { useForm, Controller } from 'react-hook-form';
+import { useForm, Controller, type Resolver } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import api from '../../services/api';
 import { instructorService } from '../../services';
 import { useAuth } from '../../context/AuthContext';
 import { useToast } from '../../context/ToastContext';
+import type { User } from '../../types';
 
 // Zod Schema matches Backend Validation
 const createClassSchema = z.object({
@@ -51,10 +52,10 @@ const styles = {
 export default function CreateClassModal({ open, onClose, onSuccess }: Props) {
   const { user } = useAuth();
   const { showToast } = useToast();
-  const [instructors, setInstructors] = useState<any[]>([]);
+  const [instructors, setInstructors] = useState<User[]>([]);
 
   const { control, handleSubmit, reset, watch, formState: { errors } } = useForm<CreateClassForm>({
-    resolver: zodResolver(createClassSchema) as any,
+    resolver: zodResolver(createClassSchema) as unknown as Resolver<CreateClassForm>,
     defaultValues: {
       title: '',
       description: '',
@@ -105,7 +106,7 @@ export default function CreateClassModal({ open, onClose, onSuccess }: Props) {
   return (
     <Dialog open={open} onClose={onClose} fullWidth maxWidth="sm">
       <DialogTitle>Schedule New Class</DialogTitle>
-      <form onSubmit={handleSubmit(onSubmit as any)}>
+      <form onSubmit={handleSubmit(onSubmit)}>
         <DialogContent dividers>
           <Box sx={styles.formContainer}>
             <Box>

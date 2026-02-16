@@ -1,25 +1,25 @@
-import { WorkoutLogModel } from './workout.model.js';
+import { IWorkoutLog, WorkoutLogModel } from './workout.model.js';
 
 export const WorkoutService = {
     /**
      * Log a workout
      */
-    logWorkout: async (userId: string, workoutData: any) => {
+    logWorkout: async (userId: string, workoutData: IWorkoutLog) => {
         const workout = await WorkoutLogModel.create({
-            user: userId,
             ...workoutData,
+            user: userId as string,
         });
         return workout;
     },
 
-     //Get workout history
+    //Get workout history
     getWorkoutHistory: async (userId: string) => {
-        return WorkoutLogModel.find({ user: userId }).sort({ date: -1 }).limit(50);
+        return WorkoutLogModel.find({ user: userId as string }).sort({ date: -1 }).limit(50);
     },
 
-     //Calculate personal records (max weight for each exercise)
+    //Calculate personal records (max weight for each exercise)
     getPersonalRecords: async (userId: string) => {
-        const workouts = await WorkoutLogModel.find({ user: userId });
+        const workouts = await WorkoutLogModel.find({ user: userId as string });
 
         const records: Record<string, { weight: number; reps: number; date: Date }> = {};
 
@@ -42,9 +42,9 @@ export const WorkoutService = {
         return records;
     },
 
-         //Calculate workout streak (consecutive days)
+    //Calculate workout streak (consecutive days)
     calculateWorkoutStreak: async (userId: string) => {
-        const workouts = await WorkoutLogModel.find({ user: userId })
+        const workouts = await WorkoutLogModel.find({ user: userId as string })
             .sort({ date: -1 })
             .select('date');
 
@@ -79,7 +79,7 @@ export const WorkoutService = {
         return streak;
     },
 
-     // Get comprehensive workout analytics
+    // Get comprehensive workout analytics
     getWorkoutAnalytics: async (userId: string) => {
         const workouts = await WorkoutLogModel.find({ user: userId }).sort({ date: 1 });
 
@@ -99,7 +99,7 @@ export const WorkoutService = {
         });
 
         // 2. Exercise Progression (Max weight per exercise over time)
-        const exerciseProgression: Record<string, any[]> = {};
+        const exerciseProgression: Record<string, { date: Date; weight: number }[]> = {};
         workouts.forEach(workout => {
             workout.exercises.forEach(ex => {
                 if (!exerciseProgression[ex.name]) {

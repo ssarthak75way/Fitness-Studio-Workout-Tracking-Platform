@@ -1,5 +1,5 @@
 import { Request, Response, NextFunction } from 'express';
-import { UserModel } from '../users/user.model.js';
+import { IBodyMetrics, UserModel } from '../users/user.model.js';
 import { AppError } from '../../utils/AppError.js';
 
 export const addBodyMetricsHandler = async (req: Request, res: Response, next: NextFunction) => {
@@ -18,7 +18,7 @@ export const addBodyMetricsHandler = async (req: Request, res: Response, next: N
       bodyFatPercentage,
       measurements,
       updatedAt: new Date(),
-    } as any);
+    } as IBodyMetrics);
 
     await user.save();
 
