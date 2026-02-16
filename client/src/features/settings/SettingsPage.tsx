@@ -1,11 +1,12 @@
 import { useState } from 'react';
 import {
-  Box, Typography, Card, CardContent, TextField, Button, Alert,
+  Box, Typography, Card, CardContent, TextField, Button,
   Tabs, Tab, Switch, FormControlLabel, InputAdornment, IconButton,
   useTheme, alpha, Grid
 } from '@mui/material';
 import { useAuth } from '../../context/AuthContext';
 import api from '../../services/api';
+import { useToast } from '../../context/ToastContext';
 import PersonIcon from '@mui/icons-material/Person';
 import SecurityIcon from '@mui/icons-material/Security';
 import SettingsIcon from '@mui/icons-material/Settings';
@@ -49,9 +50,52 @@ function CustomTabPanel(props: TabPanelProps) {
   );
 }
 
+const styles = {
+  pageContainer: { maxWidth: 1000, mx: 'auto', px: { xs: 2, md: 4 }, py: 4 },
+  header: { mb: 5, textAlign: 'center' },
+  headerTitle: (theme: any) => ({
+    background: `linear-gradient(45deg, ${theme.palette.primary.main} 30%, ${theme.palette.secondary.main} 90%)`,
+    WebkitBackgroundClip: 'text',
+    WebkitTextFillColor: 'transparent',
+    mb: 1
+  }),
+  card: (theme: any) => ({
+    borderRadius: 4,
+    background: theme.palette.background.paper,
+    boxShadow: theme.shadows[2],
+    border: `1px solid ${theme.palette.divider}`,
+    overflow: 'hidden'
+  }),
+  tabsContainer: (theme: any) => ({
+    borderBottom: 1,
+    borderColor: 'divider',
+    bgcolor: alpha(theme.palette.primary.main, 0.05)
+  }),
+  tabs: {
+    '& .MuiTab-root': {
+      textTransform: 'none',
+      fontWeight: 600,
+      fontSize: '1rem',
+      minHeight: 60,
+    }
+  },
+  tabPanelContainer: { p: { xs: 2, md: 4 } },
+  sectionTitle: { mb: 3 },
+  textField: { borderRadius: 2 },
+  caption: { ml: 1, mt: 0.5, display: 'block' },
+  buttonContainer: { display: 'flex', justifyContent: 'flex-end', mt: 2 },
+  saveButton: { borderRadius: 2, px: 4, fontWeight: 700 },
+  passwordContainer: { maxWidth: 600, mx: 'auto' },
+  preferencesContainer: { maxWidth: 800, mx: 'auto' },
+  preferenceCard: { borderRadius: 2 },
+  preferenceLabel: { width: '100%', alignItems: 'flex-start', ml: 0 },
+  autoSaveButton: { mt: 4, display: 'flex', justifyContent: 'center' }
+};
+
 export default function SettingsPage() {
   const theme = useTheme();
   const { user } = useAuth();
+  const { showToast } = useToast();
   const [tabValue, setTabValue] = useState(0);
   const [showPassword, setShowPassword] = useState(false);
 
@@ -74,11 +118,8 @@ export default function SettingsPage() {
     publicProfile: false,
   });
 
-  const [message, setMessage] = useState('');
-
   const handleTabChange = (_event: React.SyntheticEvent, newValue: number) => {
     setTabValue(newValue);
-    setMessage('');
   };
 
   const handleUpdateProfile = async () => {
@@ -88,16 +129,15 @@ export default function SettingsPage() {
         certifications: profile.certifications.split(',').map((s: string) => s.trim()).filter(Boolean)
       };
       await api.patch('/users/profile', payload);
-      setMessage('Profile updated successfully!');
-      setTimeout(() => setMessage(''), 3000);
+      showToast('Profile updated successfully!', 'success');
     } catch (error: any) {
-      setMessage(error.response?.data?.message || 'Update failed');
+      showToast(error.response?.data?.message || 'Update failed', 'error');
     }
   };
 
   const handleChangePassword = async () => {
     if (passwords.newPassword !== passwords.confirmPassword) {
-      setMessage('Passwords do not match');
+      showToast('Passwords do not match', 'error');
       return;
     }
 
@@ -106,23 +146,17 @@ export default function SettingsPage() {
         currentPassword: passwords.currentPassword,
         newPassword: passwords.newPassword,
       });
-      setMessage('Password changed successfully!');
+      showToast('Password changed successfully!', 'success');
       setPasswords({ currentPassword: '', newPassword: '', confirmPassword: '' });
-      setTimeout(() => setMessage(''), 3000);
     } catch (error: any) {
-      setMessage(error.response?.data?.message || 'Password change failed');
+      showToast(error.response?.data?.message || 'Password change failed', 'error');
     }
   };
 
   return (
-    <Box maxWidth={1000} mx="auto" px={{ xs: 2, md: 4 }} py={4}>
-      <Box mb={5} textAlign="center">
-        <Typography variant="h3" fontWeight={800} sx={{
-          background: `linear-gradient(45deg, ${theme.palette.primary.main} 30%, ${theme.palette.secondary.main} 90%)`,
-          WebkitBackgroundClip: 'text',
-          WebkitTextFillColor: 'transparent',
-          mb: 1
-        }}>
+    <Box sx={styles.pageContainer}>
+      <Box sx={styles.header}>
+        <Typography variant="h3" fontWeight={800} sx={styles.headerTitle(theme)}>
           Settings
         </Typography>
         <Typography variant="h6" color="text.secondary" fontWeight={400}>
@@ -130,23 +164,8 @@ export default function SettingsPage() {
         </Typography>
       </Box>
 
-      {message && (
-        <Alert
-          severity={message.includes('success') ? 'success' : 'error'}
-          sx={{ mb: 4, borderRadius: 2, boxShadow: theme.shadows[2] }}
-        >
-          {message}
-        </Alert>
-      )}
-
-      <Card sx={{
-        borderRadius: 4,
-        background: theme.palette.background.paper,
-        boxShadow: theme.shadows[2],
-        border: `1px solid ${theme.palette.divider}`,
-        overflow: 'hidden'
-      }}>
-        <Box sx={{ borderBottom: 1, borderColor: 'divider', bgcolor: alpha(theme.palette.primary.main, 0.05) }}>
+      <Card sx={styles.card(theme)}>
+        <Box sx={styles.tabsContainer(theme)}>
           <Tabs
             value={tabValue}
             onChange={handleTabChange}
@@ -154,14 +173,7 @@ export default function SettingsPage() {
             variant="fullWidth"
             textColor="primary"
             indicatorColor="primary"
-            sx={{
-              '& .MuiTab-root': {
-                textTransform: 'none',
-                fontWeight: 600,
-                fontSize: '1rem',
-                minHeight: 60,
-              }
-            }}
+            sx={styles.tabs}
           >
             <Tab icon={<PersonIcon />} iconPosition="start" label="Profile" />
             <Tab icon={<SecurityIcon />} iconPosition="start" label="Security" />
@@ -169,9 +181,9 @@ export default function SettingsPage() {
           </Tabs>
         </Box>
 
-        <Box p={{ xs: 2, md: 4 }}>
+        <Box sx={styles.tabPanelContainer}>
           <CustomTabPanel value={tabValue} index={0}>
-            <Typography variant="h6" fontWeight={700} gutterBottom sx={{ mb: 3 }}>
+            <Typography variant="h6" fontWeight={700} gutterBottom sx={styles.sectionTitle}>
               Personal Information
             </Typography>
             <Grid container spacing={3}>
@@ -182,7 +194,7 @@ export default function SettingsPage() {
                   value={profile.fullName}
                   onChange={(e) => setProfile({ ...profile, fullName: e.target.value })}
                   variant="outlined"
-                  InputProps={{ sx: { borderRadius: 2 } }}
+                  InputProps={{ sx: styles.textField }}
                 />
               </Grid>
               <Grid size={{ xs: 12, md: 6 }}>
@@ -192,7 +204,7 @@ export default function SettingsPage() {
                   value={profile.email}
                   onChange={(e) => setProfile({ ...profile, email: e.target.value })}
                   variant="outlined"
-                  InputProps={{ sx: { borderRadius: 2 } }}
+                  InputProps={{ sx: styles.textField }}
                 />
               </Grid>
               <Grid size={{ xs: 12 }}>
@@ -202,9 +214,9 @@ export default function SettingsPage() {
                   value={user?.role}
                   disabled
                   variant="filled"
-                  InputProps={{ sx: { borderRadius: 2 } }}
+                  InputProps={{ sx: styles.textField }}
                 />
-                <Typography variant="caption" color="text.secondary" sx={{ ml: 1, mt: 0.5, display: 'block' }}>
+                <Typography variant="caption" color="text.secondary" sx={styles.caption}>
                   Role cannot be changed manually. Contact support for assistance.
                 </Typography>
               </Grid>
@@ -220,7 +232,7 @@ export default function SettingsPage() {
                       value={profile.bio}
                       onChange={(e) => setProfile({ ...profile, bio: e.target.value })}
                       placeholder="Tell us about yourself..."
-                      InputProps={{ sx: { borderRadius: 2 } }}
+                      InputProps={{ sx: styles.textField }}
                     />
                   </Grid>
                   <Grid size={{ xs: 12 }}>
@@ -231,20 +243,20 @@ export default function SettingsPage() {
                       onChange={(e) => setProfile({ ...profile, certifications: e.target.value })}
                       placeholder="e.g., NASM Personal Trainer, CrossFit Level 2"
                       helperText="Separate multiple certifications with commas"
-                      InputProps={{ sx: { borderRadius: 2 } }}
+                      InputProps={{ sx: styles.textField }}
                     />
                   </Grid>
                 </>
               )}
 
               <Grid size={{ xs: 12 }}>
-                <Box display="flex" justifyContent="flex-end" mt={2}>
+                <Box sx={styles.buttonContainer}>
                   <Button
                     variant="contained"
                     size="large"
                     startIcon={<SaveIcon />}
                     onClick={handleUpdateProfile}
-                    sx={{ borderRadius: 2, px: 4, fontWeight: 700 }}
+                    sx={styles.saveButton}
                   >
                     Save Changes
                   </Button>
@@ -254,10 +266,10 @@ export default function SettingsPage() {
           </CustomTabPanel>
 
           <CustomTabPanel value={tabValue} index={1}>
-            <Typography variant="h6" fontWeight={700} gutterBottom sx={{ mb: 3 }}>
+            <Typography variant="h6" fontWeight={700} gutterBottom sx={styles.sectionTitle}>
               Password Management
             </Typography>
-            <Box maxWidth={600} mx="auto">
+            <Box sx={styles.passwordContainer}>
               <Grid container spacing={3}>
                 <Grid size={{ xs: 12 }}>
                   <TextField
@@ -267,7 +279,7 @@ export default function SettingsPage() {
                     value={passwords.currentPassword}
                     onChange={(e) => setPasswords({ ...passwords, currentPassword: e.target.value })}
                     InputProps={{
-                      sx: { borderRadius: 2 },
+                      sx: styles.textField,
                       endAdornment: (
                         <InputAdornment position="end">
                           <IconButton
@@ -288,7 +300,7 @@ export default function SettingsPage() {
                     type={showPassword ? 'text' : 'password'}
                     value={passwords.newPassword}
                     onChange={(e) => setPasswords({ ...passwords, newPassword: e.target.value })}
-                    InputProps={{ sx: { borderRadius: 2 } }}
+                    InputProps={{ sx: styles.textField }}
                   />
                 </Grid>
                 <Grid size={{ xs: 12 }}>
@@ -298,18 +310,18 @@ export default function SettingsPage() {
                     type={showPassword ? 'text' : 'password'}
                     value={passwords.confirmPassword}
                     onChange={(e) => setPasswords({ ...passwords, confirmPassword: e.target.value })}
-                    InputProps={{ sx: { borderRadius: 2 } }}
+                    InputProps={{ sx: styles.textField }}
                   />
                 </Grid>
                 <Grid size={{ xs: 12 }}>
-                  <Box display="flex" justifyContent="flex-end" mt={2}>
+                  <Box sx={styles.buttonContainer}>
                     <Button
                       variant="contained"
                       size="large"
                       color="secondary"
                       startIcon={<SaveIcon />}
                       onClick={handleChangePassword}
-                      sx={{ borderRadius: 2, px: 4, fontWeight: 700 }}
+                      sx={styles.saveButton}
                     >
                       Update Password
                     </Button>
@@ -320,13 +332,13 @@ export default function SettingsPage() {
           </CustomTabPanel>
 
           <CustomTabPanel value={tabValue} index={2}>
-            <Typography variant="h6" fontWeight={700} gutterBottom sx={{ mb: 3 }}>
+            <Typography variant="h6" fontWeight={700} gutterBottom sx={styles.sectionTitle}>
               App Preferences
             </Typography>
-            <Box maxWidth={800} mx="auto">
+            <Box sx={styles.preferencesContainer}>
               <Grid container spacing={3}>
                 <Grid size={{ xs: 12 }}>
-                  <Card variant="outlined" sx={{ borderRadius: 2 }}>
+                  <Card variant="outlined" sx={styles.preferenceCard}>
                     <CardContent>
                       <FormControlLabel
                         control={
@@ -341,13 +353,13 @@ export default function SettingsPage() {
                             <Typography variant="body2" color="text.secondary">Receive updates about your bookings and account.</Typography>
                           </Box>
                         }
-                        sx={{ width: '100%', alignItems: 'flex-start', ml: 0 }}
+                        sx={styles.preferenceLabel}
                       />
                     </CardContent>
                   </Card>
                 </Grid>
                 <Grid size={{ xs: 12 }}>
-                  <Card variant="outlined" sx={{ borderRadius: 2 }}>
+                  <Card variant="outlined" sx={styles.preferenceCard}>
                     <CardContent>
                       <FormControlLabel
                         control={
@@ -362,13 +374,13 @@ export default function SettingsPage() {
                             <Typography variant="body2" color="text.secondary">Use dark theme for the application interface.</Typography>
                           </Box>
                         }
-                        sx={{ width: '100%', alignItems: 'flex-start', ml: 0 }}
+                        sx={styles.preferenceLabel}
                       />
                     </CardContent>
                   </Card>
                 </Grid>
                 <Grid size={{ xs: 12 }}>
-                  <Card variant="outlined" sx={{ borderRadius: 2 }}>
+                  <Card variant="outlined" sx={styles.preferenceCard}>
                     <CardContent>
                       <FormControlLabel
                         control={
@@ -383,13 +395,13 @@ export default function SettingsPage() {
                             <Typography variant="body2" color="text.secondary">Allow other users to see your basic profile information.</Typography>
                           </Box>
                         }
-                        sx={{ width: '100%', alignItems: 'flex-start', ml: 0 }}
+                        sx={styles.preferenceLabel}
                       />
                     </CardContent>
                   </Card>
                 </Grid>
               </Grid>
-              <Box display="flex" justifyContent="center" mt={4}>
+              <Box sx={styles.autoSaveButton}>
                 <Button variant="outlined" disabled>Save Preferences (Auto-saved)</Button>
               </Box>
             </Box>

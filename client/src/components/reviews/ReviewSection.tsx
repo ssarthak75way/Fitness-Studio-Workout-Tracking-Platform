@@ -23,6 +23,53 @@ interface Props {
     targetName: string;
 }
 
+const styles = {
+    loadingContainer: {
+        display: 'flex',
+        justifyContent: 'center',
+        p: 4
+    },
+    header: {
+        display: 'flex',
+        justifyContent: 'space-between',
+        alignItems: 'center',
+        mb: 2
+    },
+    ratingOverview: {
+        display: 'flex',
+        alignItems: 'center',
+        gap: 2
+    },
+    list: { p: 0 },
+    noReviewsText: {
+        p: 4,
+        textAlign: 'center'
+    },
+    listItem: {
+        py: 2,
+        display: 'flex',
+        flexDirection: 'column',
+        alignItems: 'start'
+    },
+    reviewHeader: {
+        display: 'flex',
+        width: '100%',
+        justifyContent: 'space-between',
+        mb: 1
+    },
+    userInfo: {
+        display: 'flex',
+        alignItems: 'center',
+        gap: 1.5
+    },
+    avatar: {
+        width: 32,
+        height: 32,
+        fontSize: '0.875rem'
+    },
+    rating: { mb: 1 }
+};
+
 export default function ReviewSection({ targetType, targetId, targetName }: Props) {
     const { user } = useAuth();
     const [data, setData] = useState<{ ratings: any[], averageRating: string }>({ ratings: [], averageRating: '0.0' });
@@ -48,7 +95,7 @@ export default function ReviewSection({ targetType, targetId, targetName }: Prop
 
     if (loading && data.ratings.length === 0) {
         return (
-            <Box sx={{ display: 'flex', justifyContent: 'center', p: 4 }}>
+            <Box sx={styles.loadingContainer}>
                 <CircularProgress />
             </Box>
         );
@@ -56,8 +103,8 @@ export default function ReviewSection({ targetType, targetId, targetName }: Prop
 
     return (
         <Box>
-            <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2 }}>
-                <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
+            <Box sx={styles.header}>
+                <Box sx={styles.ratingOverview}>
                     <Typography variant="h5" fontWeight="bold">{data.averageRating}</Typography>
                     <Box>
                         <Rating value={parseFloat(data.averageRating)} precision={0.5} readOnly size="small" />
@@ -79,20 +126,20 @@ export default function ReviewSection({ targetType, targetId, targetName }: Prop
             </Box>
 
             <Paper variant="outlined">
-                <List sx={{ p: 0 }}>
+                <List sx={styles.list}>
                     {data.ratings.length === 0 ? (
-                        <Typography variant="body2" color="text.secondary" sx={{ p: 4, textAlign: 'center' }}>
+                        <Typography variant="body2" color="text.secondary" sx={styles.noReviewsText}>
                             No reviews yet.
                         </Typography>
                     ) : (
                         data.ratings.map((review, index) => (
                             <Box key={review._id}>
-                                <ListItem sx={{ py: 2, display: 'flex', flexDirection: 'column', alignItems: 'start' }}>
-                                    <Box sx={{ display: 'flex', width: '100%', justifyContent: 'space-between', mb: 1 }}>
-                                        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5 }}>
+                                <ListItem sx={styles.listItem}>
+                                    <Box sx={styles.reviewHeader}>
+                                        <Box sx={styles.userInfo}>
                                             <Avatar
                                                 src={review.user?.profileImage}
-                                                sx={{ width: 32, height: 32, fontSize: '0.875rem' }}
+                                                sx={styles.avatar}
                                             >
                                                 {review.user?.fullName?.[0]}
                                             </Avatar>
@@ -104,7 +151,7 @@ export default function ReviewSection({ targetType, targetId, targetName }: Prop
                                             {format(new Date(review.createdAt), 'MMM dd, yyyy')}
                                         </Typography>
                                     </Box>
-                                    <Rating value={review.rating} readOnly size="small" sx={{ mb: 1 }} />
+                                    <Rating value={review.rating} readOnly size="small" sx={styles.rating} />
                                     <Typography variant="body2" color="text.secondary">
                                         {review.review || "No comments provided."}
                                     </Typography>

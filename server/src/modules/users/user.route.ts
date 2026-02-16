@@ -13,6 +13,7 @@ router.get('/', restrictTo('STUDIO_ADMIN'), userController.getAllUsers);
 // User profile
 router.get('/profile', userController.getProfile);
 router.patch('/profile', userController.updateProfile);
+router.patch('/password', userController.updatePassword);
 
 // Instructors
 router.get('/instructors', userController.getInstructors);

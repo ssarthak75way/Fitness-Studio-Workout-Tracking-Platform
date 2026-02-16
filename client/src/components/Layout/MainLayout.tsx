@@ -29,6 +29,7 @@ const styles = {
     minHeight: '100vh',
     bgcolor: 'background.default',
   },
+  typography: { fontWeight: 600 }
 };
 
 export default function MainLayout() {
@@ -57,8 +58,8 @@ export default function MainLayout() {
           >
             <MenuIcon />
           </IconButton>
-          <Typography variant="h6" noWrap component="div">
-            Fitness Studio Admin
+          <Typography variant="h6" noWrap component="div" sx={styles.typography}>
+            Fitness Studio
           </Typography>
         </Toolbar>
       </AppBar>
@@ -73,7 +74,7 @@ export default function MainLayout() {
       >
         <Toolbar /> {/* Spacer for AppBar */}
 
-        {/* React Router v7 Outlet - This is where your page content renders */}
+        {/* React Router Outlet - This is where your page content renders */}
         <Outlet />
       </Box>
     </Box>

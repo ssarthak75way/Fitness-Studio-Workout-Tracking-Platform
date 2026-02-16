@@ -42,6 +42,12 @@ interface Props {
   onSuccess: () => void;
 }
 
+const styles = {
+  formContainer: { display: 'flex', flexDirection: 'column', gap: 2 },
+  formRow: { display: 'flex', gap: 2 },
+  recurringSection: { display: 'flex', gap: 2, p: 2, bgcolor: '#f8fafc', borderRadius: 2 }
+};
+
 export default function CreateClassModal({ open, onClose, onSuccess }: Props) {
   const { user } = useAuth();
   const { showToast } = useToast();
@@ -100,13 +106,13 @@ export default function CreateClassModal({ open, onClose, onSuccess }: Props) {
     <Dialog open={open} onClose={onClose} fullWidth maxWidth="sm">
       <DialogTitle>Schedule New Class</DialogTitle>
       <form onSubmit={handleSubmit(onSubmit as any)}>
-        <DialogContent>
-          <Box display="flex" flexDirection="column" gap={2}>
+        <DialogContent dividers>
+          <Box sx={styles.formContainer}>
             <Box>
               <Controller
                 name="title"
                 control={control}
-                render={({ field }: { field: any }) => (
+                render={({ field }) => (
                   <TextField
                     {...field}
                     label="Class Title"
@@ -122,7 +128,7 @@ export default function CreateClassModal({ open, onClose, onSuccess }: Props) {
               <Controller
                 name="description"
                 control={control}
-                render={({ field }: { field: any }) => (
+                render={({ field }) => (
                   <TextField
                     {...field}
                     label="Description (Optional)"
@@ -136,12 +142,12 @@ export default function CreateClassModal({ open, onClose, onSuccess }: Props) {
               />
             </Box>
 
-            <Box display="flex" gap={2}>
+            <Box sx={styles.formRow}>
               <Box flex={1}>
                 <Controller
                   name="type"
                   control={control}
-                  render={({ field }: { field: any }) => (
+                  render={({ field }) => (
                     <TextField
                       {...field}
                       select
@@ -160,7 +166,7 @@ export default function CreateClassModal({ open, onClose, onSuccess }: Props) {
                 <Controller
                   name="startTime"
                   control={control}
-                  render={({ field }: { field: any }) => (
+                  render={({ field }) => (
                     <TextField
                       {...field}
                       type="datetime-local"
@@ -174,12 +180,12 @@ export default function CreateClassModal({ open, onClose, onSuccess }: Props) {
               </Box>
             </Box>
 
-            <Box display="flex" gap={2}>
+            <Box sx={styles.formRow}>
               <Box flex={1}>
                 <Controller
                   name="instructorId"
                   control={control}
-                  render={({ field }: { field: any }) => (
+                  render={({ field }) => (
                     <TextField
                       {...field}
                       select
@@ -201,7 +207,7 @@ export default function CreateClassModal({ open, onClose, onSuccess }: Props) {
                 <Controller
                   name="location"
                   control={control}
-                  render={({ field }: { field: any }) => (
+                  render={({ field }) => (
                     <TextField
                       {...field}
                       label="Location"
@@ -216,7 +222,7 @@ export default function CreateClassModal({ open, onClose, onSuccess }: Props) {
               <Controller
                 name="isRecurring"
                 control={control}
-                render={({ field }: { field: any }) => (
+                render={({ field }) => (
                   <FormControlLabel
                     control={<Checkbox {...field} checked={field.value} />}
                     label="Recurring Class"
@@ -226,12 +232,12 @@ export default function CreateClassModal({ open, onClose, onSuccess }: Props) {
             </Box>
 
             {isRecurring && (
-              <Box display="flex" gap={2} p={2} bgcolor="#f8fafc" borderRadius={2}>
+              <Box sx={styles.recurringSection}>
                 <Box flex={1}>
                   <Controller
                     name="recurrenceFrequency"
                     control={control}
-                    render={({ field }: { field: any }) => (
+                    render={({ field }) => (
                       <TextField {...field} select label="Frequency" fullWidth>
                         <MenuItem value="DAILY">Daily</MenuItem>
                         <MenuItem value="WEEKLY">Weekly</MenuItem>
@@ -243,7 +249,7 @@ export default function CreateClassModal({ open, onClose, onSuccess }: Props) {
                   <Controller
                     name="recurrenceCount"
                     control={control}
-                    render={({ field }: { field: any }) => (
+                    render={({ field }) => (
                       <TextField
                         {...field}
                         type="number"

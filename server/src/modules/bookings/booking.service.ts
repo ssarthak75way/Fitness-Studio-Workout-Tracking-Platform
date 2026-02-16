@@ -7,9 +7,7 @@ import { NotificationService } from '../notifications/notification.service.js';
 import { AppError } from '../../utils/AppError.js';
 
 export const BookingService = {
-  /**
-   * Create a booking for a user
-   */
+  //Create a booking for a user
   createBooking: async (userId: string, classId: string) => {
     // 1. CHECK MEMBERSHIP
     const membership = await MembershipModel.findOne({
@@ -103,9 +101,7 @@ export const BookingService = {
     return { ...booking.toObject(), qrCodeUrl };
   },
 
-  /**
-   * Cancel a booking
-   */
+//  Cancel a booking
   cancelBooking: async (bookingId: string, userId: string) => {
     // 1. Find the booking
     const booking = await BookingModel.findOne({
@@ -163,9 +159,7 @@ export const BookingService = {
     return booking;
   },
 
-  /**
-   * Get User's Bookings
-   */
+   // Get User's Bookings
   getUserBookings: async (userId: string) => {
     const bookings = await BookingModel.find({ user: userId })
       .populate({
@@ -189,9 +183,7 @@ export const BookingService = {
     return bookingsWithQR;
   },
 
-  /**
-   * Check-in via QR code
-   */
+   //Check-in via QR code
   checkIn: async (qrCode: string) => {
     const booking = await BookingModel.findOne({
       qrCode,
@@ -208,18 +200,15 @@ export const BookingService = {
     return booking;
   },
 
-  /**
-   * Get all bookings for a specific class session (for instructors/admins)
-   */
+  
+   // Get all bookings for a specific class session (for instructors/admins)
   getClassBookings: async (classSessionId: string) => {
     return await BookingModel.find({ classSession: classSessionId })
       .populate('user', 'fullName email profileImage')
       .sort({ bookedAt: 1 });
   },
 
-  /**
-   * Manual check-in by booking ID
-   */
+   // Manual check-in by booking ID
   checkInById: async (bookingId: string) => {
     const booking = await BookingModel.findById(bookingId).populate('classSession user');
 

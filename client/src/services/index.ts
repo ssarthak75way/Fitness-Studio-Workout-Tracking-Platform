@@ -7,7 +7,12 @@ import type {
     BodyMetric,
     Membership,
     WorkoutLog,
-    Notification
+    Membership,
+    WorkoutLog,
+    Notification,
+    Rating,
+    WorkoutTemplate,
+    WorkoutAnalytics
 } from '../types';
 
 export const dashboardService = {
@@ -42,12 +47,12 @@ export const membershipService = {
 };
 
 export const ratingService = {
-    submitRating: async (data: { targetType: string; targetId: string; rating: number; review?: string }): Promise<ApiResponse<{ rating: any }>> => {
+    submitRating: async (data: { targetType: string; targetId: string; rating: number; review?: string }): Promise<ApiResponse<{ rating: Rating }>> => {
         const response = await api.post('/ratings', data);
         return response.data;
     },
 
-    getRatings: async (targetType: string, targetId: string): Promise<ApiResponse<{ ratings: any[]; averageRating: string }>> => {
+    getRatings: async (targetType: string, targetId: string): Promise<ApiResponse<{ ratings: Rating[]; averageRating: string }>> => {
         const response = await api.get('/ratings', { params: { targetType, targetId } });
         return response.data;
     },
@@ -73,11 +78,11 @@ export const workoutService = {
         const response = await api.get('/workouts/streak');
         return response.data;
     },
-    getWorkoutTemplates: async (): Promise<ApiResponse<{ templates: any[] }>> => {
+    getWorkoutTemplates: async (): Promise<ApiResponse<{ templates: WorkoutTemplate[] }>> => {
         const response = await api.get('/workouts/templates');
         return response.data;
     },
-    getWorkoutAnalytics: async (): Promise<ApiResponse<{ analytics: any }>> => {
+    getWorkoutAnalytics: async (): Promise<ApiResponse<{ analytics: WorkoutAnalytics }>> => {
         const response = await api.get('/workouts/analytics');
         return response.data;
     },

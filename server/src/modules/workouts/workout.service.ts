@@ -12,16 +12,12 @@ export const WorkoutService = {
         return workout;
     },
 
-    /**
-     * Get workout history
-     */
+     //Get workout history
     getWorkoutHistory: async (userId: string) => {
         return WorkoutLogModel.find({ user: userId }).sort({ date: -1 }).limit(50);
     },
 
-    /**
-     * Calculate personal records (max weight for each exercise)
-     */
+     //Calculate personal records (max weight for each exercise)
     getPersonalRecords: async (userId: string) => {
         const workouts = await WorkoutLogModel.find({ user: userId });
 
@@ -46,9 +42,7 @@ export const WorkoutService = {
         return records;
     },
 
-    /**
-     * Calculate workout streak (consecutive days)
-     */
+         //Calculate workout streak (consecutive days)
     calculateWorkoutStreak: async (userId: string) => {
         const workouts = await WorkoutLogModel.find({ user: userId })
             .sort({ date: -1 })
@@ -85,9 +79,7 @@ export const WorkoutService = {
         return streak;
     },
 
-    /**
-     * Get comprehensive workout analytics
-     */
+     // Get comprehensive workout analytics
     getWorkoutAnalytics: async (userId: string) => {
         const workouts = await WorkoutLogModel.find({ user: userId }).sort({ date: 1 });
 

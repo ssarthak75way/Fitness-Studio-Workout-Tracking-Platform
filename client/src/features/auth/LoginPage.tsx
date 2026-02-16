@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import {
   Box, TextField, Button, Typography,
-  Alert, MenuItem, Fade, InputAdornment, IconButton,
+  MenuItem, Fade, InputAdornment, IconButton,
   useTheme, useMediaQuery
 } from '@mui/material';
 import type { Theme } from '@mui/material';
@@ -13,12 +13,14 @@ import {
 } from '@mui/icons-material';
 import { useAuth } from '../../context/AuthContext';
 import { authService } from '../../services/auth.service';
+import { useToast } from '../../context/ToastContext';
 
 const BACKGROUND_IMAGE = 'https://images.unsplash.com/photo-1534438327276-14e5300c3a48?q=80&w=2070&auto=format&fit=crop';
 
 const fieldStyle = {
   '& .MuiOutlinedInput-root': {
     borderRadius: 2,
+    color: '#000',
     bgcolor: 'white',
     '& fieldset': { borderColor: '#e2e8f0' },
     '&:hover fieldset': { borderColor: '#cbd5e1' },
@@ -88,6 +90,10 @@ const styles = {
   alert: {
     mb: 3,
     borderRadius: 2,
+  }, loginHead: {
+    fontWeight: 800,
+    gutterBottom: true,
+    color: "#000000",
   },
   loginButton: {
     mt: 4,
@@ -119,15 +125,14 @@ export default function LoginPage() {
   const [password, setPassword] = useState('');
   const [fullName, setFullName] = useState('');
   const [role, setRole] = useState('MEMBER');
-  const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
+  const { showToast } = useToast();
 
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down('md'));
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    setError('');
     setLoading(true);
 
     try {
@@ -145,7 +150,7 @@ export default function LoginPage() {
         }
       }
     } catch (err: any) {
-      setError(err.response?.data?.message || 'Authentication failed');
+      showToast(err.response?.data?.message || 'Authentication failed', 'error');
     } finally {
       setLoading(false);
     }
@@ -186,7 +191,7 @@ export default function LoginPage() {
               </Box>
             </Box>
 
-            <Typography variant="h4" fontWeight="800" gutterBottom>
+            <Typography style={styles.loginHead} variant="h4" fontWeight="800" gutterBottom>
               {isRegister ? 'Begin Your Journey' : 'Welcome Back'}
             </Typography>
             <Typography variant="body1" color="text.secondary" mb={4}>
@@ -195,11 +200,6 @@ export default function LoginPage() {
                 : 'Enter your credentials to access your fitness dashboard.'}
             </Typography>
 
-            {error && (
-              <Alert severity="error" sx={styles.alert}>
-                {error}
-              </Alert>
-            )}
 
             <form onSubmit={handleSubmit}>
               {isRegister && (

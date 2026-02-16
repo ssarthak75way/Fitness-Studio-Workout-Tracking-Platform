@@ -1,17 +1,98 @@
 import React, { createContext, useContext, useState, useCallback } from 'react';
-import { Snackbar, Alert, Slide } from '@mui/material';
+import { Snackbar, Slide, Box, Typography, IconButton, useTheme, alpha, Paper } from '@mui/material';
 import type { AlertColor, SlideProps } from '@mui/material';
+import {
+    CheckCircleOutline as SuccessIcon,
+    ErrorOutline as ErrorIcon,
+    InfoOutline as InfoIcon,
+    WarningAmber as WarningIcon,
+    Close as CloseIcon
+} from '@mui/icons-material';
 
 // 1. Create a nice slide transition
-function SlideTransition(props: SlideProps) {
-    return <Slide {...props} direction="left" />;
-}
+const SlideTransition = React.forwardRef<unknown, SlideProps>((props, ref) => {
+    return <Slide {...props} direction="left" ref={ref} />;
+});
 
 interface ToastContextType {
     showToast: (message: string, severity?: AlertColor) => void;
 }
 
 const ToastContext = createContext<ToastContextType | undefined>(undefined);
+
+const styles = {
+    snackbar: { marginTop: '16px', marginRight: '16px' },
+    toastRoot: (theme: any, severity: AlertColor) => ({
+        minWidth: '320px',
+        display: 'flex',
+        alignItems: 'center',
+        gap: 2,
+        p: '12px 16px',
+        borderRadius: 3,
+        background: alpha(theme.palette.background.paper, 0.8),
+        backdropFilter: 'blur(12px)',
+        boxShadow: `0 8px 32px ${alpha(theme.palette.common.black, 0.15)}`,
+        borderLeft: `6px solid ${theme.palette[severity].main}`,
+        border: `1px solid ${alpha(theme.palette.divider, 0.1)}`,
+        position: 'relative' as const,
+        overflow: 'hidden',
+        '&::before': {
+            content: '""',
+            position: 'absolute',
+            top: 0,
+            left: 0,
+            right: 0,
+            bottom: 0,
+            background: `linear-gradient(135deg, ${alpha(theme.palette[severity].main, 0.05)} 0%, transparent 100%)`,
+            pointerEvents: 'none',
+        }
+    }),
+    iconWrapper: (theme: any, severity: AlertColor) => ({
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        color: theme.palette[severity].main,
+        '& svg': { fontSize: '1.75rem' }
+    }),
+    messageContainer: { flex: 1 },
+    messageText: { fontWeight: 600, fontSize: '0.95rem', color: 'text.primary' },
+    closeButton: {
+        p: 0.5,
+        color: 'text.secondary',
+        '&:hover': { color: 'text.primary', bgcolor: 'rgba(0,0,0,0.05)' }
+    }
+};
+
+const CustomToast = React.forwardRef<HTMLDivElement, { message: string, severity: AlertColor, onClose: () => void }>(
+    ({ message, severity, onClose }, ref) => {
+        const theme = useTheme();
+
+        const getIcon = () => {
+            switch (severity) {
+                case 'success': return <SuccessIcon />;
+                case 'error': return <ErrorIcon />;
+                case 'warning': return <WarningIcon />;
+                default: return <InfoIcon />;
+            }
+        };
+
+        return (
+            <Paper ref={ref} sx={styles.toastRoot(theme, severity)}>
+                <Box sx={styles.iconWrapper(theme, severity)}>
+                    {getIcon()}
+                </Box>
+                <Box sx={styles.messageContainer}>
+                    <Typography sx={styles.messageText}>
+                        {message}
+                    </Typography>
+                </Box>
+                <IconButton onClick={onClose} size="small" sx={styles.closeButton}>
+                    <CloseIcon fontSize="small" />
+                </IconButton>
+            </Paper>
+        );
+    }
+);
 
 export const ToastProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
     const [open, setOpen] = useState(false);
@@ -43,27 +124,13 @@ export const ToastProvider: React.FC<{ children: React.ReactNode }> = ({ childre
                 // 3. Smooth Slide Transition
                 TransitionComponent={SlideTransition}
                 // Add a little margin from the edges
-                sx={{ marginTop: '16px', marginRight: '16px' }}
+                sx={styles.snackbar}
             >
-                <Alert
-                    onClose={handleClose}
+                <CustomToast
+                    message={message}
                     severity={severity}
-                    variant="filled" // Makes it pop with solid colors
-                    sx={{
-                        width: '100%',
-                        minWidth: '300px', // Ensures it's not too skinny
-                        borderRadius: 3, // More rounded corners (Modern look)
-                        boxShadow: '0px 8px 24px rgba(0,0,0,0.15)', // Deeper, smoother shadow
-                        fontWeight: 600, // Bolder text
-                        fontSize: '0.95rem',
-                        alignItems: 'center',
-                        '& .MuiAlert-icon': {
-                            fontSize: '1.5rem', // Slightly larger icon
-                        },
-                    }}
-                >
-                    {message}
-                </Alert>
+                    onClose={handleClose}
+                />
             </Snackbar>
         </ToastContext.Provider>
     );

@@ -8,10 +8,10 @@ import {
     Rating,
     TextField,
     Box,
-    Typography,
-    Alert
+    Typography
 } from '@mui/material';
 import { ratingService } from '../../services/index';
+import { useToast } from '../../context/ToastContext';
 
 interface Props {
     open: boolean;
@@ -22,6 +22,18 @@ interface Props {
     onSuccess: () => void;
     initialData?: { rating: number; review?: string };
 }
+
+const styles = {
+    alert: { mb: 2 },
+    ratingContainer: {
+        display: 'flex',
+        flexDirection: 'column',
+        alignItems: 'center',
+        my: 2,
+        gap: 1
+    },
+    textField: { mt: 1 }
+};
 
 export default function ReviewFormDialog({
     open,
@@ -35,16 +47,15 @@ export default function ReviewFormDialog({
     const [rating, setRating] = useState<number | null>(initialData?.rating || 5);
     const [review, setReview] = useState(initialData?.review || '');
     const [loading, setLoading] = useState(false);
-    const [error, setError] = useState<string | null>(null);
+    const { showToast } = useToast();
 
     const handleSubmit = async () => {
         if (!rating) {
-            setError('Please provide a star rating.');
+            showToast('Please provide a star rating.', 'error');
             return;
         }
 
         setLoading(true);
-        setError(null);
         try {
             await ratingService.submitRating({
                 targetType,
@@ -53,9 +64,10 @@ export default function ReviewFormDialog({
                 review
             });
             onSuccess();
+            showToast('Review submitted successfully!', 'success');
             onClose();
         } catch (err: any) {
-            setError(err.response?.data?.message || 'Failed to submit review');
+            showToast(err.response?.data?.message || 'Failed to submit review', 'error');
         } finally {
             setLoading(false);
         }
@@ -67,9 +79,9 @@ export default function ReviewFormDialog({
                 Rate {targetName}
             </DialogTitle>
             <DialogContent>
-                {error && <Alert severity="error" sx={{ mb: 2 }}>{error}</Alert>}
 
-                <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center', my: 2, gap: 1 }}>
+
+                <Box sx={styles.ratingContainer}>
                     <Typography variant="subtitle1">Your Rating</Typography>
                     <Rating
                         value={rating}
@@ -87,7 +99,7 @@ export default function ReviewFormDialog({
                     onChange={(e) => setReview(e.target.value)}
                     placeholder="Share your experience..."
                     variant="outlined"
-                    sx={{ mt: 1 }}
+                    sx={styles.textField}
                 />
             </DialogContent>
             <DialogActions>

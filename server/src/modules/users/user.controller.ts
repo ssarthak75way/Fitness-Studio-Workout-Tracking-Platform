@@ -2,10 +2,12 @@ import { Request, Response, NextFunction } from 'express';
 import { UserModel as User } from './user.model';
 import { ClassSessionModel } from '../classes/class.model';
 import { RatingModel as Rating } from '../ratings/rating.model';
+import { AuthService } from '../auth/auth.service';
+import { updatePasswordSchema } from '../auth/auth.schema';
 
 export const getProfile = async (req: Request, res: Response, next: NextFunction) => {
   try {
-    const user = await User.findById(req.user!._id).select('-password');
+    const user = await User.findById(req.user!._id).select('-passwordHash');
     res.status(200).json({ status: 'success', data: { user } });
   } catch (error) {
     next(error);
@@ -19,7 +21,7 @@ export const updateProfile = async (req: Request, res: Response, next: NextFunct
       req.user!._id,
       { fullName, email, bio, certifications },
       { new: true, runValidators: true }
-    ).select('-password');
+    ).select('-passwordHash');
     res.status(200).json({ status: 'success', data: { user } });
   } catch (error) {
     next(error);
@@ -31,7 +33,7 @@ export const getInstructors = async (req: Request, res: Response, next: NextFunc
     const { specialty } = req.query;
     const filter: any = { role: 'INSTRUCTOR' };
 
-    const instructors = await User.find(filter).select('-password');
+    const instructors = await User.find(filter).select('-passwordHash');
 
     // Get ratings for each instructor
     const instructorsWithRatings = await Promise.all(
@@ -60,7 +62,7 @@ export const getInstructors = async (req: Request, res: Response, next: NextFunc
 
 export const getInstructorProfile = async (req: Request, res: Response, next: NextFunction) => {
   try {
-    const instructor = await User.findById(req.params.id).select('-password');
+    const instructor = await User.findById(req.params.id).select('-passwordHash');
 
     if (!instructor || instructor.role !== 'INSTRUCTOR') {
       return res.status(404).json({ status: 'error', message: 'Instructor not found' });
@@ -101,7 +103,7 @@ export const getInstructorProfile = async (req: Request, res: Response, next: Ne
 
 export const getAllUsers = async (req: Request, res: Response, next: NextFunction) => {
   try {
-    const users = await User.find().select('-password');
+    const users = await User.find().select('-passwordHash');
     res.status(200).json({ status: 'success', data: { users } });
   } catch (error) {
     next(error);
@@ -120,6 +122,22 @@ export const toggleUserStatus = async (req: Request, res: Response, next: NextFu
     await user.save();
 
     res.status(200).json({ status: 'success', data: { user } });
+  } catch (error) {
+    next(error);
+  }
+};
+
+export const updatePassword = async (req: Request, res: Response, next: NextFunction) => {
+  try {
+    const result = updatePasswordSchema.safeParse(req);
+    if (!result.success) return next(result.error);
+
+    await AuthService.updatePassword(req.user!._id.toString(), result.data.body);
+
+    res.status(200).json({
+      status: 'success',
+      message: 'Password changed successfully!'
+    });
   } catch (error) {
     next(error);
   }

@@ -13,6 +13,7 @@ export interface User {
     role: UserRole;
     profileImage?: string;
     bio?: string;
+    specialties?: string[];
     certifications?: string[];
     createdAt: string;
 }
@@ -117,9 +118,37 @@ export interface Membership {
 export interface Notification {
     _id: string;
     user: string;
-    type: string;
+    type: 'CLASS_REMINDER' | 'CLASS_CANCELLED' | 'WAITLIST_NOTIFICATION' | 'PROMOTION' | 'BOOKING_CONFIRMATION';
     message: string;
-    read: boolean;
-    relatedId?: string;
+    isRead: boolean;
+    relatedClass?: string;
     createdAt: string;
+}
+export interface Rating {
+    _id: string;
+    user: string | User;
+    targetType: 'CLASS' | 'INSTRUCTOR';
+    targetId: string;
+    rating: number;
+    review?: string;
+    createdAt: string;
+}
+
+export interface WorkoutTemplate {
+    _id: string;
+    name: string;
+    description: string;
+    category: string;
+    difficulty: string;
+    exercises: WorkoutExercise[];
+    createdBy: string;
+    isPublic: boolean;
+    createdAt: string;
+}
+
+export interface WorkoutAnalytics {
+    totalWorkouts: number;
+    totalDuration: number;
+    averageIntensity?: number;
+    muscleGroupDistribution: Record<string, number>;
 }

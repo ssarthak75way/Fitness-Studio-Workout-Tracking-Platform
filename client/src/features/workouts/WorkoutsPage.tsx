@@ -33,42 +33,112 @@ const itemVariants: Variants = {
   }
 };
 
-const StatCard = ({ title, value, icon: Icon, color }: { title: string, value: string | number, icon: any, color: string }) => (
-  <Card sx={{
+const styles = {
+  pageContainer: { maxWidth: 1200, mx: 'auto', p: { xs: 2, md: 3 } },
+  headerTitle: (theme: any) => ({
+    background: `linear-gradient(45deg, ${theme.palette.text.primary} 30%, ${theme.palette.primary.main} 90%)`,
+    WebkitBackgroundClip: 'text',
+    WebkitTextFillColor: 'transparent',
+  }),
+  headerSubtitle: { fontWeight: 400, mt: 0.5 },
+  templatesButton: { borderStyle: 'solid', borderRadius: 2, px: 3, fontWeight: 600 },
+  logSessionButton: (theme: any) => ({ borderRadius: 2, px: 3, fontWeight: 600, boxShadow: theme.shadows[4] }),
+  statsGrid: { display: 'grid', gridTemplateColumns: { xs: '1fr', sm: '1fr 1fr', md: 'repeat(4, 1fr)' }, gap: 3, mb: 6 },
+  statCard: (color: string) => (theme: any) => ({
     height: '100%',
     position: 'relative',
     overflow: 'hidden',
-    boxShadow: (theme) => theme.shadows[2],
+    boxShadow: theme.shadows[2],
     borderRadius: 4,
-    background: (theme) => `linear-gradient(135deg, ${theme.palette.background.paper} 0%, ${alpha(color, 0.05)} 100%)`,
-    border: (theme) => `1px solid ${theme.palette.divider}`
-  }}>
-    <Box sx={{ position: 'absolute', top: -10, right: -10, opacity: 0.1, transform: 'rotate(-15deg)' }}>
-      <Icon sx={{ fontSize: 100, color: color }} />
-    </Box>
-    <CardContent sx={{ p: 3 }}>
-      <Box display="flex" alignItems="center" mb={2}>
-        <Box sx={{
-          p: 1,
-          borderRadius: 2,
-          bgcolor: alpha(color, 0.1),
-          color: color,
-          mr: 2,
-          display: 'flex',
-          boxShadow: `0 4px 12px ${alpha(color, 0.2)}`
-        }}>
-          <Icon sx={{ fontSize: 24 }} />
-        </Box>
-        <Typography variant="subtitle2" color="text.secondary" fontWeight={600} sx={{ textTransform: 'uppercase', letterSpacing: '0.05em' }}>
-          {title}
-        </Typography>
+    background: `linear-gradient(135deg, ${theme.palette.background.paper} 0%, ${alpha(color, 0.05)} 100%)`,
+    border: `1px solid ${theme.palette.divider}`
+  }),
+  statCardIconBg: { position: 'absolute', top: -10, right: -10, opacity: 0.1, transform: 'rotate(-15deg)' },
+  statCardIconLarge: (color: string) => ({ fontSize: 100, color: color }),
+  statLabelContainer: (color: string) => ({
+    p: 1,
+    borderRadius: 2,
+    bgcolor: alpha(color, 0.1),
+    color: color,
+    mr: 2,
+    display: 'flex',
+    boxShadow: `0 4px 12px ${alpha(color, 0.2)}`
+  }),
+  statLabel: { textTransform: 'uppercase', letterSpacing: '0.05em' },
+  statValue: { color: 'text.primary' },
+  sectionTitle: { fontWeight: 800, mb: 3 },
+  recordsGrid: { display: 'grid', gridTemplateColumns: { xs: '1fr', sm: '1fr 1fr', md: 'repeat(3, 1fr)' }, gap: 2, mb: 6 },
+  recordCard: (theme: any) => ({
+    borderRadius: 3,
+    border: `1px solid ${alpha(theme.palette.secondary.main, 0.2)}`,
+    background: alpha(theme.palette.background.paper, 0.8),
+    backdropFilter: 'blur(8px)'
+  }),
+  recordValue: { display: 'flex', alignItems: 'baseline', gap: 0.5 },
+  recordUnit: { opacity: 0.7, fontWeight: 600 },
+  recordSpacer: { mx: 1, color: 'text.disabled' },
+  recordDate: { display: 'block', mt: 1 },
+  noRecordsBox: (theme: any) => ({
+    gridColumn: '1/-1',
+    p: 4,
+    textAlign: 'center',
+    bgcolor: 'background.paper',
+    borderRadius: 3,
+    border: `1px dashed ${theme.palette.divider}`
+  }),
+  historyList: { display: 'flex', flexDirection: 'column', gap: 2 },
+  historyCard: (theme: any) => ({
+    borderRadius: 3,
+    transition: 'transform 0.2s, box-shadow 0.2s',
+    '&:hover': {
+      transform: 'translateY(-2px)',
+      boxShadow: theme.shadows[4]
+    },
+    border: `1px solid ${theme.palette.divider}`
+  }),
+  dateChip: { borderRadius: 1, fontSize: '0.75rem' },
+  durationChip: (theme: any) => ({
+    borderRadius: 1,
+    fontSize: '0.75rem',
+    border: 'none',
+    bgcolor: alpha(theme.palette.primary.main, 0.1)
+  }),
+  exerciseBadge: (theme: any) => ({
+    px: 1.5,
+    py: 0.75,
+    borderRadius: 1.5,
+    bgcolor: alpha(theme.palette.action.hover, 0.5),
+    border: `1px solid ${alpha(theme.palette.divider, 0.5)}`,
+    flexGrow: 1,
+    maxWidth: 'fit-content'
+  }),
+  exerciseName: { fontWeight: 600, fontSize: '0.85rem' },
+  exerciseSets: (theme: any) => ({ borderLeft: `1px solid ${theme.palette.divider}`, pl: 1, ml: 0.5 })
+};
+
+const StatCard = ({ title, value, icon: Icon, color }: { title: string, value: string | number, icon: any, color: string }) => {
+  const theme = useTheme();
+  return (
+    <Card sx={styles.statCard(color)(theme)}>
+      <Box sx={styles.statCardIconBg}>
+        <Icon sx={styles.statCardIconLarge(color)} />
       </Box>
-      <Typography variant="h3" fontWeight={800} sx={{ color: 'text.primary' }}>
-        {value}
-      </Typography>
-    </CardContent>
-  </Card>
-);
+      <CardContent sx={{ p: 3 }}>
+        <Box display="flex" alignItems="center" mb={2}>
+          <Box sx={styles.statLabelContainer(color)}>
+            <Icon sx={{ fontSize: 24 }} />
+          </Box>
+          <Typography variant="subtitle2" color="text.secondary" fontWeight={600} sx={styles.statLabel}>
+            {title}
+          </Typography>
+        </Box>
+        <Typography variant="h3" fontWeight={800} sx={styles.statValue}>
+          {value}
+        </Typography>
+      </CardContent>
+    </Card>
+  );
+};
 
 export default function WorkoutsPage() {
   const theme = useTheme();
@@ -99,17 +169,13 @@ export default function WorkoutsPage() {
   }, []);
 
   return (
-    <Box component={motion.div} variants={containerVariants} initial="hidden" animate="visible" sx={{ maxWidth: 1200, mx: 'auto', p: { xs: 2, md: 3 } }}>
+    <Box component={motion.div} variants={containerVariants} initial="hidden" animate="visible" sx={styles.pageContainer}>
       <Box display="flex" justifyContent="space-between" alignItems="center" mb={5} flexWrap="wrap" gap={2}>
         <Box>
-          <Typography variant="h4" fontWeight={800} sx={{
-            background: `linear-gradient(45deg, ${theme.palette.text.primary} 30%, ${theme.palette.primary.main} 90%)`,
-            WebkitBackgroundClip: 'text',
-            WebkitTextFillColor: 'transparent',
-          }}>
+          <Typography variant="h4" fontWeight={800} sx={styles.headerTitle(theme)}>
             Workouts
           </Typography>
-          <Typography variant="body1" color="text.secondary" fontWeight={400} mt={0.5}>
+          <Typography variant="body1" color="text.secondary" sx={styles.headerSubtitle}>
             Track your progress and push your limits.
           </Typography>
         </Box>
@@ -117,7 +183,7 @@ export default function WorkoutsPage() {
           <Button
             variant="outlined"
             onClick={() => navigate('/workouts/templates')}
-            sx={{ borderStyle: 'solid', borderRadius: 2, px: 3, fontWeight: 600 }}
+            sx={styles.templatesButton}
           >
             Templates
           </Button>
@@ -125,7 +191,7 @@ export default function WorkoutsPage() {
             variant="contained"
             startIcon={<AddIcon />}
             onClick={() => setOpenLog(true)}
-            sx={{ borderRadius: 2, px: 3, fontWeight: 600, boxShadow: theme.shadows[4] }}
+            sx={styles.logSessionButton(theme)}
           >
             Log Session
           </Button>
@@ -133,7 +199,7 @@ export default function WorkoutsPage() {
       </Box>
 
       {/* Stats Section */}
-      <Box display="grid" gridTemplateColumns={{ xs: '1fr', sm: '1fr 1fr', md: 'repeat(4, 1fr)' }} gap={3} mb={6}>
+      <Box sx={styles.statsGrid}>
         <motion.div variants={itemVariants}>
           <StatCard
             title="Workout Streak"
@@ -152,30 +218,25 @@ export default function WorkoutsPage() {
         </motion.div>
       </Box>
 
-      <Typography variant="h5" fontWeight={800} gutterBottom mb={3}>
+      <Typography variant="h5" sx={styles.sectionTitle} gutterBottom>
         Personal Records
       </Typography>
-      <Box display="grid" gridTemplateColumns={{ xs: '1fr', sm: '1fr 1fr', md: 'repeat(3, 1fr)' }} gap={2} mb={6}>
+      <Box sx={styles.recordsGrid}>
         {Object.entries(records).length > 0 ? (
           Object.entries(records).map(([exercise, record]: [string, any]) => (
             <motion.div variants={itemVariants} key={exercise}>
-              <Card sx={{
-                borderRadius: 3,
-                border: `1px solid ${alpha(theme.palette.secondary.main, 0.2)}`,
-                background: alpha(theme.palette.background.paper, 0.8),
-                backdropFilter: 'blur(8px)'
-              }}>
+              <Card sx={styles.recordCard(theme)}>
                 <CardContent>
                   <Box display="flex" alignItems="center" mb={1.5}>
                     <RecordIcon sx={{ mr: 1, color: theme.palette.secondary.main, fontSize: 20 }} />
                     <Typography variant="subtitle1" fontWeight={700} noWrap>{exercise}</Typography>
                   </Box>
-                  <Typography variant="h4" fontWeight={800} color="secondary.main" sx={{ display: 'flex', alignItems: 'baseline', gap: 0.5 }}>
-                    {record.weight} <Typography variant="caption" sx={{ opacity: 0.7, fontWeight: 600 }}>lbs</Typography>
-                    <Typography variant="h6" component="span" sx={{ mx: 1, color: 'text.disabled' }}>×</Typography>
-                    {record.reps} <Typography variant="caption" sx={{ opacity: 0.7, fontWeight: 600 }}>reps</Typography>
+                  <Typography variant="h4" fontWeight={800} color="secondary.main" sx={styles.recordValue}>
+                    {record.weight} <Typography variant="caption" sx={styles.recordUnit}>lbs</Typography>
+                    <Typography variant="h6" component="span" sx={styles.recordSpacer}>×</Typography>
+                    {record.reps} <Typography variant="caption" sx={styles.recordUnit}>reps</Typography>
                   </Typography>
-                  <Typography variant="caption" color="text.secondary" sx={{ display: 'block', mt: 1 }}>
+                  <Typography variant="caption" color="text.secondary" sx={styles.recordDate}>
                     Achieved on {new Date(record.date).toLocaleDateString()}
                   </Typography>
                 </CardContent>
@@ -183,27 +244,19 @@ export default function WorkoutsPage() {
             </motion.div>
           ))
         ) : (
-          <Box gridColumn="1/-1" p={4} textAlign="center" bgcolor="background.paper" borderRadius={3} border={`1px dashed ${theme.palette.divider}`}>
+          <Box sx={styles.noRecordsBox(theme)}>
             <Typography variant="body1" color="text.secondary">No records found yet. Start training!</Typography>
           </Box>
         )}
       </Box>
 
-      <Typography variant="h5" fontWeight={800} gutterBottom mb={3}>
+      <Typography variant="h5" sx={styles.sectionTitle} gutterBottom>
         Recent History
       </Typography>
-      <Box display="flex" flexDirection="column" gap={2}>
+      <Box sx={styles.historyList}>
         {workouts.map((workout) => (
           <motion.div variants={itemVariants} key={workout._id}>
-            <Card sx={{
-              borderRadius: 3,
-              transition: 'transform 0.2s, box-shadow 0.2s',
-              '&:hover': {
-                transform: 'translateY(-2px)',
-                boxShadow: theme.shadows[4]
-              },
-              border: `1px solid ${theme.palette.divider}`
-            }}>
+            <Card sx={styles.historyCard(theme)}>
               <CardContent sx={{ p: 2.5, '&:last-child': { pb: 2.5 } }}>
                 <Box display="flex" justifyContent="space-between" alignItems="flex-start" mb={2}>
                   <Box>
@@ -213,7 +266,7 @@ export default function WorkoutsPage() {
                         label={`${new Date(workout.date).toLocaleDateString()}`}
                         size="small"
                         variant="outlined"
-                        sx={{ borderRadius: 1, fontSize: '0.75rem' }}
+                        sx={styles.dateChip}
                       />
                       {workout.duration && (
                         <Chip
@@ -222,7 +275,7 @@ export default function WorkoutsPage() {
                           size="small"
                           color="primary"
                           variant="outlined"
-                          sx={{ borderRadius: 1, fontSize: '0.75rem', border: 'none', bgcolor: alpha(theme.palette.primary.main, 0.1) }}
+                          sx={styles.durationChip(theme)}
                         />
                       )}
                     </Box>
@@ -233,19 +286,11 @@ export default function WorkoutsPage() {
                 </Box>
                 <Box display="flex" flexWrap="wrap" gap={1}>
                   {workout.exercises.map((exercise, idx) => (
-                    <Box key={idx} sx={{
-                      px: 1.5,
-                      py: 0.75,
-                      borderRadius: 1.5,
-                      bgcolor: alpha(theme.palette.action.hover, 0.5),
-                      border: `1px solid ${alpha(theme.palette.divider, 0.5)}`,
-                      flexGrow: 1,
-                      maxWidth: 'fit-content'
-                    }}>
+                    <Box key={idx} sx={styles.exerciseBadge(theme)}>
                       <Box display="flex" alignItems="center" gap={1}>
                         <FitnessCenterIcon sx={{ fontSize: 14, color: 'text.secondary' }} />
-                        <Typography variant="body2" fontWeight={600} fontSize="0.85rem">{exercise.name}</Typography>
-                        <Typography variant="caption" color="text.secondary" sx={{ borderLeft: `1px solid ${theme.palette.divider}`, pl: 1, ml: 0.5 }}>
+                        <Typography variant="body2" sx={styles.exerciseName}>{exercise.name}</Typography>
+                        <Typography variant="caption" color="text.secondary" sx={styles.exerciseSets(theme)}>
                           {exercise.sets.length} sets
                         </Typography>
                       </Box>

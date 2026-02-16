@@ -20,6 +20,15 @@ const PublicLayout = lazy(() => import('../components/PublicLayout'));
 const InstructorProfilePage = lazy(() => import('../features/instructors/InstructorProfilePage'));
 const ProfilePage = lazy(() => import('../features/profile/ProfilePage'));
 
+const styles = {
+  loadingContainer: {
+    display: 'flex',
+    justifyContent: 'center',
+    alignItems: 'center',
+    height: '100vh',
+  },
+};
+
 function ProtectedRoute({
   children,
   allowedRoles
@@ -31,7 +40,7 @@ function ProtectedRoute({
 
   if (loading) {
     return (
-      <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100vh' }}>
+      <Box sx={styles.loadingContainer}>
         <CircularProgress />
       </Box>
     );
@@ -52,7 +61,7 @@ function AppContent() {
   return (
     <Suspense
       fallback={
-        <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100vh' }}>
+        <Box sx={styles.loadingContainer}>
           <CircularProgress />
         </Box>
       }

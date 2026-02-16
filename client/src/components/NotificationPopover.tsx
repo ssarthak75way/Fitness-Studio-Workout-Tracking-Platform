@@ -15,6 +15,23 @@ import { Notifications as NotificationsIcon, DoneAll as DoneAllIcon } from '@mui
 import { notificationService } from '../services/index';
 import { formatDistanceToNow } from 'date-fns';
 
+const styles = {
+    popoverPaper: { width: 360, maxHeight: 400, overflow: 'auto' },
+    header: { p: 2, display: 'flex', justifyContent: 'space-between', alignItems: 'center' },
+    loadingContainer: { p: 2, textAlign: 'center' },
+    list: { p: 0 },
+    noNotificationsText: { textAlign: 'center', color: 'text.secondary' },
+    listItem: (isRead: boolean) => ({
+        bgcolor: isRead ? 'transparent' : 'action.hover',
+        cursor: 'pointer'
+    }),
+    notificationPrimary: (isRead: boolean) => ({
+        variant: 'body2',
+        fontWeight: isRead ? 'normal' : 'bold'
+    }),
+    notificationSecondary: { variant: 'caption' }
+};
+
 export default function NotificationPopover() {
     const [anchorEl, setAnchorEl] = useState<HTMLButtonElement | null>(null);
     const [notifications, setNotifications] = useState<any[]>([]);
@@ -90,10 +107,10 @@ export default function NotificationPopover() {
                     horizontal: 'right',
                 }}
                 PaperProps={{
-                    sx: { width: 360, maxHeight: 400, overflow: 'auto' }
+                    sx: styles.popoverPaper
                 }}
             >
-                <Box sx={{ p: 2, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                <Box sx={styles.header}>
                     <Typography variant="h6">Notifications</Typography>
                     {unreadCount > 0 && (
                         <IconButton size="small" onClick={handleMarkAllRead} title="Mark all as read">
@@ -104,34 +121,28 @@ export default function NotificationPopover() {
                 <Divider />
 
                 {loading && notifications.length === 0 ? (
-                    <Box sx={{ p: 2, textAlign: 'center' }}>
+                    <Box sx={styles.loadingContainer}>
                         <CircularProgress size={24} />
                     </Box>
                 ) : (
-                    <List sx={{ p: 0 }}>
+                    <List sx={styles.list}>
                         {notifications.length === 0 ? (
                             <ListItem>
-                                <ListItemText primary="No notifications" sx={{ textAlign: 'center', color: 'text.secondary' }} />
+                                <ListItemText primary="No notifications" sx={styles.noNotificationsText} />
                             </ListItem>
                         ) : (
                             notifications.map((notification) => (
                                 <ListItem
                                     key={notification._id}
                                     divider
-                                    sx={{
-                                        bgcolor: notification.isRead ? 'transparent' : 'action.hover',
-                                        cursor: 'pointer'
-                                    }}
+                                    sx={styles.listItem(notification.isRead)}
                                     onClick={() => !notification.isRead && handleMarkAsRead(notification._id)}
                                 >
                                     <ListItemText
                                         primary={notification.message}
                                         secondary={formatDistanceToNow(new Date(notification.createdAt), { addSuffix: true })}
-                                        primaryTypographyProps={{
-                                            variant: 'body2',
-                                            fontWeight: notification.isRead ? 'normal' : 'bold'
-                                        }}
-                                        secondaryTypographyProps={{ variant: 'caption' }}
+                                        primaryTypographyProps={styles.notificationPrimary(notification.isRead) as any}
+                                        secondaryTypographyProps={styles.notificationSecondary as any}
                                     />
                                 </ListItem>
                             ))

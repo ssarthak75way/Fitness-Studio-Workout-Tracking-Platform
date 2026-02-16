@@ -92,6 +92,9 @@ const styles = {
   loadingContainer: {
     p: 4,
   },
+  loadingSkeletonTitle: { mb: 2 },
+  loadingSkeletonSubtitle: { mb: 4 },
+  loadingSkeletonCard: { borderRadius: 3 },
   pageContainer: {
     p: { xs: 2, md: 4 },
   },
@@ -101,6 +104,11 @@ const styles = {
     WebkitTextFillColor: 'transparent',
     fontWeight: 800,
   }),
+  viewProfileButton: { borderRadius: 2 },
+  memberStatsGrid: { gridColumn: { md: 'span 2' } },
+  instructorStatsGrid: { gridColumn: { md: 'span 2' } },
+  adminStatsGrid: (theme: any) => ({ gridColumn: { md: 'span 2' } }),
+  cardFullHeight: { height: '100%' },
   upcomingItem: (theme: any) => ({
     mb: 2,
     p: 2,
@@ -108,7 +116,7 @@ const styles = {
     bgcolor: alpha(theme.palette.primary.main, 0.05),
     display: 'flex',
     alignItems: 'center',
-    justifyContent: 'center',
+    justifyContent: 'space-between',
   }),
   recentWorkoutItem: (theme: any) => ({
     mb: 2,
@@ -117,8 +125,31 @@ const styles = {
     bgcolor: alpha(theme.palette.secondary.main, 0.05),
     display: 'flex',
     alignItems: 'center',
-    justifyContent: 'center',
+    justifyContent: 'space-between',
   }),
+  instructorClassItem: (theme: any) => ({
+    p: 2,
+    borderRadius: 2,
+    bgcolor: alpha(theme.palette.primary.main, 0.05),
+    border: `1px solid ${alpha(theme.palette.primary.main, 0.1)}`
+  }),
+  adminUserItem: (theme: any) => ({
+    p: 2,
+    borderRadius: 2,
+    bgcolor: alpha(theme.palette.background.paper, 0.5),
+    border: `1px solid ${theme.palette.divider}`
+  }),
+  adminAvatar: (theme: any) => ({
+    width: 40,
+    height: 40,
+    borderRadius: '50%',
+    bgcolor: theme.palette.primary.main,
+    color: '#fff',
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+    fontWeight: 700
+  })
 };
 
 const StatCard = ({ title, value, icon: Icon, color }: { title: string, value: string | number, icon: any, color: string }) => (
@@ -186,11 +217,11 @@ export default function DashboardPage() {
   if (loading) {
     return (
       <Box sx={styles.loadingContainer}>
-        <Skeleton variant="text" width="40%" height={60} sx={{ mb: 2 }} />
-        <Skeleton variant="text" width="30%" height={30} sx={{ mb: 4 }} />
+        <Skeleton variant="text" width="40%" height={60} sx={styles.loadingSkeletonTitle} />
+        <Skeleton variant="text" width="30%" height={30} sx={styles.loadingSkeletonSubtitle} />
         <Box display="grid" gridTemplateColumns={{ xs: '1fr', sm: '1fr 1fr', md: 'repeat(4, 1fr)' }} gap={3}>
           {[1, 2, 3, 4].map((i) => (
-            <Skeleton key={i} variant="rectangular" height={140} sx={{ borderRadius: 3 }} />
+            <Skeleton key={i} variant="rectangular" height={140} sx={styles.loadingSkeletonCard} />
           ))}
         </Box>
       </Box>
@@ -215,7 +246,7 @@ export default function DashboardPage() {
             variant="outlined"
             startIcon={<ProfileIcon />}
             onClick={() => navigate('/profile')}
-            sx={{ borderRadius: 2 }}
+            sx={styles.viewProfileButton}
           >
             View Profile
           </Button>
@@ -238,7 +269,7 @@ export default function DashboardPage() {
               icon={HistoryIcon}
               color={theme.palette.secondary.main}
             />
-            <Box sx={{ gridColumn: { md: 'span 2' } }}>
+            <Box sx={styles.memberStatsGrid}>
               <StatCard
                 title="Workout Streak"
                 value={`${stats?.workoutStreak || 0} Days`}
@@ -263,7 +294,7 @@ export default function DashboardPage() {
               icon={HistoryIcon}
               color={theme.palette.secondary.main}
             />
-            <Box sx={{ gridColumn: { md: 'span 2' } }}>
+            <Box sx={styles.instructorStatsGrid}>
               <StatCard
                 title="Average Rating"
                 value={stats?.averageRating || 'N/A'}
@@ -309,20 +340,12 @@ export default function DashboardPage() {
         {/* MEMBER: Upcoming Schedule & Recent Workouts */}
         {user?.role === 'MEMBER' && (
           <>
-            <Card sx={{ height: '100%' }}>
+            <Card sx={styles.cardFullHeight}>
               <CardContent>
                 <Typography variant="h6" fontWeight={700} mb={2}>Your Schedule</Typography>
                 {stats?.upcomingBookings && stats.upcomingBookings.length > 0 ? (
                   stats.upcomingBookings.map((booking: any) => (
-                    <Box key={booking._id} sx={(theme: any) => ({
-                      mb: 2,
-                      p: 2,
-                      borderRadius: 2,
-                      bgcolor: alpha(theme.palette.primary.main, 0.05),
-                      display: 'flex',
-                      alignItems: 'center',
-                      justifyContent: 'space-between'
-                    })}>
+                    <Box key={booking._id} sx={styles.upcomingItem(theme)}>
                       <Box>
                         <Typography variant="subtitle2" fontWeight={700}>{booking?.classSession?.title || "NA"}</Typography>
                         <Typography variant="body2" color="text.secondary">
@@ -337,20 +360,12 @@ export default function DashboardPage() {
                 )}
               </CardContent>
             </Card>
-            <Card sx={{ height: '100%' }}>
+            <Card sx={styles.cardFullHeight}>
               <CardContent>
                 <Typography variant="h6" fontWeight={700} mb={2}>Recent Workouts</Typography>
                 {stats?.recentWorkouts && stats.recentWorkouts.length > 0 ? (
                   stats.recentWorkouts.map((workout: any) => (
-                    <Box key={workout._id} sx={(theme: any) => ({
-                      mb: 2,
-                      p: 2,
-                      borderRadius: 2,
-                      bgcolor: alpha(theme.palette.secondary.main, 0.05),
-                      display: 'flex',
-                      alignItems: 'center',
-                      justifyContent: 'space-between'
-                    })}>
+                    <Box key={workout._id} sx={styles.recentWorkoutItem(theme)}>
                       <Box>
                         <Typography variant="subtitle2" fontWeight={700}>{workout?.title || "NA"}</Typography>
                         <Typography variant="body2" color="text.secondary">
@@ -376,12 +391,7 @@ export default function DashboardPage() {
               <Box display="grid" gridTemplateColumns={{ xs: '1fr', sm: '1fr 1fr' }} gap={2}>
                 {stats?.upcomingClasses && stats.upcomingClasses.length > 0 ? (
                   stats.upcomingClasses.map((session: any) => (
-                    <Box key={session._id} sx={(theme: any) => ({
-                      p: 2,
-                      borderRadius: 2,
-                      bgcolor: alpha(theme.palette.primary.main, 0.05),
-                      border: `1px solid ${alpha(theme.palette.primary.main, 0.1)}`
-                    })}>
+                    <Box key={session._id} sx={styles.instructorClassItem(theme)}>
                       <Typography variant="subtitle1" fontWeight={700} gutterBottom>{session?.title || "NA"}</Typography>
                       <Box display="flex" alignItems="center" gap={1} mb={1}>
                         <EventIcon fontSize="small" color="action" />
@@ -411,14 +421,9 @@ export default function DashboardPage() {
               {stats?.recentUsers && stats.recentUsers.length > 0 ? (
                 <Box display="grid" gridTemplateColumns={{ xs: '1fr', sm: '1fr 1fr', md: 'repeat(3, 1fr)' }} gap={2}>
                   {stats.recentUsers.map((newUser: any) => (
-                    <Box key={newUser._id} sx={(theme: any) => ({
-                      p: 2,
-                      borderRadius: 2,
-                      bgcolor: alpha(theme.palette.background.paper, 0.5),
-                      border: `1px solid ${theme.palette.divider}`
-                    })}>
+                    <Box key={newUser._id} sx={styles.adminUserItem(theme)}>
                       <Box display="flex" alignItems="center" gap={2} mb={1}>
-                        <Box sx={(theme: any) => ({ width: 40, height: 40, borderRadius: '50%', bgcolor: theme.palette.primary.main, color: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 700 })}>
+                        <Box sx={styles.adminAvatar(theme)}>
                           {newUser.fullName.charAt(0)}
                         </Box>
                         <Box>
