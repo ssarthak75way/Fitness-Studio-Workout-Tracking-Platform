@@ -176,6 +176,7 @@ export default function MembershipPage() {
             setMembership(response.data.membership);
         } catch (error: unknown) { // axios error
             console.error('Failed to fetch membership:', error);
+            showToast('Failed to load membership details', 'error');
         }
     };
 

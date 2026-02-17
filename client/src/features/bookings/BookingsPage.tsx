@@ -28,6 +28,7 @@ import {
     AccessTime as AccessTimeIcon
 } from '@mui/icons-material';
 import { bookingService } from '../../services/booking.service';
+import { useToast } from '../../context/ToastContext';
 import { useNavigate, Link } from 'react-router-dom';
 
 interface Booking {
@@ -87,6 +88,7 @@ const styles = {
 
 export default function BookingsPage() {
     const theme = useTheme();
+    const { showToast } = useToast();
     const navigate = useNavigate();
     const [bookings, setBookings] = useState<Booking[]>([]);
     const [tabValue, setTabValue] = useState(0);
@@ -104,6 +106,7 @@ export default function BookingsPage() {
             setBookings(response.data.bookings);
         } catch (error) {
             console.error('Failed to fetch bookings:', error);
+            showToast('Failed to load bookings', 'error');
         }
     };
 
@@ -111,10 +114,12 @@ export default function BookingsPage() {
         if (!cancelId) return;
         try {
             await bookingService.cancelBooking(cancelId);
+            showToast('Booking cancelled successfully', 'success');
             fetchBookings();
             setCancelId(null);
         } catch (error) {
             console.error('Failed to cancel booking:', error);
+            showToast((error as Error).message || 'Failed to cancel booking', 'error');
         }
     };
 

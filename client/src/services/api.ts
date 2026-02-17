@@ -19,10 +19,15 @@ api.interceptors.request.use(
   (error) => Promise.reject(error)
 );
 
-// Response Interceptor: Handle 401 (Unauthorized)
+// Response Interceptor: Handle Errors globally
 api.interceptors.response.use(
   (response) => response,
   (error) => {
+    // Extract server error message if available
+    if (error.response?.data?.message) {
+      error.message = error.response.data.message;
+    }
+
     const isAuthRequest =
       error.config?.url?.includes('/auth/login') ||
       error.config?.url?.includes('/auth/register') ||
