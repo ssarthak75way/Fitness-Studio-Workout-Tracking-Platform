@@ -161,6 +161,7 @@ export default function SchedulePage() {
       setEvents(calendarEvents);
     } catch (error) {
       console.error('Failed to fetch classes:', error);
+      showToast('Failed to load class schedule', 'error');
     }
   };
 

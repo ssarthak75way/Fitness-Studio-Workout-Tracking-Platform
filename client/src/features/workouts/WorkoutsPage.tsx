@@ -16,6 +16,7 @@ import { motion, type Variants } from 'framer-motion';
 import { workoutService } from '../../services';
 import type { WorkoutLog, PersonalRecord, WorkoutTemplate } from '../../types';
 import LogWorkoutModal from './LogWorkoutModal';
+import { useToast } from '../../context/ToastContext';
 
 const containerVariants: Variants = {
   hidden: { opacity: 0 },
@@ -149,6 +150,7 @@ export default function WorkoutsPage() {
   const [openLog, setOpenLog] = useState(false);
   const [selectedTemplate, setSelectedTemplate] = useState<WorkoutTemplate | null>(null);
   const navigate = useNavigate();
+  const { showToast } = useToast();
 
   const fetchData = async () => {
     try {
@@ -162,6 +164,7 @@ export default function WorkoutsPage() {
       setStreak(streakRes.data.streak);
     } catch (error) {
       console.error('Failed to fetch workout data:', error);
+      showToast('Failed to load workout history', 'error');
     }
   };
 

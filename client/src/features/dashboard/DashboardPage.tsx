@@ -4,6 +4,7 @@ import { motion, type Variants } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
 import { dashboardService } from '../../services/index';
 import { useAuth } from '../../context/AuthContext';
+import { useToast } from '../../context/ToastContext';
 import {
   TrendingUp as TrendingUpIcon,
   Event as EventIcon,
@@ -195,6 +196,7 @@ const QuickActionCard = ({ title, description, icon: Icon, onClick, color }: { t
 
 export default function DashboardPage() {
   const { user } = useAuth();
+  const { showToast } = useToast();
   const theme = useTheme();
   const navigate = useNavigate();
   const [stats, setStats] = useState<DashboardStats | null>(null);
@@ -207,6 +209,7 @@ export default function DashboardPage() {
         setStats(response.data.stats);
       } catch (error) {
         console.error('Failed to fetch dashboard stats:', error);
+        showToast('Failed to load dashboard data', 'error');
       } finally {
         setLoading(false);
       }

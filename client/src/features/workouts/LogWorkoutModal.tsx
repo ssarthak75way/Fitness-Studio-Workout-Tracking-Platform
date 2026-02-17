@@ -95,7 +95,7 @@ export default function LogWorkoutModal({ open, onClose, onSuccess, initialValue
       onClose();
     } catch (err) {
       console.error(err);
-      showToast('Failed to save workout', 'error');
+      showToast((err as Error).message || 'Failed to save workout', 'error');
     }
   };
 
