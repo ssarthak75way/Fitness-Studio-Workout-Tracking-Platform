@@ -19,6 +19,7 @@ const ProtectedLayout = lazy(() => import('../components/ProtectedLayout'));
 const PublicLayout = lazy(() => import('../components/PublicLayout'));
 const InstructorProfilePage = lazy(() => import('../features/instructors/InstructorProfilePage'));
 const ProfilePage = lazy(() => import('../features/profile/ProfilePage'));
+const NotFoundPage = lazy(() => import('../components/NotFoundPage'));
 
 const styles = {
   loadingContainer: {
@@ -103,7 +104,7 @@ function AppContent() {
         <Route
           path="/workouts/templates"
           element={
-            <ProtectedRoute allowedRoles={['STUDIO_ADMIN', 'INSTRUCTOR']}>
+            <ProtectedRoute allowedRoles={['STUDIO_ADMIN', 'MEMBER', 'INSTRUCTOR']}>
               <WorkoutTemplatesPage />
             </ProtectedRoute>
           }
@@ -165,6 +166,7 @@ function AppContent() {
           }
         />
         <Route path="/" element={<Navigate to="/dashboard" replace />} />
+        <Route path="*" element={<PublicLayout><NotFoundPage /></PublicLayout>} />
       </Routes>
     </Suspense>
   );

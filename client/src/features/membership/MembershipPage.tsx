@@ -31,7 +31,7 @@ const PLANS = [
     {
         type: 'ANNUAL',
         name: 'Annual Unlimited',
-        price: '₹10',
+        price: '₹999',
         period: '/year',
         description: 'Best value for committed athletes.',
         features: ['All Monthly benefits', 'Save $189/year', 'Exlusive workshops', 'Priority booking', 'Free merchandise pack'],

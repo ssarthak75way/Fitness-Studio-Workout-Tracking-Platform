@@ -25,7 +25,8 @@ import {
     Person as PersonIcon,
     QrCode as QrCodeIcon,
     Cancel as CancelIcon,
-    AccessTime as AccessTimeIcon
+    AccessTime as AccessTimeIcon,
+    ContentCopy as ContentCopyIcon
 } from '@mui/icons-material';
 import { bookingService } from '../../services/booking.service';
 import { useToast } from '../../context/ToastContext';
@@ -92,7 +93,7 @@ export default function BookingsPage() {
     const navigate = useNavigate();
     const [bookings, setBookings] = useState<Booking[]>([]);
     const [tabValue, setTabValue] = useState(0);
-    const [selectedQR, setSelectedQR] = useState('');
+    const [selectedBooking, setSelectedBooking] = useState<Booking | null>(null);
     const [openQR, setOpenQR] = useState(false);
     const [cancelId, setCancelId] = useState<string | null>(null);
 
@@ -195,7 +196,7 @@ export default function BookingsPage() {
                                         <IconButton
                                             size="small"
                                             onClick={() => {
-                                                setSelectedQR(booking.qrCodeUrl!);
+                                                setSelectedBooking(booking);
                                                 setOpenQR(true);
                                             }}
                                             sx={styles.qrIconButton(theme)}
@@ -293,12 +294,38 @@ export default function BookingsPage() {
                         Check-in QR Code
                     </Typography>
                     <Box sx={styles.qrWrapper}>
-                        {selectedQR && <img src={selectedQR} alt="QR Code" style={styles.qrImage} />}
+                        {selectedBooking?.qrCodeUrl && <img src={selectedBooking.qrCodeUrl} alt="QR Code" style={styles.qrImage} />}
                     </Box>
-                    <Typography variant="body2" color="text.secondary">
+                    <Typography variant="body2" color="text.secondary" paragraph>
                         Scan this at the studio front desk.
                     </Typography>
-                    <Button onClick={() => setOpenQR(false)} sx={{ mt: 2 }}>Close</Button>
+
+                    <Box sx={{ mt: 2, p: 2, bgcolor: alpha(theme.palette.primary.main, 0.05), borderRadius: 2, border: `1px dashed ${theme.palette.primary.main}` }}>
+                        <Typography variant="caption" color="text.secondary" display="block" gutterBottom>
+                            MANUAL VERIFICATION CODE
+                        </Typography>
+                        <Stack direction="row" alignItems="center" justifyContent="center" spacing={1}>
+                            <Typography variant="h6" fontFamily="monospace" fontWeight="700" letterSpacing={2}>
+                                {selectedBooking?._id.slice(-6).toUpperCase()}
+                            </Typography>
+                            <IconButton
+                                size="small"
+                                onClick={() => {
+                                    if (selectedBooking?._id) {
+                                        navigator.clipboard.writeText(selectedBooking._id);
+                                        showToast('Booking ID copied to clipboard', 'success');
+                                    }
+                                }}
+                            >
+                                <ContentCopyIcon fontSize="small" />
+                            </IconButton>
+                        </Stack>
+                        <Typography variant="caption" color="text.secondary" sx={{ display: 'block', mt: 1 }}>
+                            Full ID: {selectedBooking?._id}
+                        </Typography>
+                    </Box>
+
+                    <Button onClick={() => setOpenQR(false)} sx={{ mt: 3 }} fullWidth variant="outlined">Close</Button>
                 </DialogContent>
             </Dialog>
 

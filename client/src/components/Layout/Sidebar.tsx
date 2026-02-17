@@ -5,18 +5,18 @@ import React from 'react';
 import DashboardIcon from '@mui/icons-material/Dashboard';
 import FitnessCenterIcon from '@mui/icons-material/FitnessCenter';
 import CalendarMonthIcon from '@mui/icons-material/CalendarMonth';
-import AssessmentIcon from '@mui/icons-material/Assessment';
 import PeopleIcon from '@mui/icons-material/People';
 import QrCodeScannerIcon from '@mui/icons-material/QrCodeScanner';
 import CardMembershipIcon from '@mui/icons-material/CardMembership';
 import SettingsIcon from '@mui/icons-material/Settings';
-import BookOnlineIcon from '@mui/icons-material/BookOnline';
 import AccountCircleIcon from '@mui/icons-material/AccountCircle';
 import NoteAddIcon from '@mui/icons-material/NoteAdd';
+import TrendingUpIcon from '@mui/icons-material/TrendingUp';
+import BookmarkIcon from '@mui/icons-material/Bookmark';
 import { useAuth } from '../../context/AuthContext';
 import { motion } from 'framer-motion';
 
-const drawerWidth = 280;
+export const drawerWidth = 280;
 
 interface SidebarProps {
   mobileOpen: boolean;
@@ -27,30 +27,28 @@ interface MenuItem {
   text: string;
   icon: React.ReactNode;
   path: string;
-  roles: string[];
+  roles?: string[];
 }
 
 const menuItems: MenuItem[] = [
-  { text: 'Dashboard', icon: <DashboardIcon />, path: '/dashboard', roles: ['STUDIO_ADMIN', 'INSTRUCTOR', 'MEMBER'] },
-  { text: 'User Management', icon: <PeopleIcon />, path: '/admin/users', roles: ['STUDIO_ADMIN'] },
-  { text: 'Scan & Check-In', icon: <QrCodeScannerIcon />, path: '/check-in', roles: ['STUDIO_ADMIN', 'INSTRUCTOR'] },
-  { text: 'Class Schedule', icon: <CalendarMonthIcon />, path: '/schedule', roles: ['MEMBER', 'INSTRUCTOR', 'STUDIO_ADMIN'] },
-  { text: 'My Bookings', icon: <BookOnlineIcon />, path: '/bookings', roles: ['MEMBER'] },
-  { text: 'My Workouts', icon: <FitnessCenterIcon />, path: '/workouts', roles: ['MEMBER'] },
+  { text: 'Dashboard', icon: <DashboardIcon />, path: '/dashboard' },
+  { text: 'Schedule', icon: <CalendarMonthIcon />, path: '/schedule' },
+  { text: 'My Bookings', icon: <BookmarkIcon />, path: '/bookings' },
+  { text: 'Workouts', icon: <FitnessCenterIcon />, path: '/workouts' },
   { text: 'Workout Templates', icon: <NoteAddIcon />, path: '/workouts/templates', roles: ['STUDIO_ADMIN', 'INSTRUCTOR'] },
-  { text: 'Progress', icon: <AssessmentIcon />, path: '/progress', roles: ['MEMBER'] },
-  { text: 'Membership', icon: <CardMembershipIcon />, path: '/membership', roles: ['MEMBER'] },
-  { text: 'My Profile', icon: <AccountCircleIcon />, path: '/profile', roles: ['STUDIO_ADMIN', 'INSTRUCTOR', 'MEMBER'] },
-  { text: 'Settings', icon: <SettingsIcon />, path: '/settings', roles: ['STUDIO_ADMIN', 'INSTRUCTOR', 'MEMBER'] },
+  { text: 'Progress', icon: <TrendingUpIcon />, path: '/progress' },
+  { text: 'Membership', icon: <CardMembershipIcon />, path: '/membership' },
+  { text: 'My Profile', icon: <AccountCircleIcon />, path: '/profile' },
+  { text: 'Settings', icon: <SettingsIcon />, path: '/settings' },
+  { text: 'User Management', icon: <PeopleIcon />, path: '/admin/users', roles: ['STUDIO_ADMIN'] },
+  { text: 'Check-In', icon: <QrCodeScannerIcon />, path: '/check-in', roles: ['STUDIO_ADMIN', 'INSTRUCTOR'] },
 ];
-
-
 
 export default function Sidebar({ mobileOpen, handleDrawerToggle }: SidebarProps) {
   const { user } = useAuth();
   const userRole = user?.role || 'MEMBER';
 
-  const filteredItems = menuItems.filter(item => item.roles.includes(userRole));
+  const filteredItems = menuItems.filter(item => !item.roles || item.roles.includes(userRole));
 
   const drawerContent = (
     <Box sx={styles.content}>
@@ -62,7 +60,7 @@ export default function Sidebar({ mobileOpen, handleDrawerToggle }: SidebarProps
             transition={{ duration: 0.5 }}
           >
             <Avatar
-              src={user?.profileImage}
+              src={sessionStorage.getItem('profileImage') || user?.profileImage}
               sx={styles.avatar}
             >
               {user?.fullName?.charAt(0) || 'U'}
@@ -174,6 +172,7 @@ const styles = {
     background: (theme: Theme) => `linear-gradient(to bottom, ${alpha(theme.palette.primary.main, 0.05)}, transparent)`,
   },
   logoContainer: {
+    marginTop: '64px',
     display: 'flex',
     flexDirection: 'column',
     alignItems: 'center',
@@ -266,6 +265,7 @@ const styles = {
       transform: 'translateX(4px)',
       '& .MuiListItemIcon-root': {
         color: 'primary.main',
+        transform: 'scale(1.1)',
       },
     },
   },
