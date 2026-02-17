@@ -1,5 +1,8 @@
-import { Box, Typography, Paper, Avatar, Chip, Divider, Button } from '@mui/material';
+import { useState, useEffect, useRef } from 'react';
+import { Box, Typography, Paper, Avatar, Chip, Divider, Button, TextField } from '@mui/material';
 import { useAuth } from '../../context/AuthContext';
+import { useToast } from '../../context/ToastContext';
+import { authService } from '../../services/auth.service';
 import { useTheme, alpha } from '@mui/material/styles';
 import type { Theme } from '@mui/material/styles';
 import EditIcon from '@mui/icons-material/Edit';
@@ -59,8 +62,103 @@ const styles = {
 };
 
 export default function ProfilePage() {
-    const { user } = useAuth();
+    const { user } = useAuth(); // login is restart to update user context
     const theme = useTheme();
+    const { showToast } = useToast();
+
+    const [image, setImage] = useState<string | null>(null);
+    const fileInputRef = useRef<HTMLInputElement>(null);
+    const [isEditing, setIsEditing] = useState(false);
+    const [loading, setLoading] = useState(false);
+    const [formData, setFormData] = useState({
+        fullName: '',
+        bio: '',
+        specialties: '',
+        certifications: ''
+    });
+
+    useEffect(() => {
+        if (user) {
+            setFormData({
+                fullName: user.fullName || '',
+                bio: user.bio || '',
+                specialties: user.specialties?.join(', ') || '',
+                certifications: user.certifications?.join(', ') || ''
+            });
+        }
+    }, [user]);
+
+    const handleEditClick = () => {
+        setIsEditing(true);
+    };
+
+    const handleCancelClick = () => {
+        setIsEditing(false);
+        // Reset form
+        if (user) {
+            setFormData({
+                fullName: user.fullName || '',
+                bio: user.bio || '',
+                specialties: user.specialties?.join(', ') || '',
+                certifications: user.certifications?.join(', ') || ''
+            });
+        }
+    };
+
+    const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+        setFormData({
+            ...formData,
+            [e.target.name]: e.target.value
+        });
+    };
+
+    const handleSaveClick = async () => {
+        setLoading(true);
+        try {
+            const updateData: any = { fullName: formData.fullName };
+
+            if (user?.role === 'INSTRUCTOR') {
+                updateData.bio = formData.bio;
+                updateData.specialties = formData.specialties.split(',').map(s => s.trim()).filter(Boolean);
+                updateData.certifications = formData.certifications.split(',').map(s => s.trim()).filter(Boolean);
+            }
+
+            await authService.updateProfile(updateData);
+
+
+            showToast('Profile updated successfully', 'success');
+            setIsEditing(false);
+            window.location.reload(); // Simple reload to refresh context for now
+        } catch (error) {
+            console.error('Failed to update profile:', error);
+            showToast('Failed to update profile', 'error');
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    useEffect(() => {
+        const savedImage = sessionStorage.getItem("profileImage");
+        if (savedImage) {
+            setImage(savedImage);
+        }
+    }, []);
+    const handleImageChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+        const file = event.target.files?.[0];
+        if (file) {
+            const reader = new FileReader();
+
+            reader.onloadend = () => {
+                const base64String = reader.result as string;
+                setImage(base64String);
+
+                // Save to sessionStorage
+                sessionStorage.setItem("profileImage", base64String);
+            };
+
+            reader.readAsDataURL(file);
+        }
+    };
 
     if (!user) return null;
 
@@ -80,12 +178,64 @@ export default function ProfilePage() {
                 {/* Left Column: User Card */}
                 <Box flex={{ xs: '1 1 100%', md: '0 0 350px' }}>
                     <Paper sx={styles.userCard(theme)}>
-                        <Avatar sx={styles.avatar(theme)}>
-                            {user.fullName.charAt(0)}
-                        </Avatar>
-                        <Typography variant="h5" fontWeight={700} gutterBottom>
-                            {user.fullName}
-                        </Typography>
+                        <input
+                            type="file"
+                            ref={fileInputRef}
+                            style={{ display: 'none' }}
+                            accept="image/*"
+                            onChange={handleImageChange}
+                        />
+
+                        <Box position="relative" display="inline-block">
+                            <Avatar
+                                src={image || ""}
+                                sx={{
+                                    ...styles.avatar(theme),
+                                    cursor: isEditing ? 'pointer' : 'default',
+                                    opacity: isEditing ? 0.8 : 1,
+                                    transition: '0.2s',
+                                    '&:hover': isEditing ? { opacity: 0.6 } : {}
+                                }}
+                                onClick={() => isEditing && fileInputRef.current?.click()}
+                            >
+                                {!image && user?.fullName?.charAt(0)}
+                            </Avatar>
+                            {isEditing && (
+                                <Box
+                                    sx={{
+                                        position: 'absolute',
+                                        bottom: 20,
+                                        right: 0,
+                                        bgcolor: 'primary.main',
+                                        color: 'white',
+                                        borderRadius: '50%',
+                                        p: 0.5,
+                                        pointerEvents: 'none'
+                                    }}
+                                >
+                                    <EditIcon fontSize="small" />
+                                </Box>
+                            )}
+                        </Box>
+
+                        {isEditing ? (
+                            <Box mb={2}>
+                                <TextField
+                                    fullWidth
+                                    label="Full Name"
+                                    name="fullName"
+                                    value={formData.fullName}
+                                    onChange={handleInputChange}
+                                    variant="outlined"
+                                    size="small"
+                                />
+                            </Box>
+                        ) : (
+                            <Typography variant="h5" fontWeight={700} gutterBottom>
+                                {user.fullName}
+                            </Typography>
+                        )}
+
                         <Chip
                             label={user.role.replace('_', ' ')}
                             color="secondary"
@@ -106,15 +256,38 @@ export default function ProfilePage() {
                             </Typography>
                         </Box>
 
-                        <Button
-                            variant="outlined"
-                            startIcon={<EditIcon />}
-                            fullWidth
-                            sx={styles.editButton}
-                        // Planned: onClick={() => navigate('/settings')}
-                        >
-                            Edit Profile
-                        </Button>
+                        {!isEditing ? (
+                            <Button
+                                variant="outlined"
+                                startIcon={<EditIcon />}
+                                fullWidth
+                                sx={styles.editButton}
+                                onClick={handleEditClick}
+                            >
+                                Edit Profile
+                            </Button>
+                        ) : (
+                            <Box display="flex" gap={2} mt={4}>
+                                <Button
+                                    variant="outlined"
+                                    color="inherit"
+                                    fullWidth
+                                    onClick={handleCancelClick}
+                                    disabled={loading}
+                                >
+                                    Cancel
+                                </Button>
+                                <Button
+                                    variant="contained"
+                                    color="primary"
+                                    fullWidth
+                                    onClick={handleSaveClick}
+                                    disabled={loading}
+                                >
+                                    {loading ? 'Saving...' : 'Save'}
+                                </Button>
+                            </Box>
+                        )}
                     </Paper>
                 </Box>
 
@@ -134,7 +307,7 @@ export default function ProfilePage() {
                                     Full Name
                                 </Typography>
                                 <Typography variant="body1" fontWeight={500}>
-                                    {user.fullName}
+                                    {isEditing ? formData.fullName : user.fullName}
                                 </Typography>
                             </Box>
                             <Box>
@@ -164,11 +337,37 @@ export default function ProfilePage() {
                                     </Typography>
                                 </Box>
                             </Box>
+
+                            {/* Instructor Fields (Example) */}
+                            {user.role === 'INSTRUCTOR' && (
+                                <>
+                                    <Box sx={{ gridColumn: '1 / -1' }}>
+                                        <Typography variant="subtitle2" color="text.secondary" gutterBottom>
+                                            Bio
+                                        </Typography>
+                                        {isEditing ? (
+                                            <TextField
+                                                fullWidth
+                                                multiline
+                                                rows={3}
+                                                name="bio"
+                                                value={formData.bio}
+                                                onChange={handleInputChange}
+                                                placeholder="Tell us about yourself..."
+                                            />
+                                        ) : (
+                                            <Typography variant="body1" fontWeight={500}>
+                                                {user.bio || 'No bio provided.'}
+                                            </Typography>
+                                        )}
+                                    </Box>
+                                </>
+                            )}
                         </Box>
 
                         <Box sx={styles.footerNote}>
                             <Typography variant="body2" color="text.secondary">
-                                * To update your personal information or change your password, please visit the Settings page.
+                                * To update your email or change your password, please visit the Settings page.
                             </Typography>
                         </Box>
                     </Paper>

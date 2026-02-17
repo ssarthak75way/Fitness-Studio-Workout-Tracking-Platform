@@ -4,7 +4,7 @@ import { z } from 'zod';
 import { zodResolver } from '@hookform/resolvers/zod';
 import {
   Dialog, DialogTitle, DialogContent, DialogActions, Button,
-  TextField, Box, IconButton, Typography
+  TextField, Box, IconButton, Typography, useTheme, alpha, type Theme
 } from '@mui/material';
 import DeleteIcon from '@mui/icons-material/Delete';
 import AddCircleOutlineIcon from '@mui/icons-material/AddCircleOutline';
@@ -43,7 +43,13 @@ interface LogWorkoutModalProps {
 const styles = {
   formContainer: { display: 'flex', flexDirection: 'column', gap: 3 },
   formRow: { display: 'flex', gap: 2 },
-  exerciseContainer: { mb: 3, p: 2, border: '1px solid #e2e8f0', borderRadius: 2, bgcolor: '#f8fafc' },
+  exerciseContainer: (theme: Theme) => ({
+    mb: 3,
+    p: 2,
+    border: `1px solid ${theme.palette.divider}`,
+    borderRadius: 2,
+    bgcolor: alpha(theme.palette.background.paper, 0.05) // Subtle background distinction
+  }),
   exerciseHeader: { display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2 },
   exerciseName: { mr: 2 },
   exerciseNotes: { mt: 2 },
@@ -58,6 +64,7 @@ const styles = {
 };
 
 export default function LogWorkoutModal({ open, onClose, onSuccess, initialValues }: LogWorkoutModalProps) {
+  const theme = useTheme();
   const { showToast } = useToast();
   const { control, register, handleSubmit, reset, formState: { errors } } = useForm<WorkoutFormValues>({
     resolver: zodResolver(workoutSchema) as unknown as Resolver<WorkoutFormValues>,
@@ -125,7 +132,7 @@ export default function LogWorkoutModal({ open, onClose, onSuccess, initialValue
             <Typography variant="h6">Exercises</Typography>
 
             {exerciseFields.map((field, index) => (
-              <Box key={field.id} sx={styles.exerciseContainer}>
+              <Box key={field.id} sx={styles.exerciseContainer(theme)}>
                 <Box sx={styles.exerciseHeader}>
                   <TextField
                     {...register(`exercises.${index}.name` as const)}

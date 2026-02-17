@@ -185,15 +185,22 @@ export const BookingService = {
     return bookingsWithQR;
   },
 
-  //Check-in via QR code
-  checkIn: async (qrCode: string) => {
-    const booking = await BookingModel.findOne({
-      qrCode,
+  //Check-in via QR code or Booking ID
+  checkIn: async (input: string) => {
+    const query: mongoose.FilterQuery<IBooking> = {
       status: BookingStatus.CONFIRMED,
-    }).populate('classSession user');
+    };
+
+    if (mongoose.isValidObjectId(input)) {
+      query.$or = [{ qrCode: input }, { _id: input }];
+    } else {
+      query.qrCode = input;
+    }
+
+    const booking = await BookingModel.findOne(query).populate('classSession user');
 
     if (!booking) {
-      throw new AppError('Invalid QR code or booking not found', 404);
+      throw new AppError('Invalid verification code or booking not found', 404);
     }
 
     booking.status = BookingStatus.CHECKED_IN;
