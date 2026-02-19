@@ -293,10 +293,10 @@ export default function CheckInPage() {
                 message: `WELCOME, ${userName}! ACCESS GRANTED FOR ${className}.`
             });
             setQrData('');
-        } catch (error: any) {
+        } catch (error: unknown) {
             setResult({
                 success: false,
-                message: error.message || 'ACCESS DENIED. INVALID CREDENTIALS OR BOOKING STATUS.'
+                message: (error as Error).message || 'ACCESS DENIED. INVALID CREDENTIALS OR BOOKING STATUS.'
             });
         } finally {
             setLoading(false);
@@ -313,8 +313,8 @@ export default function CheckInPage() {
             await bookingService.manualCheckIn(bookingId);
             if (selectedClassId) fetchAttendees(selectedClassId);
             showToast('PROTOCOL SUCCESS: STUDENT VERIFIED', 'success');
-        } catch (error: any) {
-            showToast(error.message || 'PROTOCOL FAILURE', 'error');
+        } catch (error: unknown) {
+            showToast((error as Error).message || 'PROTOCOL FAILURE', 'error');
         }
     };
 

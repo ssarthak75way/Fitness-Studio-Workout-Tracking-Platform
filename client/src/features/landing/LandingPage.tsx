@@ -7,11 +7,10 @@ import { ScrollToTop } from './components/ScrollToTop';
 import { LandingHero } from './components/LandingHero';
 import { LandingStats } from './components/LandingStats';
 import { LandingFeatures } from './components/LandingFeatures';
-import { LandingAppPreview } from './components/LandingAppPreview';
+import LandingAppPreview from './components/LandingAppPreview';
 import { LandingTestimonials } from './components/LandingTestimonials';
 import { LandingPricing } from './components/LandingPricing';
 import { LandingFooterCTA } from './components/LandingFooterCTA';
-import { CursorFollower } from './components/CursorFollower';
 
 export default function LandingPage() {
     const navigate = useNavigate();
@@ -27,9 +26,6 @@ export default function LandingPage() {
 
     return (
         <Box sx={{ bgcolor: 'background.default', color: 'text.primary', minHeight: '100vh', overflow: 'hidden' }}>
-            {/* Custom Cursor */}
-            <CursorFollower  />
-
             {/* Interactive Scroll Tracker */}
             <ScrollToTop />
 
@@ -40,7 +36,7 @@ export default function LandingPage() {
 
             <LandingFeatures />
 
-            <LandingAppPreview isAuthenticated={isAuthenticated} />
+            <LandingAppPreview />
 
             <LandingTestimonials />
 

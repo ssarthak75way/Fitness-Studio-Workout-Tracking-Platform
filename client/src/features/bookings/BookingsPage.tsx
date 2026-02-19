@@ -230,7 +230,132 @@ const styles = {
         bgcolor: alpha(theme.palette.background.paper, 0.4),
         border: `1px solid ${alpha(theme.palette.divider, 0.05)}`,
         borderRadius: 1.5
-    })
+    }),
+    heroSubtitle: {
+        color: 'text.secondary',
+        maxWidth: 600,
+        fontWeight: 400,
+        lineHeight: 1.6
+    },
+    newBookingButton: (theme: Theme) => ({
+        borderRadius: 0,
+        py: 2.5, px: 6,
+        fontWeight: 900,
+        letterSpacing: '2px',
+        bgcolor: 'white',
+        color: 'secondary.main',
+        '&:hover': {
+            bgcolor: 'primary.main',
+            color: 'white',
+            boxShadow: `0 0 30px ${alpha(theme.palette.primary.main, 0.5)}`
+        }
+    }),
+    bookingTitle: {
+        letterSpacing: '-1px',
+        color: 'text.primary',
+        mb: 3
+    },
+    icon: {
+        color: 'primary.main',
+        fontSize: '1.2rem'
+    },
+    infoText: {
+        fontWeight: 700,
+        color: 'text.secondary'
+    },
+    tbaText: {
+        fontWeight: 700,
+        opacity: 0.5
+    },
+    actionButtonContainer: {
+        p: 4,
+        pt: 0
+    },
+    rebookButton: {
+        borderRadius: 0,
+        fontWeight: 900,
+        py: 1.5,
+        letterSpacing: '1px',
+        transition: 'all 0.3s ease',
+        bgcolor: 'primary.main'
+    },
+    cancelButton: {
+        borderRadius: 0,
+        fontWeight: 900,
+        py: 1.5,
+        letterSpacing: '1px',
+        transition: 'all 0.3s ease'
+    },
+    noBookingsText: {
+        opacity: 0.5,
+        letterSpacing: '2px',
+        textTransform: 'uppercase'
+    },
+    browseIntelButton: {
+        mt: 4,
+        borderRadius: 0,
+        fontWeight: 900,
+        py: 2,
+        px: 6,
+        letterSpacing: '2px'
+    },
+    checkinTitle: {
+        letterSpacing: '-1.5px',
+        color: 'text.primary',
+        mb: 4
+    },
+    qrInstructionText: {
+        color: 'text.secondary',
+        fontWeight: 500,
+        mb: 4
+    },
+    manualVerificationLabel: {
+        color: 'primary.main',
+        fontWeight: 900,
+        letterSpacing: '3px',
+        display: 'block',
+        mb: 2
+    },
+    manualCodeText: {
+        fontFamily: 'monospace',
+        fontWeight: 950,
+        letterSpacing: '4px',
+        color: 'text.primary'
+    },
+    copyButton: {
+        color: 'primary.main'
+    },
+    closeSecureViewButton: {
+        mt: 6,
+        borderRadius: 0,
+        fontWeight: 900,
+        letterSpacing: '2px'
+    },
+    dialogTitle: {
+        letterSpacing: '-1px'
+    },
+    dialogContentText: {
+        color: 'rgba(255,255,255,0.7)',
+        fontWeight: 500
+    },
+    stayAthleteButton: {
+        fontWeight: 900
+    },
+    terminateButton: {
+        borderRadius: 0,
+        fontWeight: 900,
+        px: 4
+    },
+    dialogTitleBox: {
+        p: 4,
+        pb: 2
+    },
+    dialogContentBox: {
+        px: 4
+    },
+    dialogActionsBox: {
+        p: 4
+    }
 };
 
 export default function BookingsPage() {
@@ -321,7 +446,7 @@ export default function BookingsPage() {
                     <Typography variant="h1" sx={styles.headerTitle(theme)}>
                         MY <Box component="span">BOOKINGS</Box>
                     </Typography>
-                    <Typography variant="h6" sx={{ color: 'text.secondary', maxWidth: 600, fontWeight: 400, lineHeight: 1.6 }}>
+                    <Typography variant="h6" sx={styles.heroSubtitle}>
                         Track your evolution. Your roadmap to peak performance, documented and verified in the elite FITNESS STUDIO network.
                     </Typography>
                 </Box>
@@ -329,19 +454,7 @@ export default function BookingsPage() {
                     <Button
                         variant="contained"
                         onClick={() => navigate('/schedule')}
-                        sx={{
-                            borderRadius: 0,
-                            py: 2.5, px: 6,
-                            fontWeight: 900,
-                            letterSpacing: '2px',
-                            bgcolor: 'white',
-                            color: 'secondary.main',
-                            '&:hover': {
-                                bgcolor: 'primary.main',
-                                color: 'white',
-                                boxShadow: `0 0 30px ${alpha(theme.palette.primary.main, 0.5)}`
-                            }
-                        }}
+                        sx={styles.newBookingButton(theme)}
                     >
                         NEW BOOKING
                     </Button>
@@ -386,14 +499,14 @@ export default function BookingsPage() {
                                         )}
                                     </Box>
 
-                                    <Typography variant="h5" fontWeight={950} sx={{ letterSpacing: '-1px', color: 'text.primary', mb: 3 }}>
+                                    <Typography variant="h5" fontWeight={950} sx={styles.bookingTitle}>
                                         {booking?.classSession?.title || "ELITE SESSION"}
                                     </Typography>
 
                                     <Stack spacing={2}>
                                         <Box display="flex" alignItems="center" gap={2}>
-                                            <AccessTimeIcon sx={{ color: 'primary.main', fontSize: '1.2rem' }} />
-                                            <Typography variant="body2" sx={{ fontWeight: 700, color: 'text.secondary' }}>
+                                            <AccessTimeIcon sx={styles.icon} />
+                                            <Typography variant="body2" sx={styles.infoText}>
                                                 {new Date(booking?.classSession?.startTime).toLocaleString(undefined, {
                                                     weekday: 'short', month: 'short', day: 'numeric',
                                                     hour: 'numeric', minute: '2-digit'
@@ -401,7 +514,7 @@ export default function BookingsPage() {
                                             </Typography>
                                         </Box>
                                         <Box display="flex" alignItems="center" gap={2}>
-                                            <PersonIcon sx={{ color: 'primary.main', fontSize: '1.2rem' }} />
+                                            <PersonIcon sx={styles.icon} />
                                             {booking?.classSession?.instructor ? (
                                                 <Link to={`/instructors/${booking.classSession.instructor._id}`} style={styles.instructorLink}>
                                                     <Typography variant="body2" sx={styles.instructorText}>
@@ -409,21 +522,21 @@ export default function BookingsPage() {
                                                     </Typography>
                                                 </Link>
                                             ) : (
-                                                <Typography variant="body2" sx={{ fontWeight: 700, opacity: 0.5 }}>
+                                                <Typography variant="body2" sx={styles.tbaText}>
                                                     TBA
                                                 </Typography>
                                             )}
                                         </Box>
                                         <Box display="flex" alignItems="center" gap={2}>
-                                            <LocationOnIcon sx={{ color: 'primary.main', fontSize: '1.2rem' }} />
-                                            <Typography variant="body2" sx={{ fontWeight: 700, color: 'text.secondary' }}>
+                                            <LocationOnIcon sx={styles.icon} />
+                                            <Typography variant="body2" sx={styles.infoText}>
                                                 {booking?.classSession?.location?.toUpperCase() || 'MAIN STUDIO'}
                                             </Typography>
                                         </Box>
                                     </Stack>
                                 </CardContent>
 
-                                <Box sx={{ p: 4, pt: 0 }}>
+                                <Box sx={styles.actionButtonContainer}>
                                     {tabValue === 0 && (booking.status === 'CONFIRMED' || booking.status === 'WAITLISTED') && (
                                         <Button
                                             variant="outlined"
@@ -431,7 +544,7 @@ export default function BookingsPage() {
                                             fullWidth
                                             startIcon={<CancelIcon />}
                                             onClick={() => setCancelId(booking._id)}
-                                            sx={styles.bookingButton}
+                                            sx={styles.cancelButton}
                                         >
                                             CANCEL MISSION
                                         </Button>
@@ -441,7 +554,7 @@ export default function BookingsPage() {
                                             variant="contained"
                                             fullWidth
                                             onClick={() => navigate('/schedule')}
-                                            sx={{ ...styles.bookingButton, bgcolor: 'primary.main' }}
+                                            sx={styles.rebookButton}
                                         >
                                             RE-BOOK
                                         </Button>
@@ -455,13 +568,13 @@ export default function BookingsPage() {
                 {filteredBookings.length === 0 && (
                     <Box sx={styles.noBookingsContainer}>
                         <EventIcon sx={styles.noBookingsIcon} />
-                        <Typography variant="h5" fontWeight={900} color="text.secondary" sx={{ opacity: 0.5, letterSpacing: '2px', textTransform: 'uppercase' }}>
+                        <Typography variant="h5" fontWeight={900} color="text.secondary" sx={styles.noBookingsText}>
                             ZERO {tabValue === 0 ? 'UPCOMING' : tabValue === 1 ? 'PAST' : 'CANCELLED'} MISSIONS
                         </Typography>
                         {tabValue === 0 && (
                             <Button
                                 variant="contained"
-                                sx={{ mt: 4, borderRadius: 0, fontWeight: 900, py: 2, px: 6, letterSpacing: '2px' }}
+                                sx={styles.browseIntelButton}
                                 onClick={() => navigate('/schedule')}
                             >
                                 BROWSE INTEL
@@ -481,7 +594,7 @@ export default function BookingsPage() {
             >
                 <DialogContent sx={styles.qrDialogContent}>
                     <Typography variant="subtitle2" sx={styles.sectionLabel}>AUTHENTICATION</Typography>
-                    <Typography variant="h4" fontWeight={950} sx={{ letterSpacing: '-1.5px', color: 'text.primary', mb: 4 }}>
+                    <Typography variant="h4" fontWeight={950} sx={styles.checkinTitle}>
                         CHECK-IN <Box component="span" sx={{ color: 'primary.main' }}>QR</Box>
                     </Typography>
 
@@ -489,16 +602,16 @@ export default function BookingsPage() {
                         {selectedBooking?.qrCodeUrl && <img src={selectedBooking.qrCodeUrl} alt="QR Code" style={styles.qrImage} />}
                     </Box>
 
-                    <Typography variant="body2" sx={{ color: 'text.secondary', fontWeight: 500, mb: 4 }}>
+                    <Typography variant="body2" sx={styles.qrInstructionText}>
                         Present this high-fidelity token at the elite studio command for instant verification.
                     </Typography>
 
                     <Box sx={styles.manualCodeBox(theme)}>
-                        <Typography variant="overline" sx={{ color: 'primary.main', fontWeight: 900, letterSpacing: '3px', display: 'block', mb: 2 }}>
+                        <Typography variant="overline" sx={styles.manualVerificationLabel}>
                             MANUAL VERIFICATION
                         </Typography>
                         <Stack direction="row" alignItems="center" justifyContent="center" spacing={2}>
-                            <Typography variant="h4" sx={{ fontFamily: 'monospace', fontWeight: 950, letterSpacing: '4px', color: 'text.primary' }}>
+                            <Typography variant="h4" sx={styles.manualCodeText}>
                                 {selectedBooking?._id.slice(-6).toUpperCase()}
                             </Typography>
                             <IconButton
@@ -509,7 +622,7 @@ export default function BookingsPage() {
                                         showToast('Intel copied to clipboard', 'success');
                                     }
                                 }}
-                                sx={{ color: 'primary.main' }}
+                                sx={styles.copyButton}
                             >
                                 <ContentCopyIcon />
                             </IconButton>
@@ -518,7 +631,7 @@ export default function BookingsPage() {
 
                     <Button
                         onClick={() => setOpenQR(false)}
-                        sx={{ mt: 6, borderRadius: 0, fontWeight: 900, letterSpacing: '2px' }}
+                        sx={styles.closeSecureViewButton}
                         fullWidth
                         variant="outlined"
                         color="inherit"
@@ -534,22 +647,22 @@ export default function BookingsPage() {
                 onClose={() => setCancelId(null)}
                 PaperProps={{ sx: styles.dialogPaper(theme) }}
             >
-                <DialogTitle sx={{ p: 4, pb: 2 }}>
-                    <Typography variant="h5" fontWeight={950} sx={{ letterSpacing: '-1px' }}>ABORT MISSION?</Typography>
+                <DialogTitle sx={styles.dialogTitleBox}>
+                    <Typography variant="h5" fontWeight={950} sx={styles.dialogTitle}>ABORT MISSION?</Typography>
                 </DialogTitle>
-                <DialogContent sx={{ px: 4 }}>
-                    <Typography sx={{ color: 'rgba(255,255,255,0.7)', fontWeight: 500 }}>
+                <DialogContent sx={styles.dialogContentBox}>
+                    <Typography sx={styles.dialogContentText}>
                         Are you sure you want to terminate this high-performance session? This action is permanent and cannot be reversed.
                     </Typography>
                 </DialogContent>
-                <DialogActions sx={{ p: 4 }}>
-                    <Button onClick={() => setCancelId(null)} color="inherit" sx={{ fontWeight: 900 }}>STAY ATHLETE</Button>
+                <DialogActions sx={styles.dialogActionsBox}>
+                    <Button onClick={() => setCancelId(null)} color="inherit" sx={styles.stayAthleteButton}>STAY ATHLETE</Button>
                     <Button
                         onClick={handleCancelBooking}
                         color="error"
                         variant="contained"
                         autoFocus
-                        sx={{ borderRadius: 0, fontWeight: 900, px: 4 }}
+                        sx={styles.terminateButton}
                     >
                         YES, TERMINATE
                     </Button>

@@ -14,26 +14,18 @@ export default function MainLayout() {
   };
 
   return (
-    <Box sx={{ display: 'flex', minHeight: '100vh', flexDirection: 'column' }}>
+    <Box sx={styles.root}>
       <CssBaseline />
 
 
-      <Box sx={{ display: 'flex', flex: 1 }}>
+      <Box sx={styles.layoutWrapper}>
         {/* Sidebar Navigation */}
         <Sidebar mobileOpen={mobileOpen} handleDrawerToggle={handleDrawerToggle} />
 
         {/* Main Content Area */}
         <Box
           component="main"
-          sx={{
-            flexGrow: 1,
-            display: 'flex',
-            flexDirection: 'column',
-            width: { sm: `calc(100% - ${drawerWidth}px)` },
-            bgcolor: 'background.default',
-            minHeight: '100vh',
-            overflow: 'hidden',
-          }}
+          sx={styles.mainContent}
         >
           <Toolbar /> {/* Spacer for Navbar */}
           <Box sx={styles.contentArea}>
@@ -47,6 +39,24 @@ export default function MainLayout() {
 }
 
 const styles = {
+  root: {
+    display: 'flex',
+    minHeight: '100vh',
+    flexDirection: 'column'
+  },
+  layoutWrapper: {
+    display: 'flex',
+    flex: 1
+  },
+  mainContent: {
+    flexGrow: 1,
+    display: 'flex',
+    flexDirection: 'column',
+    width: { sm: `calc(100% - ${drawerWidth}px)` },
+    bgcolor: 'background.default',
+    minHeight: '100vh',
+    overflow: 'hidden',
+  },
   contentArea: {
     flex: 1,
     p: { xs: 2, sm: 4, md: 6 },

@@ -7,7 +7,7 @@ import LinkedInIcon from '@mui/icons-material/LinkedIn';
 import FacebookIcon from '@mui/icons-material/Facebook';
 import LocationOnIcon from '@mui/icons-material/LocationOn';
 import { useAuth } from '../context/AuthContext';
-
+import type { Theme } from '@mui/material/styles';
 export default function Footer() {
     const theme = useTheme();
     const { isAuthenticated } = useAuth();
@@ -37,23 +37,13 @@ export default function Footer() {
     ];
 
     return (
-        <Box
-            component="footer"
-            sx={{
-                py: 10,
-                bgcolor: theme.palette.mode === 'dark' ? 'secondary.main' : 'background.paper',
-                borderTop: `1px solid ${theme.palette.divider}`,
-                color: 'text.secondary',
-                position: 'relative',
-                zIndex: 10
-            }}
-        >
+        <Box component="footer" sx={styles.footer(theme)}>
             <Container maxWidth="lg">
                 <Grid container spacing={8}>
                     {/* Column 1: Branding */}
                     <Grid size={{ xs: 12, md: 4 }}>
                         <Logo variant="primary" size="medium" sx={{ mb: 3 }} />
-                        <Typography variant="body2" sx={{ lineHeight: 1.8, mb: 4, maxWidth: 300 }}>
+                        <Typography variant="body2" sx={styles.brandDescription}>
                             The definitive operating system for elite fitness. Elevate your performance with bio-analytics and precision scheduling.
                         </Typography>
                         <Stack direction="row" spacing={1}>
@@ -61,10 +51,7 @@ export default function Footer() {
                                 <IconButton
                                     key={i}
                                     size="small"
-                                    sx={{
-                                        color: 'text.secondary',
-                                        '&:hover': { color: 'primary.main', bgcolor: alpha(theme.palette.primary.main, 0.1) }
-                                    }}
+                                    sx={styles.socialButton(theme)}
                                 >
                                     {social.icon}
                                 </IconButton>
@@ -85,12 +72,7 @@ export default function Footer() {
                                         key={i}
                                         component={RouterLink}
                                         to={link.path}
-                                        sx={{
-                                            color: 'inherit',
-                                            textDecoration: 'none',
-                                            fontSize: '0.9rem',
-                                            '&:hover': { color: 'primary.main' }
-                                        }}
+                                        sx={styles.link}
                                     >
                                         {link.label}
                                     </Link>
@@ -109,12 +91,7 @@ export default function Footer() {
                                     key={i}
                                     component={RouterLink}
                                     to={link.path}
-                                    sx={{
-                                        color: 'inherit',
-                                        textDecoration: 'none',
-                                        fontSize: '0.9rem',
-                                        '&:hover': { color: 'primary.main' }
-                                    }}
+                                    sx={styles.link}
                                 >
                                     {link.label}
                                 </Link>
@@ -133,16 +110,7 @@ export default function Footer() {
                                 <Typography variant="body2">75 Elite Avenue, NY 10001</Typography>
                             </Box>
                         </Stack>
-                        <Box
-                            sx={{
-                                height: 160,
-                                width: '100%',
-                                bgcolor: theme.palette.mode === 'dark' ? alpha('#000', 0.2) : alpha('#000', 0.04),
-                                borderRadius: 1,
-                                overflow: 'hidden',
-                                border: `1px solid ${theme.palette.divider}`
-                            }}
-                        >
+                        <Box sx={styles.mapContainer(theme)}>
                             <iframe
                                 title="FITNESS STUDIO Headquarters"
                                 src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d193595.2528082187!2d-74.11976373926838!3d40.69766374874431!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x89c24fa5d33f083b%3A0xc80b8f06e177fe62!2sNew%20York%2C%20NY%2C%20USA!5e0!3m2!1sen!2sin!4v1700000000000!5m2!1sen!2sin"
@@ -160,7 +128,7 @@ export default function Footer() {
                     </Grid>
                 </Grid>
 
-                <Box sx={{ mt: 10, pt: 4, borderTop: `1px solid ${alpha(theme.palette.divider, 0.05)}`, textAlign: 'center' }}>
+                <Box sx={styles.copyrightContainer(theme)}>
                     <Typography variant="caption" sx={{ opacity: 0.5 }}>
                         &copy; {currentYear} FITNESS STUDIO. BUILT FOR PRECISION. ALL RIGHTS RESERVED.
                     </Typography>
@@ -169,3 +137,43 @@ export default function Footer() {
         </Box>
     );
 }
+
+const styles = {
+    footer: (theme: Theme) => ({
+        py: 10,
+        bgcolor: theme.palette.mode === 'dark' ? 'secondary.main' : 'background.paper',
+        borderTop: `1px solid ${theme.palette.divider}`,
+        color: 'text.secondary',
+        position: 'relative',
+        zIndex: 10
+    }),
+    brandDescription: {
+        lineHeight: 1.8,
+        mb: 4,
+        maxWidth: 300
+    },
+    socialButton: (theme: Theme) => ({
+        color: 'text.secondary',
+        '&:hover': { color: 'primary.main', bgcolor: alpha(theme.palette.primary.main, 0.1) }
+    }),
+    link: {
+        color: 'inherit',
+        textDecoration: 'none',
+        fontSize: '0.9rem',
+        '&:hover': { color: 'primary.main' }
+    },
+    mapContainer: (theme: Theme) => ({
+        height: 160,
+        width: '100%',
+        bgcolor: theme.palette.mode === 'dark' ? alpha('#000', 0.2) : alpha('#000', 0.04),
+        borderRadius: 1,
+        overflow: 'hidden',
+        border: `1px solid ${theme.palette.divider}`
+    }),
+    copyrightContainer: (theme: Theme) => ({
+        mt: 10,
+        pt: 4,
+        borderTop: `1px solid ${alpha(theme.palette.divider, 0.05)}`,
+        textAlign: 'center'
+    })
+};

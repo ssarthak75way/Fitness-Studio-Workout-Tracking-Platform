@@ -1,4 +1,5 @@
 import { Box, Typography, Button, Container, useTheme } from '@mui/material';
+import type { Theme } from '@mui/material/styles';
 import { useNavigate } from 'react-router-dom';
 import SentimentDissatisfiedIcon from '@mui/icons-material/SentimentDissatisfied';
 
@@ -8,21 +9,9 @@ export default function NotFoundPage() {
 
     return (
         <Container maxWidth="md">
-            <Box
-                sx={{
-                    display: 'flex',
-                    flexDirection: 'column',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    minHeight: '80vh',
-                    textAlign: 'center',
-                    gap: 3,
-                }}
-            >
-                <SentimentDissatisfiedIcon
-                    sx={{ fontSize: 100, color: theme.palette.text.secondary }}
-                />
-                <Typography variant="h1" component="h1" sx={{ fontWeight: 'bold' }}>
+            <Box sx={styles.container}>
+                <SentimentDissatisfiedIcon sx={styles.icon(theme)} />
+                <Typography variant="h1" component="h1" sx={styles.title}>
                     404
                 </Typography>
                 <Typography variant="h4" color="text.secondary">
@@ -36,7 +25,7 @@ export default function NotFoundPage() {
                     variant="contained"
                     size="large"
                     onClick={() => navigate('/')}
-                    sx={{ mt: 2 }}
+                    sx={styles.button}
                 >
                     Go to Home
                 </Button>
@@ -44,3 +33,25 @@ export default function NotFoundPage() {
         </Container>
     );
 }
+
+const styles = {
+    container: {
+        display: 'flex',
+        flexDirection: 'column',
+        alignItems: 'center',
+        justifyContent: 'center',
+        minHeight: '80vh',
+        textAlign: 'center',
+        gap: 3,
+    },
+    icon: (theme: Theme) => ({
+        fontSize: 100,
+        color: theme.palette.text.secondary
+    }),
+    title: {
+        fontWeight: 'bold'
+    },
+    button: {
+        mt: 2
+    }
+};

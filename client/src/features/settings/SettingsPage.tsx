@@ -287,8 +287,8 @@ export default function SettingsPage() {
       };
       await api.patch('/users/profile', payload);
       showToast('Profile configuration updated', 'success');
-    } catch (error: any) {
-      showToast(error?.message || 'Update failed', 'error');
+    } catch (error: unknown) {
+      showToast((error as Error)?.message || 'Update failed', 'error');
     }
   };
 
@@ -305,8 +305,8 @@ export default function SettingsPage() {
       });
       showToast('Security protocols updated', 'success');
       setPasswords({ currentPassword: '', newPassword: '', confirmPassword: '' });
-    } catch (error: any) {
-      showToast(error.message || 'Security update failed', 'error');
+    } catch (error: unknown) {
+      showToast((error as Error)?.message || 'Security update failed', 'error');
     }
   };
 
@@ -504,7 +504,7 @@ export default function SettingsPage() {
                         <FormControlLabel
                           control={
                             <Switch
-                              checked={(preferences as any)[pref.key]}
+                              checked={preferences[pref.key as keyof typeof preferences]}
                               onChange={(e) => setPreferences({ ...preferences, [pref.key]: e.target.checked })}
                               color="primary"
                             />

@@ -93,6 +93,23 @@ const styles = {
       textShadow: theme.palette.mode === 'dark' ? `0 0 40px ${alpha(theme.palette.primary.main, 0.5)}` : 'none'
     }
   }),
+  heroSubtitle: () => ({
+    color: 'text.secondary',
+    maxWidth: 600,
+    fontWeight: 400,
+    lineHeight: 1.6,
+    opacity: 0.8
+  }),
+  logEvolutionButton: () => ({
+    borderRadius: 0,
+    fontWeight: 900,
+    letterSpacing: '1px',
+    py: 2,
+    px: 4,
+    transition: 'all 0.3s ease',
+    bgcolor: 'primary.main',
+    color: 'primary.contrastText'
+  }),
   sectionLabel: {
     color: 'primary.main',
     fontWeight: 900,
@@ -147,6 +164,28 @@ const styles = {
     width: 'fit-content',
     boxShadow: `0 8px 16px -4px ${alpha(color, 0.15)}`
   }),
+  statTitle: () => ({
+    variant: 'overline',
+    color: 'text.secondary',
+    fontWeight: 900,
+    letterSpacing: 3,
+    display: 'block',
+    mb: 1,
+    opacity: 0.6
+  }),
+  statValue: () => ({
+    variant: 'h3',
+    fontWeight: 950,
+    letterSpacing: '-2px',
+    color: 'text.primary'
+  }),
+  statUnit: () => ({
+    variant: 'h6',
+    fontWeight: 900,
+    color: 'primary.main',
+    opacity: 0.8,
+    letterSpacing: '1px'
+  }),
   chartCard: (theme: Theme) => ({
     mb: 8,
     p: 4,
@@ -189,6 +228,25 @@ const styles = {
       ? `0 10px 30px rgba(0,0,0,0.5)`
       : `0 10px 30px rgba(0,0,0,0.1)`
   }),
+  tooltipLabel: () => ({
+    variant: 'overline',
+    fontWeight: 900,
+    letterSpacing: 2,
+    color: 'primary.main',
+    display: 'block',
+    mb: 1
+  }),
+  tooltipItem: {
+    display: 'flex',
+    alignItems: 'center',
+    gap: 2,
+    mb: 0.5
+  },
+  tooltipText: () => ({
+    variant: 'body2',
+    color: 'text.primary',
+    fontWeight: 700
+  }),
   dialogPaper: (theme: Theme) => ({
     borderRadius: 2,
     bgcolor: 'background.paper',
@@ -225,7 +283,70 @@ const styles = {
     display: 'grid',
     gridTemplateColumns: 'repeat(2, 1fr)',
     gap: 2
-  }
+  },
+  exerciseSelectContainer: {
+    display: 'flex',
+    justifyContent: 'space-between',
+    alignItems: 'flex-end',
+    mb: 4
+  },
+  prTitle: () => ({
+    variant: 'h3',
+    fontWeight: 950,
+    color: 'text.primary',
+    letterSpacing: '-2px',
+    mb: 1
+  }),
+  prUnit: () => ({
+    variant: 'h6',
+    component: 'span',
+    fontWeight: 900,
+    opacity: 0.5
+  }),
+  prVolume: () => ({
+    variant: 'overline',
+    color: 'secondary.main',
+    fontWeight: 900,
+    letterSpacing: '2px'
+  }),
+  prDate: () => ({
+    variant: 'body2',
+    color: 'text.secondary',
+    mt: 1,
+    fontWeight: 600,
+    opacity: 0.6
+  }),
+  addMetricTitle: () => ({
+    variant: 'h4',
+    fontWeight: 950,
+    letterSpacing: '-1.5px',
+    color: 'text.primary'
+  }),
+  anatomyLabel: () => ({
+    variant: 'overline',
+    color: 'primary.main',
+    fontWeight: 900,
+    letterSpacing: '4px',
+    mb: 2,
+    display: 'block'
+  }),
+  dialogActions: {
+    p: 4,
+    pt: 2
+  },
+  abortButton: {
+    fontWeight: 900
+  },
+  commitButton: () => ({
+    borderRadius: 0,
+    fontWeight: 900,
+    letterSpacing: '1px',
+    py: 2,
+    px: 6,
+    transition: 'all 0.3s ease',
+    bgcolor: 'primary.main',
+    color: 'primary.contrastText'
+  })
 };
 
 const StatCard = ({ title, value, unit, icon: Icon, color }: { title: string, value: string | number, unit?: string, icon: React.ElementType, color: string }) => {
@@ -236,15 +357,15 @@ const StatCard = ({ title, value, unit, icon: Icon, color }: { title: string, va
         <Box sx={styles.statIconWrapper(color)}>
           <Icon sx={{ fontSize: '1.5rem' }} />
         </Box>
-        <Typography variant="overline" color="text.secondary" fontWeight={900} letterSpacing={3} sx={{ display: 'block', mb: 1, opacity: 0.6 }}>
+        <Typography sx={{ ...styles.statTitle }}>
           {title}
         </Typography>
         <Box display="flex" alignItems="baseline" gap={1}>
-          <Typography variant="h3" fontWeight={950} sx={{ letterSpacing: '-2px', color: 'text.primary' }}>
+          <Typography sx={{ ...styles.statValue }}>
             {value}
           </Typography>
           {unit && (
-            <Typography variant="h6" sx={{ fontWeight: 900, color: 'primary.main', opacity: 0.8, letterSpacing: '1px' }}>
+            <Typography sx={{ ...styles.statUnit }}>
               {unit.toUpperCase()}
             </Typography>
           )}
@@ -254,18 +375,29 @@ const StatCard = ({ title, value, unit, icon: Icon, color }: { title: string, va
   );
 };
 
-const CustomTooltip = ({ active, payload, label }: any) => {
+interface TooltipProps {
+  active?: boolean;
+  payload?: Array<{
+    name: string;
+    value: string | number;
+    color: string;
+    [key: string]: string | number | undefined;
+  }>;
+  label?: string;
+}
+
+const CustomTooltip = ({ active, payload, label }: TooltipProps) => {
   const theme = useTheme();
   if (active && payload && payload.length) {
     return (
       <Box sx={styles.tooltipContainer(theme)}>
-        <Typography variant="overline" fontWeight={900} letterSpacing={2} sx={{ color: 'primary.main', display: 'block', mb: 1 }}>
+        <Typography sx={{ ...styles.tooltipLabel }}>
           {label}
         </Typography>
-        {payload.map((entry: any, index: number) => (
-          <Box key={index} display="flex" alignItems="center" gap={2} mb={0.5}>
+        {payload.map((entry, index) => (
+          <Box key={index} sx={styles.tooltipItem}>
             <Box sx={{ width: 8, height: 8, borderRadius: '50%', bgcolor: entry.color }} />
-            <Typography variant="body2" sx={{ color: 'text.primary', fontWeight: 700 }}>
+            <Typography sx={{ ...styles.tooltipText }}>
               {entry.name.toUpperCase()}: <span style={{ color: entry.color }}>{entry.value}</span>
             </Typography>
           </Box>
@@ -288,14 +420,17 @@ export default function ProgressPage() {
   const [newMetric, setNewMetric] = useState({
     weight: '',
     bodyFatPercentage: '',
-    neck: '',
-    chest: '',
-    waist: '',
-    hips: '',
-    biceps: '',
-    thighs: '',
+    measurements: {
+      neck: '',
+      chest: '',
+      waist: '',
+      hips: '',
+      biceps: '',
+      thighs: '',
+    }
   });
 
+  // ... (existing helper functions)
   useEffect(() => {
     fetchData();
   }, []);
@@ -328,23 +463,24 @@ export default function ProgressPage() {
         weight: parseFloat(newMetric.weight),
         bodyFatPercentage: parseFloat(newMetric.bodyFatPercentage),
         measurements: {
-          neck: parseFloat(newMetric.neck) || undefined,
-          chest: parseFloat(newMetric.chest) || undefined,
-          waist: parseFloat(newMetric.waist) || undefined,
-          hips: parseFloat(newMetric.hips) || undefined,
-          biceps: parseFloat(newMetric.biceps) || undefined,
-          thighs: parseFloat(newMetric.thighs) || undefined,
+          neck: parseFloat(newMetric.measurements.neck) || undefined,
+          chest: parseFloat(newMetric.measurements.chest) || undefined,
+          waist: parseFloat(newMetric.measurements.waist) || undefined,
+          hips: parseFloat(newMetric.measurements.hips) || undefined,
+          biceps: parseFloat(newMetric.measurements.biceps) || undefined,
+          thighs: parseFloat(newMetric.measurements.thighs) || undefined,
         }
       });
       setOpenAddMetric(false);
       fetchData();
       showToast('Metrics evolved successfully', 'success');
-      setNewMetric({ weight: '', bodyFatPercentage: '', neck: '', chest: '', waist: '', hips: '', biceps: '', thighs: '' });
+      setNewMetric({ weight: '', bodyFatPercentage: '', measurements: { neck: '', chest: '', waist: '', hips: '', biceps: '', thighs: '' } });
     } catch (error) {
       console.error('Failed to add metric:', error);
       showToast('Evolution failed', 'error');
     }
   };
+
 
   const chartData = metrics.map((m) => ({
     date: new Date(m.updatedAt || m.date).toLocaleDateString(),
@@ -361,7 +497,7 @@ export default function ProgressPage() {
           <Typography variant="h1" sx={styles.headerTitle(theme)}>
             DATA <Box component="span">CONQUEST</Box>
           </Typography>
-          <Typography variant="h6" sx={{ color: 'text.secondary', maxWidth: 600, fontWeight: 400, lineHeight: 1.6, opacity: 0.8 }}>
+          <Typography variant="h6" sx={styles.heroSubtitle}>
             Quantify your greatness. Every metric is a testament to your discipline, verified by the elite FITNESS STUDIO performance engine.
           </Typography>
         </Box>
@@ -369,7 +505,7 @@ export default function ProgressPage() {
           variant="contained"
           startIcon={<AddIcon />}
           onClick={() => setOpenAddMetric(true)}
-          sx={{ ...styles.actionButton, bgcolor: 'primary.main', color: 'primary.contrastText' }}
+          sx={styles.logEvolutionButton}
         >
           LOG EVOLUTION
         </Button>
@@ -523,7 +659,7 @@ export default function ProgressPage() {
         </Box>
 
         {/* Exercise Progression */}
-        <Box display="flex" justifyContent="space-between" alignItems="flex-end" mb={4}>
+        <Box sx={styles.exerciseSelectContainer}>
           <Typography sx={styles.sectionLabel} mb={0}>EXERCISE TRAJECTORY</Typography>
           <FormControl size="small" sx={{ minWidth: 200 }}>
             <Select
@@ -584,13 +720,13 @@ export default function ProgressPage() {
                       {exercise.toUpperCase()}
                     </Typography>
                   </Box>
-                  <Typography variant="h3" fontWeight={950} sx={{ color: 'text.primary', letterSpacing: '-2px', mb: 1 }}>
-                    {record.weight} <Typography variant="h6" component="span" sx={{ fontWeight: 900, opacity: 0.5 }}>LBS</Typography>
+                  <Typography sx={{ ...styles.prTitle }}>
+                    {record.weight} <Typography sx={{ ...styles.prUnit }}>LBS</Typography>
                   </Typography>
-                  <Typography variant="overline" sx={{ color: 'secondary.main', fontWeight: 900, letterSpacing: '2px' }}>
+                  <Typography sx={{ ...styles.prVolume }}>
                     {record.reps} REPS VOLUME
                   </Typography>
-                  <Typography variant="body2" sx={{ color: 'text.secondary', mt: 1, fontWeight: 600, opacity: 0.6 }}>
+                  <Typography sx={{ ...styles.prDate }}>
                     RECORDED {new Date(record.date).toLocaleDateString().toUpperCase()}
                   </Typography>
                 </Card>
@@ -609,8 +745,8 @@ export default function ProgressPage() {
         PaperProps={{ sx: styles.dialogPaper(theme) }}
       >
         <DialogTitle sx={{ p: 4, pb: 2 }}>
-          <Typography sx={styles.sectionLabel} mb={1}>EVOLUTION ARCHIVE</Typography>
-          <Typography variant="h4" fontWeight={950} sx={{ letterSpacing: '-1.5px', color: 'text.primary' }}>
+          <Typography sx={{ ...styles.sectionLabel }} mb={1}>EVOLUTION ARCHIVE</Typography>
+          <Typography sx={{ ...styles.addMetricTitle }}>
             ADD BODY <Box component="span" sx={{ color: 'primary.main' }}>METRICS</Box>
           </Typography>
         </DialogTitle>
@@ -638,7 +774,7 @@ export default function ProgressPage() {
             </Box>
 
             <Box>
-              <Typography variant="overline" sx={{ color: 'primary.main', fontWeight: 900, letterSpacing: '4px', mb: 2, display: 'block' }}>
+              <Typography sx={{ ...styles.anatomyLabel }}>
                 ANATOMICAL MEASUREMENTS (IN)
               </Typography>
               <Box sx={styles.anatomyGrid}>
@@ -649,8 +785,8 @@ export default function ProgressPage() {
                       label={field.toUpperCase()}
                       variant="outlined"
                       type="number"
-                      value={newMetric[field as keyof typeof newMetric]}
-                      onChange={(e) => setNewMetric({ ...newMetric, [field]: e.target.value })}
+                      value={newMetric.measurements[field as keyof typeof newMetric.measurements]}
+                      onChange={(e) => setNewMetric({ ...newMetric, measurements: { ...newMetric.measurements, [field]: e.target.value } })}
                       sx={styles.selectControl(theme)}
                       size="small"
                     />
@@ -660,12 +796,12 @@ export default function ProgressPage() {
             </Box>
           </Stack>
         </DialogContent>
-        <DialogActions sx={{ p: 4, pt: 2 }}>
-          <Button onClick={() => setOpenAddMetric(false)} color="inherit" sx={{ fontWeight: 900 }}>ABORT</Button>
+        <DialogActions sx={styles.dialogActions}>
+          <Button onClick={() => setOpenAddMetric(false)} color="inherit" sx={styles.abortButton}>ABORT</Button>
           <Button
             variant="contained"
             onClick={handleAddMetric}
-            sx={{ ...styles.actionButton, bgcolor: 'primary.main', color: 'primary.contrastText', px: 6 }}
+            sx={styles.commitButton}
           >
             COMMIT DATA
           </Button>

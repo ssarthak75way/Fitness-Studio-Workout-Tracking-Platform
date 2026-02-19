@@ -92,6 +92,25 @@ const styles = {
             textShadow: theme.palette.mode === 'dark' ? `0 0 40px ${alpha(theme.palette.primary.main, 0.5)}` : 'none'
         }
     }),
+    heroSubtitle: {
+        color: 'text.secondary',
+        maxWidth: 600,
+        fontWeight: 400,
+        lineHeight: 1.6
+    },
+    backButton: (theme: Theme) => ({
+        borderRadius: 0,
+        py: 2, px: 4,
+        fontWeight: 900,
+        letterSpacing: '1px',
+        borderColor: alpha(theme.palette.divider, 0.2),
+        color: theme.palette.text.primary,
+        backdropFilter: 'blur(10px)',
+        '&:hover': {
+            borderColor: theme.palette.primary.main,
+            bgcolor: alpha(theme.palette.primary.main, 0.1)
+        }
+    }),
     sectionLabel: {
         color: 'primary.main',
         fontWeight: 900,
@@ -118,6 +137,15 @@ const styles = {
         mb: 6,
         boxShadow: `0 8px 32px 0 ${alpha(theme.palette.common.black, 0.05)}`
     }),
+    filterStack: {
+        flexGrow: 1,
+        width: '100%'
+    },
+    categoryStack: {
+        overflowX: 'auto',
+        width: { xs: '100%', md: 'auto' },
+        pb: { xs: 1, md: 0 }
+    },
     categoryChip: (theme: Theme, selected: boolean) => ({
         fontWeight: 900,
         borderRadius: 1,
@@ -158,6 +186,12 @@ const styles = {
             }
         }
     }),
+    cardActionArea: {
+        flexGrow: 1,
+        display: 'flex',
+        flexDirection: 'column',
+        alignItems: 'flex-start'
+    },
     cardContent: { p: 4, flexGrow: 1 },
     difficultyChip: (theme: Theme, difficulty: string) => {
         const color = difficulty === 'BEGINNER' ? theme.palette.success.main :
@@ -172,6 +206,15 @@ const styles = {
             fontSize: '0.7rem'
         };
     },
+    cardCategoryChip: (theme: Theme) => ({
+        borderRadius: 0.5,
+        fontWeight: 800,
+        fontSize: '0.7rem',
+        bgcolor: alpha(theme.palette.primary.main, 0.1),
+        color: theme.palette.primary.main,
+        letterSpacing: '1px'
+
+    }),
     startButton: (theme: Theme) => ({
         borderRadius: 1.5,
         py: 1.5,
@@ -189,6 +232,16 @@ const styles = {
         backdropFilter: 'blur(20px)',
         border: `1px solid ${alpha(theme.palette.divider, 0.1)}`,
         boxShadow: `0 40px 80px -20px ${alpha(theme.palette.common.black, 0.5)}`
+    }),
+    dialogTitle: {
+        p: 4,
+        pb: 0
+    },
+    dialogCategoryChip: (theme: Theme) => ({
+        borderRadius: 0.5,
+        fontWeight: 800,
+        bgcolor: theme.palette.primary.main,
+        color: '#fff'
     }),
     statBadge: (theme: Theme) => ({
         bgcolor: alpha(theme.palette.action.hover, 0.05),
@@ -211,6 +264,48 @@ const styles = {
                 bgcolor: theme.palette.background.paper,
                 boxShadow: `0 8px 20px -5px ${alpha(theme.palette.primary.main, 0.2)}`
             }
+        }
+    }),
+    noTemplatesBox: {
+        textAlign: 'center',
+        py: 10
+    },
+    sequenceTitle: () => ({
+        variant: 'overline',
+        color: 'primary',
+        fontWeight: 900,
+        letterSpacing: '3px',
+        display: 'block',
+        mb: 3
+    }),
+    exerciseItem: (theme: Theme) => ({
+        p: 2,
+        mb: 2,
+        borderRadius: 2,
+        bgcolor: alpha(theme.palette.background.default, 0.5),
+        border: `1px solid ${alpha(theme.palette.divider, 0.1)}`
+    }),
+    dialogActions: {
+        p: 4,
+        pt: 0,
+        gap: 2
+    },
+    closeButton: {
+        borderRadius: 1.5,
+        fontWeight: 800,
+        color: 'text.secondary',
+        px: 3
+    },
+    startWorkoutButton: (theme: Theme) => ({
+        borderRadius: 1.5,
+        py: 1.5,
+        fontWeight: 800,
+        letterSpacing: '1px',
+        boxShadow: `0 8px 16px -4px ${alpha(theme.palette.primary.main, 0.3)}`,
+        width: '100%',
+        '&:hover': {
+            boxShadow: `0 12px 20px -4px ${alpha(theme.palette.primary.main, 0.4)}`,
+            transform: 'translateY(-2px)'
         }
     })
 };
@@ -288,7 +383,7 @@ export default function WorkoutTemplatesPage() {
                     <Typography variant="h1" sx={styles.headerTitle(theme)}>
                         WORKOUT <Box component="span">LIBRARY</Box>
                     </Typography>
-                    <Typography variant="h6" sx={{ color: 'text.secondary', maxWidth: 600, fontWeight: 400, lineHeight: 1.6 }}>
+                    <Typography variant="h6" sx={styles.heroSubtitle}>
                         Battle-tested routines designed for peak performance. Select your protocol and begin the transformation.
                     </Typography>
                 </Box>
@@ -296,19 +391,7 @@ export default function WorkoutTemplatesPage() {
                     variant="outlined"
                     startIcon={<ArrowBackIcon />}
                     onClick={() => navigate('/workouts')}
-                    sx={{
-                        borderRadius: 0,
-                        py: 2, px: 4,
-                        fontWeight: 900,
-                        letterSpacing: '1px',
-                        borderColor: alpha(theme.palette.divider, 0.2),
-                        color: theme.palette.text.primary,
-                        backdropFilter: 'blur(10px)',
-                        '&:hover': {
-                            borderColor: theme.palette.primary.main,
-                            bgcolor: alpha(theme.palette.primary.main, 0.1)
-                        }
-                    }}
+                    sx={styles.backButton(theme)}
                 >
                     RETURN TO HUB
                 </Button>
@@ -319,7 +402,7 @@ export default function WorkoutTemplatesPage() {
                 {/* Filter Section */}
                 <Box sx={styles.filterContainer(theme)}>
                     <Stack direction={{ xs: 'column', md: 'row' }} spacing={3} alignItems="center">
-                        <Box sx={{ flexGrow: 1, width: '100%' }}>
+                        <Box sx={styles.filterStack}>
                             <TextField
                                 placeholder="Search protocols..."
                                 variant="outlined"
@@ -336,7 +419,7 @@ export default function WorkoutTemplatesPage() {
                                 }}
                             />
                         </Box>
-                        <Stack direction="row" spacing={1} sx={{ overflowX: 'auto', width: { xs: '100%', md: 'auto' }, pb: { xs: 1, md: 0 } }}>
+                        <Stack direction="row" spacing={1} sx={styles.categoryStack}>
                             {CATEGORIES.map(cat => (
                                 <Chip
                                     key={cat}
@@ -370,20 +453,13 @@ export default function WorkoutTemplatesPage() {
                                 layout
                             >
                                 <Card sx={styles.card(theme)}>
-                                    <CardActionArea sx={{ flexGrow: 1, display: 'flex', flexDirection: 'column', alignItems: 'flex-start' }} onClick={() => setViewTemplate(template)}>
+                                    <CardActionArea sx={styles.cardActionArea} onClick={() => setViewTemplate(template)}>
                                         <CardContent sx={styles.cardContent}>
                                             <Box display="flex" justifyContent="space-between" mb={3} width="100%">
                                                 <Chip
                                                     label={template.category}
                                                     size="small"
-                                                    sx={{
-                                                        borderRadius: 0.5,
-                                                        fontWeight: 800,
-                                                        fontSize: '0.7rem',
-                                                        bgcolor: alpha(theme.palette.primary.main, 0.1),
-                                                        color: theme.palette.primary.main,
-                                                        letterSpacing: '1px'
-                                                    }}
+                                                    sx={styles.cardCategoryChip(theme)}
                                                 />
                                                 <Chip
                                                     label={template.difficulty}
@@ -445,7 +521,7 @@ export default function WorkoutTemplatesPage() {
                         ))}
                     </Box>
                 ) : (
-                    <Box textAlign="center" py={10}>
+                    <Box sx={styles.noTemplatesBox}>
                         <Typography variant="h5" color="text.secondary" gutterBottom>
                             No templates found
                         </Typography>
@@ -467,17 +543,12 @@ export default function WorkoutTemplatesPage() {
             >
                 {viewTemplate && (
                     <>
-                        <DialogTitle sx={{ p: 4, pb: 0 }}>
+                        <DialogTitle sx={styles.dialogTitle}>
                             <Box display="flex" alignItems="center" gap={2} mb={2}>
                                 <Chip
                                     label={viewTemplate.category}
                                     size="small"
-                                    sx={{
-                                        borderRadius: 0.5,
-                                        fontWeight: 800,
-                                        bgcolor: theme.palette.primary.main,
-                                        color: '#fff'
-                                    }}
+                                    sx={styles.dialogCategoryChip(theme)}
                                 />
                                 <Typography variant="caption" fontWeight={700} color="text.secondary" sx={{ letterSpacing: '2px' }}>
                                     {viewTemplate.difficulty}
@@ -492,7 +563,7 @@ export default function WorkoutTemplatesPage() {
                         </DialogTitle>
 
                         <DialogContent sx={{ p: 4 }}>
-                            <Typography variant="overline" color="primary" sx={{ fontWeight: 900, letterSpacing: '3px', display: 'block', mb: 3 }}>
+                            <Typography sx={{...styles.sequenceTitle}}>
                                 SEQUENCE ({viewTemplate.exercises.length})
                             </Typography>
 
@@ -500,13 +571,7 @@ export default function WorkoutTemplatesPage() {
                                 {viewTemplate.exercises.map((ex, idx: number) => (
                                     <ListItem
                                         key={idx}
-                                        sx={{
-                                            p: 2,
-                                            mb: 2,
-                                            borderRadius: 2,
-                                            bgcolor: alpha(theme.palette.background.default, 0.5),
-                                            border: `1px solid ${alpha(theme.palette.divider, 0.1)}`
-                                        }}
+                                        sx={styles.exerciseItem(theme)}
                                     >
                                         <ListItemText
                                             primary={
@@ -543,15 +608,10 @@ export default function WorkoutTemplatesPage() {
                             </List>
                         </DialogContent>
 
-                        <DialogActions sx={{ p: 4, pt: 0, gap: 2 }}>
+                        <DialogActions sx={styles.dialogActions}>
                             <Button
                                 onClick={() => setViewTemplate(null)}
-                                sx={{
-                                    borderRadius: 1.5,
-                                    fontWeight: 800,
-                                    color: 'text.secondary',
-                                    px: 3
-                                }}
+                                sx={styles.closeButton}
                             >
                                 CLOSE
                             </Button>
@@ -559,7 +619,7 @@ export default function WorkoutTemplatesPage() {
                                 variant="contained"
                                 fullWidth
                                 onClick={() => handleUseTemplate(viewTemplate)}
-                                sx={styles.startButton(theme)}
+                                sx={styles.startWorkoutButton(theme)}
                             >
                                 START WORKOUT
                             </Button>

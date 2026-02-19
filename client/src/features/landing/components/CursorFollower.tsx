@@ -1,6 +1,24 @@
 import { useEffect } from 'react';
 import { motion, useSpring, useMotionValue } from 'framer-motion';
 import { Box, useTheme, alpha } from '@mui/material';
+import type { Theme } from '@mui/material';
+
+const styles = {
+    cursor: (theme: Theme) => ({
+        width: 40,
+        height: 40,
+        borderRadius: '50%',
+        border: `2px solid ${theme.palette.primary.main}`,
+        bgcolor: alpha(theme.palette.primary.main, 0.1),
+        backdropFilter: 'blur(2px)',
+        display: { xs: 'none', md: 'block' },
+        position: 'fixed',
+        left: 0,
+        top: 0,
+        zIndex: 9999,
+        pointerEvents: 'none'
+    })
+};
 
 export const CursorFollower = () => {
     const theme = useTheme();
@@ -31,23 +49,10 @@ export const CursorFollower = () => {
             style={{
                 translateX: springX,
                 translateY: springY,
-                position: 'fixed',
-                left: 0,
-                top: 0,
-                zIndex: 9999,
-                pointerEvents: 'none',
                 x: '-50%',
                 y: '-50%',
             }}
-            sx={{
-                width: 40,
-                height: 40,
-                borderRadius: '50%',
-                border: `2px solid ${theme.palette.primary.main}`,
-                bgcolor: alpha(theme.palette.primary.main, 0.1),
-                backdropFilter: 'blur(2px)',
-                display: { xs: 'none', md: 'block' },
-            }}
+            sx={styles.cursor(theme)}
         />
     );
 };

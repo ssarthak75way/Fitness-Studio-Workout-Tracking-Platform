@@ -29,18 +29,8 @@ class ErrorBoundary extends Component<Props, State> {
         if (this.state.hasError) {
             return (
                 <Container maxWidth="sm">
-                    <Box
-                        sx={{
-                            display: 'flex',
-                            flexDirection: 'column',
-                            alignItems: 'center',
-                            justifyContent: 'center',
-                            minHeight: '100vh',
-                            textAlign: 'center',
-                            gap: 2,
-                        }}
-                    >
-                        <ErrorOutlineIcon sx={{ fontSize: 64, color: 'error.main' }} />
+                    <Box sx={styles.container}>
+                        <ErrorOutlineIcon sx={styles.icon} />
                         <Typography variant="h4" component="h1" gutterBottom fontWeight="bold">
                             Something went wrong
                         </Typography>
@@ -48,17 +38,7 @@ class ErrorBoundary extends Component<Props, State> {
                             The application encountered an unexpected error.
                         </Typography>
                         {this.state.error && (
-                            <Box
-                                sx={{
-                                    p: 2,
-                                    bgcolor: 'grey.100',
-                                    borderRadius: 1,
-                                    width: '100%',
-                                    overflow: 'auto',
-                                    mb: 2,
-                                    textAlign: 'left',
-                                }}
-                            >
+                            <Box sx={styles.errorBox}>
                                 <Typography variant="caption" fontFamily="monospace" color="error">
                                     {this.state.error.toString()}
                                 </Typography>
@@ -80,5 +60,30 @@ class ErrorBoundary extends Component<Props, State> {
         return this.props.children;
     }
 }
+
+const styles = {
+    container: {
+        display: 'flex',
+        flexDirection: 'column',
+        alignItems: 'center',
+        justifyContent: 'center',
+        minHeight: '100vh',
+        textAlign: 'center',
+        gap: 2,
+    },
+    icon: {
+        fontSize: 64,
+        color: 'error.main'
+    },
+    errorBox: {
+        p: 2,
+        bgcolor: 'grey.100',
+        borderRadius: 1,
+        width: '100%',
+        overflow: 'auto',
+        mb: 2,
+        textAlign: 'left',
+    }
+};
 
 export default ErrorBoundary;
