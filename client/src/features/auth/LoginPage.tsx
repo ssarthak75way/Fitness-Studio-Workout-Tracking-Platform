@@ -3,31 +3,30 @@ import { useNavigate } from 'react-router-dom';
 import {
   Box, TextField, Button, Typography,
   MenuItem, Fade, InputAdornment, IconButton,
-  useTheme, useMediaQuery
+  useTheme, useMediaQuery, alpha
 } from '@mui/material';
 import type { Theme } from '@mui/material';
 import {
   Email as EmailIcon, Lock as LockIcon,
   Visibility, VisibilityOff, AccountCircle as UserIcon,
-  FitnessCenter as LogoIcon
 } from '@mui/icons-material';
 import { useAuth } from '../../context/AuthContext';
 import { authService } from '../../services/auth.service';
 import { useToast } from '../../context/ToastContext';
+import { Logo } from '../../components/common/Logo';
 
-const BACKGROUND_IMAGE = 'https://images.unsplash.com/photo-1534438327276-14e5300c3a48?q=80&w=2070&auto=format&fit=crop';
+const BACKGROUND_IMAGE = '/auth-bg.jpg';
 
 const fieldStyle = {
   '& .MuiOutlinedInput-root': {
-    borderRadius: 2,
-    color: '#000',
-    bgcolor: 'white',
-    '& fieldset': { borderColor: '#e2e8f0' },
-    '&:hover fieldset': { borderColor: '#cbd5e1' },
-    '&.Mui-focused fieldset': { borderWeight: 2 },
+    borderRadius: (theme: Theme) => theme.shape.borderRadius,
+    bgcolor: 'background.paper',
+    '& fieldset': { borderColor: (theme: Theme) => alpha(theme.palette.divider, 0.1) },
+    '&:hover fieldset': { borderColor: (theme: Theme) => theme.palette.primary.main },
+    '&.Mui-focused fieldset': { borderWidth: 2 },
   },
   '& .MuiInputLabel-root': {
-    fontWeight: 500,
+    fontWeight: 600,
   }
 };
 
@@ -36,13 +35,12 @@ const styles = {
     display: 'flex',
     height: '100vh',
     overflow: 'hidden',
+    bgcolor: 'background.default',
   },
   backdrop: (isMobile: boolean, bgImage: string) => ({
     flex: { xs: 0, sm: 4, md: 7 },
-    backgroundImage: `url(${bgImage})`,
+    backgroundImage: `linear-gradient(rgba(11, 15, 25, 0.4), rgba(11, 15, 25, 0.6)), url(${bgImage})`,
     backgroundRepeat: 'no-repeat',
-    backgroundColor: (t: Theme) =>
-      t.palette.mode === 'light' ? t.palette.grey[50] : t.palette.grey[900],
     backgroundSize: 'cover',
     backgroundPosition: 'center',
     position: 'relative',
@@ -54,8 +52,6 @@ const styles = {
     left: 0,
     right: 0,
     bottom: 0,
-    bgcolor: 'rgba(0,0,0,0.4)',
-    backdropFilter: 'blur(2px)',
     display: 'flex',
     flexDirection: 'column',
     justifyContent: 'center',
@@ -70,13 +66,15 @@ const styles = {
     opacity: 0.9,
     maxWidth: 500,
     lineHeight: 1.6,
+    fontWeight: 500,
   },
   formSide: {
     flex: { xs: 12, sm: 8, md: 5 },
     display: 'flex',
     alignItems: 'center',
-    bgcolor: '#f8fafc',
+    bgcolor: 'background.default',
     width: '100%',
+    borderLeft: (theme: Theme) => `1px solid ${alpha(theme.palette.divider, 0.1)}`,
   },
   formContent: {
     p: { xs: 4, sm: 8 },
@@ -89,28 +87,24 @@ const styles = {
   },
   alert: {
     mb: 3,
-    borderRadius: 2,
-  }, loginHead: {
-    fontWeight: 800,
-    gutterBottom: true,
-    color: "#000000",
+    borderRadius: (theme: Theme) => theme.shape.borderRadius,
+  },
+  loginHead: {
+    fontWeight: 900,
+    color: "text.primary",
+    letterSpacing: '-1px',
+    mb: 1,
   },
   loginButton: {
     mt: 4,
     mb: 2,
-    py: 1.8,
-    borderRadius: 2,
-    fontSize: '1rem',
-    fontWeight: 600,
-    textTransform: 'none',
-    boxShadow: '0 8px 16px -4px rgba(99, 102, 241, 0.4)',
-    '&:hover': {
-      boxShadow: '0 12px 20px -4px rgba(99, 102, 241, 0.5)',
-    },
+    py: 2,
+    fontSize: '1.1rem',
+    fontWeight: 800,
   },
   switchModeButton: {
     textTransform: 'none',
-    fontWeight: 700,
+    fontWeight: 800,
     ml: 0.5,
     '&:hover': { bgcolor: 'transparent', textDecoration: 'underline' },
   },
@@ -164,10 +158,7 @@ export default function LoginPage() {
           <Fade in timeout={1000}>
             <Box>
               <Box display="flex" alignItems="center" gap={2} mb={4}>
-                <LogoIcon sx={styles.logoIcon(theme)} />
-                <Typography variant="h3" fontWeight="900" letterSpacing="-0.02em">
-                  FITNESS STUDIO
-                </Typography>
+                <Logo variant="white" size="large" />
               </Box>
               <Typography variant="h5" sx={styles.tagline}>
                 Step into a world of strength, endurance, and transformation.
@@ -184,10 +175,7 @@ export default function LoginPage() {
           <Box sx={styles.formContent}>
             <Box mb={4} display={isMobile ? 'block' : 'none'}>
               <Box display="flex" alignItems="center" gap={1} mb={1}>
-                <LogoIcon color="primary" sx={styles.mobileLogo} />
-                <Typography variant="h5" fontWeight="900" color="text.primary">
-                  FITNESS STUDIO
-                </Typography>
+                <Logo size="medium" />
               </Box>
             </Box>
 

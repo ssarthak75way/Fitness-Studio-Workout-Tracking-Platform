@@ -21,4 +21,14 @@ export const authService = {
         const response = await api.patch('/users/profile', data);
         return response.data;
     },
+    uploadProfileImage: async (file: File): Promise<ApiResponse<{ user: AuthResponse['user']; filePath: string }>> => {
+        const formData = new FormData();
+        formData.append('profileImage', file);
+        const response = await api.post('/users/profile-image', formData, {
+            headers: {
+                'Content-Type': 'multipart/form-data',
+            },
+        });
+        return response.data;
+    },
 };

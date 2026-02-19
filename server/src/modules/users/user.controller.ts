@@ -5,6 +5,8 @@ import { RatingModel as Rating } from '../ratings/rating.model';
 import { AuthService } from '../auth/auth.service';
 import { updatePasswordSchema } from '../auth/auth.schema';
 
+import { AppError } from '../../utils/AppError';
+
 export const getProfile = async (req: Request, res: Response, next: NextFunction) => {
   try {
     const user = await User.findById(req.user!._id).select('-passwordHash');
@@ -139,6 +141,33 @@ export const updatePassword = async (req: Request, res: Response, next: NextFunc
     res.status(200).json({
       status: 'success',
       message: 'Password changed successfully!'
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
+export const uploadProfileImage = async (req: Request, res: Response, next: NextFunction) => {
+  try {
+    if (!req.file) {
+      return next(new AppError('Please upload a file', 400));
+    }
+
+    // Cloudinary returns the URL in req.file.path
+    const imageUrl = req.file.path;
+
+    const user = await User.findByIdAndUpdate(
+      req.user!._id,
+      { profileImage: imageUrl },
+      { new: true }
+    ).select('-passwordHash');
+
+    res.status(200).json({
+      status: 'success',
+      data: {
+        user,
+        filePath: imageUrl
+      }
     });
   } catch (error) {
     next(error);

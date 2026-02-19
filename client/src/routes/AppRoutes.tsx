@@ -1,25 +1,11 @@
-import { lazy, Suspense } from 'react';
-import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
+import { createBrowserRouter, RouterProvider, Navigate, Outlet } from 'react-router-dom';
 import { AuthProvider, useAuth } from '../context/AuthContext';
 import { Box, CircularProgress } from '@mui/material';
+import { Suspense, lazy } from 'react';
 
-// Lazy load components
-const LoginPage = lazy(() => import('../features/auth/LoginPage'));
-const DashboardPage = lazy(() => import('../features/dashboard/DashboardPage'));
-const SchedulePage = lazy(() => import('../features/schedule/SchedulePage'));
-const BookingsPage = lazy(() => import('../features/bookings/BookingsPage'));
-const WorkoutsPage = lazy(() => import('../features/workouts/WorkoutsPage'));
-const ProgressPage = lazy(() => import('../features/progress/ProgressPage'));
-const MembershipPage = lazy(() => import('../features/membership/MembershipPage'));
-const SettingsPage = lazy(() => import('../features/settings/SettingsPage'));
-const CheckInPage = lazy(() => import('../features/bookings/CheckInPage'));
-const WorkoutTemplatesPage = lazy(() => import('../features/workouts/WorkoutTemplatesPage'));
-const UserManagementPage = lazy(() => import('../features/admin/UserManagementPage'));
+// Layouts
 const ProtectedLayout = lazy(() => import('../components/ProtectedLayout'));
 const PublicLayout = lazy(() => import('../components/PublicLayout'));
-const InstructorProfilePage = lazy(() => import('../features/instructors/InstructorProfilePage'));
-const ProfilePage = lazy(() => import('../features/profile/ProfilePage'));
-const NotFoundPage = lazy(() => import('../components/NotFoundPage'));
 
 const styles = {
   loadingContainer: {
@@ -30,22 +16,17 @@ const styles = {
   },
 };
 
-function ProtectedRoute({
-  children,
-  allowedRoles
-}: {
-  children: React.ReactNode;
-  allowedRoles?: string[];
-}) {
+// Loading component for the router
+const PageLoader = () => (
+  <Box sx={styles.loadingContainer}>
+    <CircularProgress />
+  </Box>
+);
+
+function ProtectedRoute({ allowedRoles }: { allowedRoles?: string[] }) {
   const { isAuthenticated, loading, user } = useAuth();
 
-  if (loading) {
-    return (
-      <Box sx={styles.loadingContainer}>
-        <CircularProgress />
-      </Box>
-    );
-  }
+  if (loading) return <PageLoader />;
 
   if (!isAuthenticated) {
     return <Navigate to="/login" replace />;
@@ -55,129 +36,134 @@ function ProtectedRoute({
     return <Navigate to="/dashboard" replace />;
   }
 
-  return <ProtectedLayout>{children}</ProtectedLayout>;
-}
-
-function AppContent() {
   return (
-    <Suspense
-      fallback={
-        <Box sx={styles.loadingContainer}>
-          <CircularProgress />
-        </Box>
-      }
-    >
-      <Routes>
-        <Route path="/login" element={<PublicLayout><LoginPage /></PublicLayout>} />
-        <Route
-          path="/dashboard"
-          element={
-            <ProtectedRoute>
-              <DashboardPage />
-            </ProtectedRoute>
-          }
-        />
-        <Route
-          path="/schedule"
-          element={
-            <ProtectedRoute>
-              <SchedulePage />
-            </ProtectedRoute>
-          }
-        />
-        <Route
-          path="/bookings"
-          element={
-            <ProtectedRoute>
-              <BookingsPage />
-            </ProtectedRoute>
-          }
-        />
-        <Route
-          path="/workouts"
-          element={
-            <ProtectedRoute>
-              <WorkoutsPage />
-            </ProtectedRoute>
-          }
-        />
-        <Route
-          path="/workouts/templates"
-          element={
-            <ProtectedRoute allowedRoles={['STUDIO_ADMIN', 'MEMBER', 'INSTRUCTOR']}>
-              <WorkoutTemplatesPage />
-            </ProtectedRoute>
-          }
-        />
-        <Route
-          path="/progress"
-          element={
-            <ProtectedRoute>
-              <ProgressPage />
-            </ProtectedRoute>
-          }
-        />
-        <Route
-          path="/membership"
-          element={
-            <ProtectedRoute>
-              <MembershipPage />
-            </ProtectedRoute>
-          }
-        />
-        <Route
-          path="/settings"
-          element={
-            <ProtectedRoute>
-              <SettingsPage />
-            </ProtectedRoute>
-          }
-        />
-        <Route
-          path="/check-in"
-          element={
-            <ProtectedRoute allowedRoles={['STUDIO_ADMIN', 'INSTRUCTOR']}>
-              <CheckInPage />
-            </ProtectedRoute>
-          }
-        />
-        <Route
-          path="/instructors/:id"
-          element={
-            <ProtectedRoute>
-              <InstructorProfilePage />
-            </ProtectedRoute>
-          }
-        />
-        <Route
-          path="/admin/users"
-          element={
-            <ProtectedRoute allowedRoles={['STUDIO_ADMIN']}>
-              <UserManagementPage />
-            </ProtectedRoute>
-          }
-        />
-        <Route
-          path="/profile"
-          element={
-            <ProtectedRoute>
-              <ProfilePage />
-            </ProtectedRoute>
-          }
-        />
-        <Route path="/" element={<Navigate to="/dashboard" replace />} />
-        <Route path="*" element={<PublicLayout><NotFoundPage /></PublicLayout>} />
-      </Routes>
+    <Suspense fallback={<PageLoader />}>
+      <ProtectedLayout>
+        <Outlet />
+      </ProtectedLayout>
     </Suspense>
   );
 }
 
-export function AppRoutes() {
-  return (
-    <BrowserRouter>
+const router = createBrowserRouter([
+  {
+    element: (
       <AuthProvider>
-        <AppContent />
+        <Outlet />
       </AuthProvider>
-    </BrowserRouter>
-  );
+    ),
+    children: [
+      {
+        element: (
+          <Suspense fallback={<PageLoader />}>
+            <PublicLayout>
+              <Outlet />
+            </PublicLayout>
+          </Suspense>
+        ),
+        children: [
+          {
+            index: true,
+            lazy: async () => ({ Component: (await import('../features/landing/LandingPage')).default }),
+          },
+          {
+            path: 'login',
+            lazy: async () => ({ Component: (await import('../features/auth/LoginPage')).default }),
+          },
+          {
+            path: 'about',
+            lazy: async () => ({ Component: (await import('../features/info/AboutPage')).default }),
+          },
+          {
+            path: 'contact',
+            lazy: async () => ({ Component: (await import('../features/info/ContactPage')).default }),
+          },
+          {
+            path: 'privacy',
+            lazy: async () => ({ Component: (await import('../features/info/PrivacyPage')).default }),
+          },
+          {
+            path: 'terms',
+            lazy: async () => ({ Component: (await import('../features/info/TermsPage')).default }),
+          },
+          {
+            path: '*',
+            lazy: async () => ({ Component: (await import('../components/NotFoundPage')).default }),
+          },
+        ],
+      },
+      {
+        element: <ProtectedRoute />,
+        children: [
+          {
+            path: 'dashboard',
+            lazy: async () => ({ Component: (await import('../features/dashboard/DashboardPage')).default }),
+          },
+          {
+            path: 'schedule',
+            lazy: async () => ({ Component: (await import('../features/schedule/SchedulePage')).default }),
+          },
+          {
+            path: 'bookings',
+            lazy: async () => ({ Component: (await import('../features/bookings/BookingsPage')).default }),
+          },
+          {
+            path: 'workouts',
+            lazy: async () => ({ Component: (await import('../features/workouts/WorkoutsPage')).default }),
+          },
+          {
+            path: 'progress',
+            lazy: async () => ({ Component: (await import('../features/progress/ProgressPage')).default }),
+          },
+          {
+            path: 'membership',
+            lazy: async () => ({ Component: (await import('../features/membership/MembershipPage')).default }),
+          },
+          {
+            path: 'settings',
+            lazy: async () => ({ Component: (await import('../features/settings/SettingsPage')).default }),
+          },
+          {
+            path: 'profile',
+            lazy: async () => ({ Component: (await import('../features/profile/ProfilePage')).default }),
+          },
+          {
+            path: 'instructors/:id',
+            lazy: async () => ({ Component: (await import('../features/instructors/InstructorProfilePage')).default }),
+          },
+        ],
+      },
+      {
+        element: <ProtectedRoute allowedRoles={['STUDIO_ADMIN', 'MEMBER', 'INSTRUCTOR']} />,
+        children: [
+          {
+            path: 'workouts/templates',
+            lazy: async () => ({ Component: (await import('../features/workouts/WorkoutTemplatesPage')).default }),
+          },
+        ],
+      },
+      {
+        element: <ProtectedRoute allowedRoles={['STUDIO_ADMIN', 'INSTRUCTOR']} />,
+        children: [
+          {
+            path: 'check-in',
+            lazy: async () => ({ Component: (await import('../features/bookings/CheckInPage')).default }),
+          },
+        ],
+      },
+      {
+        element: <ProtectedRoute allowedRoles={['STUDIO_ADMIN']} />,
+        children: [
+          {
+            path: 'admin/users',
+            lazy: async () => ({ Component: (await import('../features/admin/UserManagementPage')).default }),
+          },
+        ],
+      },
+    ],
+  },
+]);
+
+export function AppRoutes() {
+  return <RouterProvider router={router} />;
 }

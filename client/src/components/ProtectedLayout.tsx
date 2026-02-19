@@ -1,5 +1,5 @@
 import { type ReactNode, useState } from 'react';
-import { Box, AppBar, Toolbar, Typography, Button, IconButton, Tooltip, Avatar } from '@mui/material';
+import { Box, AppBar, Toolbar, Typography, Button, IconButton, Tooltip, Avatar, alpha } from '@mui/material';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { useThemeContext } from '../context/ThemeContext';
@@ -9,19 +9,24 @@ import DarkModeIcon from '@mui/icons-material/DarkMode';
 import LightModeIcon from '@mui/icons-material/LightMode';
 import NotificationPopover from './NotificationPopover';
 import Sidebar, { drawerWidth } from './Layout/Sidebar';
+import { Logo } from './common/Logo';
 import type { Theme } from '@mui/material';
 import Footer from './Footer';
 
 const styles = {
     root: { display: 'flex' },
     appBar: (theme: Theme) => ({
-        // width: { sm: `calc(100% - ${drawerWidth}px)` },
+        width: { sm: `calc(100% - ${drawerWidth}px)` },
         ml: { sm: `${drawerWidth}px` },
         zIndex: theme.zIndex.drawer + 1,
-        bgcolor: 'background.paper',
+        bgcolor: alpha(theme.palette.background.paper, 0.7),
+        backdropFilter: 'blur(16px) saturate(180%)',
         color: 'text.primary',
-        borderBottom: `1px solid ${theme.palette.divider}`,
-        boxShadow: 'none'
+        borderBottom: `1px solid ${alpha(theme.palette.divider, 0.1)}`,
+        boxShadow: 'none',
+        height: 70,
+        display: 'flex',
+        justifyContent: 'center'
     }),
     menuButton: { mr: 2, display: { sm: 'none' } },
     typographyFlex: { flexGrow: 1, fontWeight: 700, letterSpacing: '-0.02em' },
@@ -68,9 +73,11 @@ export default function ProtectedLayout({ children }: { children: ReactNode }) {
                         <MenuIcon />
                     </IconButton>
 
-                    <Typography variant="h6" noWrap component="div" sx={styles.typographyFlex}>
-                        Fitness Studio
-                    </Typography>
+                    <Box sx={styles.typographyFlex}>
+                        <Box sx={{ display: { xs: 'flex', sm: 'none' } }}>
+                            <Logo size="small" />
+                        </Box>
+                    </Box>
 
                     <Tooltip title={`Switch to ${mode === 'dark' ? 'light' : 'dark'} mode`}>
                         <IconButton onClick={toggleTheme} color="inherit" sx={styles.themeToggle}>
@@ -82,7 +89,7 @@ export default function ProtectedLayout({ children }: { children: ReactNode }) {
 
                     <Box display="flex" alignItems="center">
                         <Avatar
-                            src={sessionStorage.getItem('profileImage') || ""}
+                            src={user?.profileImage || ""}
                             sx={{
                                 width: 32, height: 32,
                                 cursor: 'pointer',

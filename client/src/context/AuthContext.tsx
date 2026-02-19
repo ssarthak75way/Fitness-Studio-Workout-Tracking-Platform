@@ -3,11 +3,14 @@ import { useNavigate } from 'react-router-dom';
 import { authService } from '../services/auth.service';
 import type { User } from '../types';
 
+// ... existing imports
+
 interface AuthContextType {
   user: User | null;
   token: string | null;
   login: (token: string, newUser: User) => void;
   logout: () => void;
+  updateUser: (newUser: User) => void;
   isAuthenticated: boolean;
   loading: boolean;
   isLoading: boolean;
@@ -49,6 +52,10 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     setUser(newUser);
   };
 
+  const updateUser = (newUser: User) => {
+    setUser(newUser);
+  };
+
   const logout = () => {
     localStorage.removeItem('token');
     setToken(null);
@@ -57,7 +64,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   };
 
   return (
-    <AuthContext.Provider value={{ user, token, login, logout, isAuthenticated: !!token, loading, isLoading: loading }}>
+    <AuthContext.Provider value={{ user, token, login, logout, updateUser, isAuthenticated: !!token, loading, isLoading: loading }}>
       {children}
     </AuthContext.Provider>
   );

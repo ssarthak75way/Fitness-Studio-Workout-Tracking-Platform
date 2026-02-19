@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import {
   Box, Typography, Card, CardContent, TextField, Button,
   Dialog, DialogTitle, DialogContent, DialogActions,
-  Select, MenuItem, FormControl, InputLabel, useTheme, alpha
+  Select, MenuItem, FormControl, useTheme, alpha, Stack
 } from '@mui/material';
 import type { Theme } from '@mui/material';
 import {
@@ -11,14 +11,15 @@ import {
 } from 'recharts';
 import {
   Timeline as TimelineIcon,
-  ShowChart as ChartIcon,
   EmojiEvents as TrophyIcon,
   Straighten as RulerIcon,
-  Add as AddIcon
+  Add as AddIcon,
+  FitnessCenter as FitnessIcon
 } from '@mui/icons-material';
 import { metricsService, workoutService } from '../../services/index';
 import { motion, type Variants } from 'framer-motion';
 import type { BodyMetric, WorkoutAnalytics, PersonalRecord } from '../../types';
+import { useToast } from '../../context/ToastContext';
 
 const containerVariants: Variants = {
   hidden: { opacity: 0 },
@@ -38,157 +39,234 @@ const itemVariants: Variants = {
 };
 
 const styles = {
-  statCard: (color: string) => ({
+  pageContainer: {
+    p: 0,
+    bgcolor: 'background.default',
+    minHeight: '100vh',
+    display: 'flex',
+    flexDirection: 'column',
+    overflow: 'hidden'
+  },
+  headerHero: (theme: Theme) => ({
+    pt: { xs: 10, md: 14 },
+    pb: { xs: 8, md: 12 },
+    px: { xs: 3, md: 6 },
+    position: 'relative',
+    backgroundImage: theme.palette.mode === 'dark'
+      ? `linear-gradient(rgba(6, 9, 15, 0.75), rgba(6, 9, 15, 1)), url(https://images.unsplash.com/photo-1541534741688-6078c6bfb5c5?q=80&w=2069&auto=format&fit=crop)`
+      : `linear-gradient(rgba(255, 255, 255, 0.8), rgba(255, 255, 255, 0.95)), url(https://images.unsplash.com/photo-1541534741688-6078c6bfb5c5?q=80&w=2069&auto=format&fit=crop)`,
+    backgroundSize: 'cover',
+    backgroundPosition: 'center',
+    backgroundAttachment: 'fixed',
+    display: 'flex',
+    justifyContent: 'space-between',
+    alignItems: 'flex-end',
+    flexWrap: 'wrap',
+    gap: 4,
+    borderBottom: `1px solid ${theme.palette.divider}`,
+    '&::before': {
+      content: '"ANALYTICS"',
+      position: 'absolute',
+      top: '10%',
+      left: '5%',
+      fontSize: { xs: '5rem', md: '12rem' },
+      fontWeight: 950,
+      color: theme.palette.mode === 'dark' ? alpha('#fff', 0.03) : alpha('#000', 0.03),
+      letterSpacing: '20px',
+      zIndex: 0,
+      pointerEvents: 'none',
+      lineHeight: 0.8
+    }
+  }),
+  headerTitle: (theme: Theme) => ({
+    fontWeight: 950,
+    fontSize: { xs: '3.5rem', md: '6rem' },
+    lineHeight: 0.85,
+    letterSpacing: '-4px',
+    color: theme.palette.text.primary,
+    textTransform: 'uppercase',
+    mb: 2,
+    position: 'relative',
+    zIndex: 1,
+    '& span': {
+      color: theme.palette.primary.main,
+      textShadow: theme.palette.mode === 'dark' ? `0 0 40px ${alpha(theme.palette.primary.main, 0.5)}` : 'none'
+    }
+  }),
+  sectionLabel: {
+    color: 'primary.main',
+    fontWeight: 900,
+    letterSpacing: '5px',
+    mb: 4,
+    display: 'block',
+    textTransform: 'uppercase',
+    fontSize: '0.7rem',
+    opacity: 0.8
+  },
+  contentWrapper: {
+    px: { xs: 3, md: 6 },
+    py: { xs: 4, md: 8 },
+    flexGrow: 1,
+    position: 'relative',
+    zIndex: 1
+  },
+  metricsGrid: {
+    display: 'grid',
+    gridTemplateColumns: { xs: '1fr', sm: '1fr 1fr', md: 'repeat(4, 1fr)' },
+    gap: 3,
+    mb: 8
+  },
+  statCard: (theme: Theme) => ({
     height: '100%',
     position: 'relative',
     overflow: 'hidden',
-    boxShadow: (theme: Theme) => theme.shadows[2],
-    borderRadius: 4,
-    background: (theme: Theme) => `linear-gradient(135deg, ${theme.palette.background.paper} 0%, ${alpha(color, 0.05)} 100%)`,
-    border: (theme: Theme) => `1px solid ${theme.palette.divider}`
-  }),
-  statIconBackground: () => ({
-    position: 'absolute',
-    top: -10,
-    right: -10,
-    opacity: 0.1,
-    transform: 'rotate(-15deg)'
-  }),
-  statIconLarge: (color: string) => ({
-    fontSize: 100,
-    color: color
-  }),
-  iconWrapper: (color: string) => ({
-    p: 1,
     borderRadius: 2,
-    bgcolor: alpha(color, 0.1),
+    border: '1px solid',
+    borderColor: theme.palette.divider,
+    bgcolor: alpha(theme.palette.background.paper, theme.palette.mode === 'dark' ? 0.4 : 0.8),
+    backdropFilter: 'blur(24px) saturate(160%)',
+    transition: 'all 0.5s cubic-bezier(0.16, 1, 0.3, 1)',
+    boxShadow: theme.palette.mode === 'dark'
+      ? `inset 0 0 20px -10px ${alpha('#fff', 0.05)}, 0 10px 30px -15px ${alpha('#000', 0.5)}`
+      : `0 10px 30px -15px ${alpha(theme.palette.common.black, 0.08)}`,
+    '&:hover': {
+      transform: 'translateY(-10px) scale(1.02)',
+      borderColor: alpha(theme.palette.primary.main, 0.4),
+      boxShadow: `inset 0 0 30px -10px ${alpha(theme.palette.primary.main, 0.1)}, 0 20px 50px -20px ${alpha(theme.palette.primary.main, 0.4)}`,
+    }
+  }),
+  statIconWrapper: (color: string) => ({
+    p: 1.5,
+    borderRadius: 1.5,
+    bgcolor: alpha(color, 0.08),
     color: color,
-    mr: 2,
+    mb: 2.5,
     display: 'flex',
-    boxShadow: `0 4px 12px ${alpha(color, 0.2)}`
-  }),
-  iconSmall: { fontSize: 24 },
-  statTitle: {
-    textTransform: 'uppercase',
-    letterSpacing: '0.05em'
-  },
-  statValue: { color: 'text.primary' },
-  tooltipContainer: (theme: Theme) => ({
-    bgcolor: alpha(theme.palette.background.paper, 0.9),
-    p: 2,
-    border: `1px solid ${theme.palette.divider}`,
-    borderRadius: 2,
-    boxShadow: theme.shadows[3],
-    backdropFilter: 'blur(4px)'
-  }),
-  tooltipMarker: (color: string) => ({
-    width: 8,
-    height: 8,
-    borderRadius: '50%',
-    bgcolor: color
-  }),
-  pageContainer: {
-    maxWidth: 1200,
-    mx: 'auto',
-    p: { xs: 2, md: 3 }
-  },
-  headerTitle: (theme: Theme) => ({
-    background: `linear-gradient(45deg, ${theme.palette.text.primary} 30%, ${theme.palette.primary.main} 90%)`,
-    WebkitBackgroundClip: 'text',
-    WebkitTextFillColor: 'transparent',
-  }),
-  addMetricsButton: (theme: Theme) => ({
-    borderRadius: 2,
-    px: 3,
-    fontWeight: 600,
-    boxShadow: theme.shadows[4]
+    alignItems: 'center',
+    justifyContent: 'center',
+    width: 'fit-content',
+    boxShadow: `0 8px 16px -4px ${alpha(color, 0.15)}`
   }),
   chartCard: (theme: Theme) => ({
-    mb: 6,
-    p: 3,
-    borderRadius: 3,
-    boxShadow: theme.shadows[2],
-    border: `1px solid ${theme.palette.divider}`
+    mb: 8,
+    p: 4,
+    borderRadius: 2,
+    border: '1px solid',
+    borderColor: theme.palette.divider,
+    bgcolor: alpha(theme.palette.background.paper, theme.palette.mode === 'dark' ? 0.3 : 0.8),
+    backdropFilter: 'blur(20px)',
+    boxShadow: theme.palette.mode === 'dark'
+      ? `0 20px 50px -20px ${alpha('#000', 0.4)}`
+      : `0 10px 30px -15px ${alpha(theme.palette.common.black, 0.1)}`
   }),
-  barChartCard: (theme: Theme) => ({
-    p: 3,
-    borderRadius: 3,
-    boxShadow: theme.shadows[2],
-    border: `1px solid ${theme.palette.divider}`,
-    height: '100%',
-    minHeight: 400
-  }),
-  exerciseSelect: { minWidth: 200 },
-  selectControl: { borderRadius: 2 },
+  bentoGrid: {
+    display: 'grid',
+    gridTemplateColumns: { xs: '1fr', lg: '1fr 1fr' },
+    gap: 4,
+    mb: 8
+  },
   prCard: (theme: Theme) => ({
-    borderRadius: 3,
-    border: `1px solid ${alpha(theme.palette.secondary.main, 0.2)}`,
-    background: alpha(theme.palette.background.paper, 0.8),
-    backdropFilter: 'blur(8px)',
-    transition: 'transform 0.2s',
-    '&:hover': { transform: 'translateY(-4px)', boxShadow: theme.shadows[4] }
+    borderRadius: 2,
+    border: '1px solid',
+    borderColor: theme.palette.divider,
+    bgcolor: alpha(theme.palette.background.paper, theme.palette.mode === 'dark' ? 0.3 : 0.8),
+    backdropFilter: 'blur(16px)',
+    p: 4,
+    transition: 'all 0.4s cubic-bezier(0.16, 1, 0.3, 1)',
+    '&:hover': {
+      borderColor: theme.palette.secondary.main,
+      transform: 'translateY(-5px)',
+      boxShadow: `0 15px 40px -15px ${alpha(theme.palette.secondary.main, 0.2)}`
+    }
   }),
-  prTitle: { mr: 1, color: 'warning.main', fontSize: 20 },
-  prValue: { display: 'flex', alignItems: 'baseline', gap: 0.5 },
-  prUnit: { opacity: 0.7, fontWeight: 600 },
-  prDetail: { mt: 1, display: 'flex', alignItems: 'center', gap: 0.5 },
-  dialogPaper: { borderRadius: 3 },
-  dialogTitle: { pb: 1 },
-  textFieldInput: { borderRadius: 2 },
-  measurementTitle: { mt: 1, fontWeight: 600 },
-  dialogActions: { p: 3, gap: 1 },
-  genericButton: { borderRadius: 2, fontWeight: 600 }
+  tooltipContainer: (theme: Theme) => ({
+    bgcolor: alpha(theme.palette.background.paper, 0.95),
+    backdropFilter: 'blur(10px)',
+    p: 2,
+    border: `1px solid ${theme.palette.divider}`,
+    borderRadius: 1.5,
+    boxShadow: theme.palette.mode === 'dark'
+      ? `0 10px 30px rgba(0,0,0,0.5)`
+      : `0 10px 30px rgba(0,0,0,0.1)`
+  }),
+  dialogPaper: (theme: Theme) => ({
+    borderRadius: 2,
+    bgcolor: 'background.paper',
+    backgroundImage: theme.palette.mode === 'dark'
+      ? `linear-gradient(rgba(6, 9, 15, 0.8), rgba(6, 9, 15, 1))`
+      : 'none',
+    border: `1px solid ${theme.palette.divider}`,
+    overflow: 'hidden'
+  }),
+  actionButton: {
+    borderRadius: 0,
+    fontWeight: 900,
+    letterSpacing: '1px',
+    py: 2,
+    px: 4,
+    transition: 'all 0.3s ease'
+  },
+  selectControl: (theme: Theme) => ({
+    borderRadius: 0,
+    '& .MuiOutlinedInput-notchedOutline': {
+      borderColor: theme.palette.divider
+    },
+    '&:hover .MuiOutlinedInput-notchedOutline': {
+      borderColor: 'primary.main'
+    },
+    bgcolor: alpha(theme.palette.text.primary, 0.03)
+  }),
+  prGrid: {
+    display: 'grid',
+    gridTemplateColumns: { xs: '1fr', sm: '1fr 1fr', md: 'repeat(3, 1fr)' },
+    gap: 3
+  },
+  anatomyGrid: {
+    display: 'grid',
+    gridTemplateColumns: 'repeat(2, 1fr)',
+    gap: 2
+  }
 };
 
-const StatCard = ({ title, value, unit, icon: Icon, color }: { title: string, value: string | number, unit?: string, icon: React.ElementType, color: string }) => (
-  <Card sx={styles.statCard(color)}>
-    <Box sx={styles.statIconBackground()}>
-      <Icon sx={styles.statIconLarge(color)} />
-    </Box>
-    <CardContent sx={{ p: 3 }}>
-      <Box display="flex" alignItems="center" mb={2}>
-        <Box sx={styles.iconWrapper(color)}>
-          <Icon sx={styles.iconSmall} />
+const StatCard = ({ title, value, unit, icon: Icon, color }: { title: string, value: string | number, unit?: string, icon: React.ElementType, color: string }) => {
+  const theme = useTheme();
+  return (
+    <Card sx={styles.statCard(theme)}>
+      <CardContent sx={{ p: 4 }}>
+        <Box sx={styles.statIconWrapper(color)}>
+          <Icon sx={{ fontSize: '1.5rem' }} />
         </Box>
-        <Typography variant="subtitle2" color="text.secondary" fontWeight={600} sx={styles.statTitle}>
+        <Typography variant="overline" color="text.secondary" fontWeight={900} letterSpacing={3} sx={{ display: 'block', mb: 1, opacity: 0.6 }}>
           {title}
         </Typography>
-      </Box>
-      <Box display="flex" alignItems="baseline" gap={0.5}>
-        <Typography variant="h3" fontWeight={800} sx={styles.statValue}>
-          {value}
-        </Typography>
-        {unit && (
-          <Typography variant="h6" color="text.secondary" fontWeight={600}>
-            {unit}
+        <Box display="flex" alignItems="baseline" gap={1}>
+          <Typography variant="h3" fontWeight={950} sx={{ letterSpacing: '-2px', color: 'text.primary' }}>
+            {value}
           </Typography>
-        )}
-      </Box>
-    </CardContent>
-  </Card>
-);
+          {unit && (
+            <Typography variant="h6" sx={{ fontWeight: 900, color: 'primary.main', opacity: 0.8, letterSpacing: '1px' }}>
+              {unit.toUpperCase()}
+            </Typography>
+          )}
+        </Box>
+      </CardContent>
+    </Card>
+  );
+};
 
-interface CustomTooltipProps {
-  active?: boolean;
-  payload?: Array<{
-    name: string;
-    value: string | number;
-    color?: string;
-  }>;
-  label?: string | number;
-}
-
-const CustomTooltip = ({ active, payload, label }: CustomTooltipProps) => {
+const CustomTooltip = ({ active, payload, label }: any) => {
   const theme = useTheme();
   if (active && payload && payload.length) {
     return (
       <Box sx={styles.tooltipContainer(theme)}>
-        <Typography variant="subtitle2" fontWeight={700} mb={1}>{label}</Typography>
-        {payload.map((entry, index) => (
-          <Box key={index} display="flex" alignItems="center" gap={1} mb={0.5}>
-            <Box sx={styles.tooltipMarker(entry.color || theme.palette.primary.main)} />
-            <Typography variant="body2" color="text.primary">
-              {entry.name}: <span style={{ fontWeight: 600 }}>{entry.value}</span>
+        <Typography variant="overline" fontWeight={900} letterSpacing={2} sx={{ color: 'primary.main', display: 'block', mb: 1 }}>
+          {label}
+        </Typography>
+        {payload.map((entry: any, index: number) => (
+          <Box key={index} display="flex" alignItems="center" gap={2} mb={0.5}>
+            <Box sx={{ width: 8, height: 8, borderRadius: '50%', bgcolor: entry.color }} />
+            <Typography variant="body2" sx={{ color: 'text.primary', fontWeight: 700 }}>
+              {entry.name.toUpperCase()}: <span style={{ color: entry.color }}>{entry.value}</span>
             </Typography>
           </Box>
         ))}
@@ -200,6 +278,7 @@ const CustomTooltip = ({ active, payload, label }: CustomTooltipProps) => {
 
 export default function ProgressPage() {
   const theme = useTheme();
+  const { showToast } = useToast();
   const [metrics, setMetrics] = useState<BodyMetric[]>([]);
   const [records, setRecords] = useState<Record<string, PersonalRecord>>({});
   const [streak, setStreak] = useState(0);
@@ -234,7 +313,6 @@ export default function ProgressPage() {
       setStreak(streakRes.data.streak);
       setAnalytics(analyticsRes.data.analytics);
 
-      // Auto-select first exercise for progression chart
       const exercises = Object.keys(analyticsRes.data.analytics.exerciseProgression);
       if (exercises.length > 0 && !selectedExercise) {
         setSelectedExercise(exercises[0]);
@@ -260,9 +338,11 @@ export default function ProgressPage() {
       });
       setOpenAddMetric(false);
       fetchData();
+      showToast('Metrics evolved successfully', 'success');
       setNewMetric({ weight: '', bodyFatPercentage: '', neck: '', chest: '', waist: '', hips: '', biceps: '', thighs: '' });
     } catch (error) {
       console.error('Failed to add metric:', error);
+      showToast('Evolution failed', 'error');
     }
   };
 
@@ -270,260 +350,254 @@ export default function ProgressPage() {
     date: new Date(m.updatedAt || m.date).toLocaleDateString(),
     weight: m.weight,
     bodyFat: m.bodyFatPercentage,
-    neck: m.measurements?.neck,
-    chest: m.measurements?.chest,
-    waist: m.measurements?.waist,
-    hips: m.measurements?.hips,
-    biceps: m.measurements?.biceps,
-    thighs: m.measurements?.thighs,
-  })).reverse(); // Show oldest to newest for trend
+  })).reverse();
 
   return (
     <Box component={motion.div} variants={containerVariants} initial="hidden" animate="visible" sx={styles.pageContainer}>
-      <Box display="flex" justifyContent="space-between" alignItems="center" mb={5} flexWrap="wrap" gap={2}>
+      {/* Cinematic Hero */}
+      <Box sx={styles.headerHero(theme)}>
         <Box>
-          <Typography variant="h4" fontWeight={800} sx={styles.headerTitle(theme)}>
-            Progress & Analytics
+          <Typography sx={styles.sectionLabel}>DATA CONQUEST</Typography>
+          <Typography variant="h1" sx={styles.headerTitle(theme)}>
+            DATA <Box component="span">CONQUEST</Box>
           </Typography>
-          <Typography variant="body1" color="text.secondary" fontWeight={400} mt={0.5}>
-            Visualize your fitness journey and milestones.
+          <Typography variant="h6" sx={{ color: 'text.secondary', maxWidth: 600, fontWeight: 400, lineHeight: 1.6, opacity: 0.8 }}>
+            Quantify your greatness. Every metric is a testament to your discipline, verified by the elite FITNESS STUDIO performance engine.
           </Typography>
         </Box>
         <Button
           variant="contained"
           startIcon={<AddIcon />}
           onClick={() => setOpenAddMetric(true)}
-          sx={styles.addMetricsButton(theme)}
+          sx={{ ...styles.actionButton, bgcolor: 'primary.main', color: 'primary.contrastText' }}
         >
-          Add Metrics
+          LOG EVOLUTION
         </Button>
       </Box>
 
-      <Box display="grid" gridTemplateColumns={{ xs: '1fr', sm: '1fr 1fr', md: 'repeat(4, 1fr)' }} gap={3} mb={6}>
-        <motion.div variants={itemVariants}>
-          <StatCard
-            title="Workout Streak"
-            value={streak}
-            unit="days"
-            icon={TimelineIcon}
-            color="#facc15"
-          />
-        </motion.div>
-        <motion.div variants={itemVariants}>
-          <StatCard
-            title="Current Weight"
-            value={metrics[0]?.weight?.toFixed(2) || 'N/A'}
-            unit={metrics[0]?.weight?.toFixed(2) ? 'lbs' : ''}
-            icon={ChartIcon}
-            color={theme.palette.primary.main}
-          />
-        </motion.div>
-        <motion.div variants={itemVariants}>
-          <StatCard
-            title="Body Fat %"
-            value={metrics[0]?.bodyFatPercentage?.toFixed(2) || 'N/A'}
-            unit={metrics[0]?.bodyFatPercentage?.toFixed(2) ? '%' : ''}
-            icon={RulerIcon}
-            color={theme.palette.info.main}
-          />
-        </motion.div>
-        <motion.div variants={itemVariants}>
-          <StatCard
-            title="Personal Records"
-            value={Object.keys(records).length}
-            icon={TrophyIcon}
-            color={theme.palette.secondary.main}
-          />
-        </motion.div>
-      </Box>
-
-      <Typography variant="h5" fontWeight={800} gutterBottom mb={3}>
-        Weight & Body Fat Progress
-      </Typography>
-      <Card sx={styles.chartCard(theme)}>
-        <ResponsiveContainer width="100%" height={350}>
-          <LineChart data={chartData}>
-            <CartesianGrid strokeDasharray="3 3" stroke={alpha(theme.palette.text.secondary, 0.1)} />
-            <XAxis
-              dataKey="date"
-              stroke={theme.palette.text.secondary}
-              tick={{ fill: theme.palette.text.secondary, fontSize: 12 }}
-              tickLine={false}
-              axisLine={false}
-              dy={10}
+      {/* Main Content Area */}
+      <Box sx={styles.contentWrapper}>
+        {/* Stats Grid */}
+        <Typography sx={styles.sectionLabel}>VITAL METRICS</Typography>
+        <Box sx={styles.metricsGrid}>
+          <motion.div variants={itemVariants}>
+            <StatCard
+              title="Kinetic Path"
+              value={streak}
+              unit="days"
+              icon={TimelineIcon}
+              color="#facc15"
             />
-            <YAxis
-              stroke={theme.palette.text.secondary}
-              tick={{ fill: theme.palette.text.secondary, fontSize: 12 }}
-              tickLine={false}
-              axisLine={false}
-              dx={-10}
-            />
-            <Tooltip content={<CustomTooltip />} />
-            <Legend wrapperStyle={{ paddingTop: '20px' }} />
-            <Line
-              type="monotone"
-              dataKey="weight"
-              stroke={theme.palette.primary.main}
-              strokeWidth={3}
-              dot={{ r: 4, fill: theme.palette.primary.main, strokeWidth: 2, stroke: theme.palette.background.paper }}
-              activeDot={{ r: 6 }}
-              name="Weight (lbs)"
-            />
-            <Line
-              type="monotone"
-              dataKey="bodyFat"
-              stroke={theme.palette.info.main}
-              strokeWidth={3}
-              dot={{ r: 4, fill: theme.palette.info.main, strokeWidth: 2, stroke: theme.palette.background.paper }}
-              activeDot={{ r: 6 }}
-              name="Body Fat %"
-            />
-          </LineChart>
-        </ResponsiveContainer>
-      </Card>
-
-      <Box display="grid" gridTemplateColumns={{ xs: '1fr', lg: '1fr 1fr' }} gap={4} mb={6}>
-        <Box>
-          <Typography variant="h5" fontWeight={800} gutterBottom mb={3}>
-            Workout Volume
-          </Typography>
-          <Card sx={styles.barChartCard(theme)}>
-            <ResponsiveContainer width="100%" height="100%">
-              <BarChart data={analytics?.volumeHistory || []}>
-                <CartesianGrid strokeDasharray="3 3" stroke={alpha(theme.palette.text.secondary, 0.1)} vertical={false} />
-                <XAxis
-                  dataKey="date"
-                  tickFormatter={(date) => new Date(date).toLocaleDateString(undefined, { month: 'short', day: 'numeric' })}
-                  stroke={theme.palette.text.secondary}
-                  tick={{ fill: theme.palette.text.secondary, fontSize: 12 }}
-                  tickLine={false}
-                  axisLine={false}
-                  dy={10}
-                />
-                <YAxis
-                  stroke={theme.palette.text.secondary}
-                  tick={{ fill: theme.palette.text.secondary, fontSize: 12 }}
-                  tickLine={false}
-                  axisLine={false}
-                  dx={-10}
-                />
-                <Tooltip content={<CustomTooltip />} />
-                <Bar
-                  dataKey="volume"
-                  fill={theme.palette.primary.main}
-                  name="Total Volume (lbs)"
-                  radius={[6, 6, 0, 0]}
-                  barSize={32}
-                />
-              </BarChart>
-            </ResponsiveContainer>
-          </Card>
-        </Box>
-
-        <Box>
-          <Typography variant="h5" fontWeight={800} gutterBottom mb={3}>
-            Monthly Consistency
-          </Typography>
-          <Card sx={styles.barChartCard(theme)}>
-            <ResponsiveContainer width="100%" height="100%">
-              <BarChart data={analytics?.monthlyConsistency || []} layout="vertical">
-                <CartesianGrid strokeDasharray="3 3" stroke={alpha(theme.palette.text.secondary, 0.1)} horizontal={false} />
-                <XAxis type="number" hide />
-                <YAxis
-                  dataKey="month"
-                  type="category"
-                  stroke={theme.palette.text.secondary}
-                  tick={{ fill: theme.palette.text.secondary, fontSize: 12, fontWeight: 600 }}
-                  tickLine={false}
-                  axisLine={false}
-                  width={80}
-                />
-                <Tooltip content={<CustomTooltip />} />
-                <Bar
-                  dataKey="count"
-                  fill={theme.palette.secondary.main}
-                  name="Workouts"
-                  radius={[0, 4, 4, 0]}
-                  barSize={24}
-                />
-              </BarChart>
-            </ResponsiveContainer>
-          </Card>
-        </Box>
-      </Box>
-
-      <Box display="flex" justifyContent="space-between" alignItems="center" mb={3} mt={4}>
-        <Typography variant="h5" fontWeight={800}>Exercise Progression</Typography>
-        <FormControl size="small" sx={styles.exerciseSelect}>
-          <InputLabel>Select Exercise</InputLabel>
-          <Select
-            value={selectedExercise}
-            label="Select Exercise"
-            onChange={(e) => setSelectedExercise(e.target.value)}
-            sx={styles.selectControl}
-          >
-            {Object.keys(analytics?.exerciseProgression || {}).map(ex => (
-              <MenuItem key={ex} value={ex}>{ex}</MenuItem>
-            ))}
-          </Select>
-        </FormControl>
-      </Box>
-      <Card sx={styles.chartCard(theme)}>
-        <ResponsiveContainer width="100%" height={350}>
-          <LineChart data={analytics?.exerciseProgression[selectedExercise] || []}>
-            <CartesianGrid strokeDasharray="3 3" stroke={alpha(theme.palette.text.secondary, 0.1)} />
-            <XAxis
-              dataKey="date"
-              tickFormatter={(date) => new Date(date).toLocaleDateString()}
-              stroke={theme.palette.text.secondary}
-              tickLine={false}
-              axisLine={false}
-              dy={10}
-            />
-            <YAxis
-              stroke={theme.palette.text.secondary}
-              tickLine={false}
-              axisLine={false}
-              dx={-10}
-            />
-            <Tooltip content={<CustomTooltip />} />
-            <Legend wrapperStyle={{ paddingTop: '20px' }} />
-            <Line
-              type="monotone"
-              dataKey="weight"
-              stroke={theme.palette.warning.main}
-              name="Max weight (lbs)"
-              strokeWidth={3}
-              dot={{ r: 4, fill: theme.palette.warning.main, strokeWidth: 2, stroke: theme.palette.background.paper }}
-              activeDot={{ r: 6 }}
-            />
-          </LineChart>
-        </ResponsiveContainer>
-      </Card>
-
-      <Typography variant="h5" fontWeight={800} gutterBottom mb={3}>
-        Personal Records
-      </Typography>
-      <Box display="grid" gridTemplateColumns={{ xs: '1fr', sm: '1fr 1fr', md: 'repeat(3, 1fr)' }} gap={3}>
-        {Object.entries(records).map(([exercise, record]: [string, PersonalRecord]) => (
-          <motion.div variants={itemVariants} key={exercise}>
-            <Card sx={styles.prCard(theme)}>
-              <CardContent>
-                <Box display="flex" alignItems="center" mb={1.5}>
-                  <TrophyIcon sx={styles.prTitle} />
-                  <Typography variant="subtitle1" fontWeight={700} noWrap>{exercise}</Typography>
-                </Box>
-                <Typography variant="h4" fontWeight={800} color="secondary.main" sx={styles.prValue}>
-                  {record.weight} <Typography variant="caption" sx={styles.prUnit}>lbs</Typography>
-                </Typography>
-                <Typography variant="body2" color="text.secondary" sx={styles.prDetail}>
-                  {record.reps} reps • {new Date(record.date).toLocaleDateString(undefined, { month: 'short', day: 'numeric', year: 'numeric' })}
-                </Typography>
-              </CardContent>
-            </Card>
           </motion.div>
-        ))}
+          <motion.div variants={itemVariants}>
+            <StatCard
+              title="Core Mass"
+              value={metrics[0]?.weight?.toFixed(1) || 'N/A'}
+              unit={metrics[0]?.weight ? 'lbs' : ''}
+              icon={FitnessIcon}
+              color={theme.palette.primary.main}
+            />
+          </motion.div>
+          <motion.div variants={itemVariants}>
+            <StatCard
+              title="Density Index"
+              value={metrics[0]?.bodyFatPercentage?.toFixed(1) || 'N/A'}
+              unit={metrics[0]?.bodyFatPercentage ? '%' : ''}
+              icon={RulerIcon}
+              color={theme.palette.info.main}
+            />
+          </motion.div>
+          <motion.div variants={itemVariants}>
+            <StatCard
+              title="Hall of Fame"
+              value={Object.keys(records).length}
+              unit="achievements"
+              icon={TrophyIcon}
+              color={theme.palette.secondary.main}
+            />
+          </motion.div>
+        </Box>
+
+        {/* Main Progression Chart */}
+        <Typography sx={styles.sectionLabel}>MASS EVOLUTION</Typography>
+        <Card sx={styles.chartCard(theme)}>
+          <ResponsiveContainer width="100%" height={400}>
+            <LineChart data={chartData}>
+              <CartesianGrid strokeDasharray="3 3" stroke={alpha(theme.palette.text.secondary, 0.05)} vertical={false} />
+              <XAxis
+                dataKey="date"
+                stroke={alpha(theme.palette.text.primary, 0.3)}
+                tick={{ fill: alpha(theme.palette.text.primary, 0.5), fontSize: 10, fontWeight: 700 }}
+                axisLine={false}
+                tickLine={false}
+                dy={15}
+              />
+              <YAxis
+                stroke={alpha(theme.palette.text.primary, 0.3)}
+                tick={{ fill: alpha(theme.palette.text.primary, 0.5), fontSize: 10, fontWeight: 700 }}
+                axisLine={false}
+                tickLine={false}
+                dx={-15}
+              />
+              <Tooltip content={<CustomTooltip />} />
+              <Legend verticalAlign="top" height={60} />
+              <Line
+                type="monotone"
+                dataKey="weight"
+                stroke={theme.palette.primary.main}
+                strokeWidth={4}
+                dot={{ r: 6, fill: theme.palette.primary.main, strokeWidth: 0 }}
+                activeDot={{ r: 10, fill: '#fff', strokeWidth: 4, stroke: theme.palette.primary.main }}
+                name="Weight Evolution"
+              />
+              <Line
+                type="monotone"
+                dataKey="bodyFat"
+                stroke={theme.palette.info.main}
+                strokeWidth={4}
+                dot={{ r: 6, fill: theme.palette.info.main, strokeWidth: 0 }}
+                activeDot={{ r: 10, fill: '#fff', strokeWidth: 4, stroke: theme.palette.info.main }}
+                name="Body Fat Transformation"
+              />
+            </LineChart>
+          </ResponsiveContainer>
+        </Card>
+
+        {/* Bento Grid Analytics */}
+        <Box sx={styles.bentoGrid}>
+          <Box>
+            <Typography sx={styles.sectionLabel}>VOLUME INTEL</Typography>
+            <Card sx={styles.chartCard(theme)}>
+              <ResponsiveContainer width="100%" height={350}>
+                <BarChart data={analytics?.volumeHistory || []}>
+                  <XAxis
+                    dataKey="date"
+                    tickFormatter={(date) => new Date(date).toLocaleDateString(undefined, { month: 'short', day: 'numeric' })}
+                    stroke={alpha(theme.palette.text.primary, 0.3)}
+                    tick={{ fill: alpha(theme.palette.text.primary, 0.5), fontSize: 10, fontWeight: 700 }}
+                    axisLine={false}
+                    tickLine={false}
+                    dy={15}
+                  />
+                  <YAxis hide />
+                  <Tooltip content={<CustomTooltip />} cursor={{ fill: alpha(theme.palette.text.primary, 0.05) }} />
+                  <Bar
+                    dataKey="volume"
+                    fill={theme.palette.primary.main}
+                    radius={[4, 4, 0, 0]}
+                    name="Session Volume"
+                    barSize={40}
+                  />
+                </BarChart>
+              </ResponsiveContainer>
+            </Card>
+          </Box>
+
+          <Box>
+            <Typography sx={styles.sectionLabel}>CONSISTENCY RECORD</Typography>
+            <Card sx={styles.chartCard(theme)}>
+              <ResponsiveContainer width="100%" height={350}>
+                <BarChart data={analytics?.monthlyConsistency || []} layout="vertical">
+                  <XAxis type="number" hide />
+                  <YAxis
+                    dataKey="month"
+                    type="category"
+                    stroke={alpha(theme.palette.text.primary, 0.5)}
+                    tick={{ fill: alpha(theme.palette.text.primary, 0.6), fontSize: 11, fontWeight: 900 }}
+                    axisLine={false}
+                    tickLine={false}
+                    width={80}
+                  />
+                  <Tooltip content={<CustomTooltip />} cursor={{ fill: alpha(theme.palette.text.primary, 0.05) }} />
+                  <Bar
+                    dataKey="count"
+                    fill={theme.palette.secondary.main}
+                    radius={[0, 4, 4, 0]}
+                    name="Missions Completed"
+                    barSize={24}
+                  />
+                </BarChart>
+              </ResponsiveContainer>
+            </Card>
+          </Box>
+        </Box>
+
+        {/* Exercise Progression */}
+        <Box display="flex" justifyContent="space-between" alignItems="flex-end" mb={4}>
+          <Typography sx={styles.sectionLabel} mb={0}>EXERCISE TRAJECTORY</Typography>
+          <FormControl size="small" sx={{ minWidth: 200 }}>
+            <Select
+              value={selectedExercise}
+              onChange={(e) => setSelectedExercise(e.target.value)}
+              sx={styles.selectControl(theme)}
+            >
+              {Object.keys(analytics?.exerciseProgression || {}).map(ex => (
+                <MenuItem key={ex} value={ex}>{ex.toUpperCase()}</MenuItem>
+              ))}
+            </Select>
+          </FormControl>
+        </Box>
+        <Card sx={styles.chartCard(theme)}>
+          <ResponsiveContainer width="100%" height={350}>
+            <LineChart data={analytics?.exerciseProgression[selectedExercise] || []}>
+              <CartesianGrid strokeDasharray="3 3" stroke={alpha(theme.palette.text.secondary, 0.05)} vertical={false} />
+              <XAxis
+                dataKey="date"
+                tickFormatter={(date) => new Date(date).toLocaleDateString()}
+                stroke={alpha(theme.palette.text.primary, 0.3)}
+                tick={{ fill: alpha(theme.palette.text.primary, 0.5), fontSize: 10, fontWeight: 700 }}
+                axisLine={false}
+                tickLine={false}
+                dy={15}
+              />
+              <YAxis
+                stroke={alpha(theme.palette.text.primary, 0.3)}
+                tick={{ fill: alpha(theme.palette.text.primary, 0.5), fontSize: 10, fontWeight: 700 }}
+                axisLine={false}
+                tickLine={false}
+                dx={-15}
+              />
+              <Tooltip content={<CustomTooltip />} />
+              <Line
+                type="monotone"
+                dataKey="weight"
+                stroke={theme.palette.warning.main}
+                strokeWidth={4}
+                dot={{ r: 6, fill: theme.palette.warning.main, strokeWidth: 0 }}
+                activeDot={{ r: 10, fill: '#fff', strokeWidth: 4, stroke: theme.palette.warning.main }}
+                name="Max Payload (lbs)"
+              />
+            </LineChart>
+          </ResponsiveContainer>
+        </Card>
+
+        {/* PR Cards */}
+        <Typography sx={styles.sectionLabel}>ARCHIVED BREAKTHROUGHS</Typography>
+        <Box sx={styles.prGrid}>
+          {Object.entries(records).map(([exercise, record]: [string, PersonalRecord]) => (
+            <Box key={exercise}>
+              <motion.div variants={itemVariants}>
+                <Card sx={styles.prCard(theme)}>
+                  <Box display="flex" alignItems="center" gap={2} mb={3}>
+                    <TrophyIcon sx={{ color: 'warning.main', fontSize: '1.5rem' }} />
+                    <Typography variant="h6" fontWeight={900} sx={{ letterSpacing: '-0.5px' }}>
+                      {exercise.toUpperCase()}
+                    </Typography>
+                  </Box>
+                  <Typography variant="h3" fontWeight={950} sx={{ color: 'text.primary', letterSpacing: '-2px', mb: 1 }}>
+                    {record.weight} <Typography variant="h6" component="span" sx={{ fontWeight: 900, opacity: 0.5 }}>LBS</Typography>
+                  </Typography>
+                  <Typography variant="overline" sx={{ color: 'secondary.main', fontWeight: 900, letterSpacing: '2px' }}>
+                    {record.reps} REPS VOLUME
+                  </Typography>
+                  <Typography variant="body2" sx={{ color: 'text.secondary', mt: 1, fontWeight: 600, opacity: 0.6 }}>
+                    RECORDED {new Date(record.date).toLocaleDateString().toUpperCase()}
+                  </Typography>
+                </Card>
+              </motion.div>
+            </Box>
+          ))}
+        </Box>
       </Box>
 
       {/* Add Metric Dialog */}
@@ -532,53 +606,68 @@ export default function ProgressPage() {
         onClose={() => setOpenAddMetric(false)}
         maxWidth="sm"
         fullWidth
-        PaperProps={{ sx: styles.dialogPaper }}
+        PaperProps={{ sx: styles.dialogPaper(theme) }}
       >
-        <DialogTitle component="div" sx={styles.dialogTitle}>
-          <Typography variant="h5" fontWeight={700}>Add Body Metrics</Typography>
+        <DialogTitle sx={{ p: 4, pb: 2 }}>
+          <Typography sx={styles.sectionLabel} mb={1}>EVOLUTION ARCHIVE</Typography>
+          <Typography variant="h4" fontWeight={950} sx={{ letterSpacing: '-1.5px', color: 'text.primary' }}>
+            ADD BODY <Box component="span" sx={{ color: 'primary.main' }}>METRICS</Box>
+          </Typography>
         </DialogTitle>
-        <DialogContent>
-          <Box display="flex" flexDirection="column" gap={2} mt={1}>
-            <Box display="flex" gap={2}>
+        <DialogContent sx={{ px: 4, py: 2 }}>
+          <Stack spacing={4}>
+            <Box display="flex" gap={3}>
               <TextField
                 fullWidth
-                label="Weight (lbs)"
+                label="CURRENT MASS (LBS)"
+                variant="outlined"
                 type="number"
                 value={newMetric.weight}
                 onChange={(e) => setNewMetric({ ...newMetric, weight: e.target.value })}
-                InputProps={{ sx: styles.textFieldInput }}
+                sx={styles.selectControl(theme)}
               />
               <TextField
                 fullWidth
-                label="Body Fat %"
+                label="DENSITY % (BODY FAT)"
+                variant="outlined"
                 type="number"
                 value={newMetric.bodyFatPercentage}
                 onChange={(e) => setNewMetric({ ...newMetric, bodyFatPercentage: e.target.value })}
-                InputProps={{ sx: styles.textFieldInput }}
+                sx={styles.selectControl(theme)}
               />
             </Box>
-            <Typography variant="subtitle2" color="primary" sx={styles.measurementTitle}>
-              MEASUREMENTS (INCHES)
-            </Typography>
-            <Box display="grid" gridTemplateColumns="1fr 1fr" gap={2}>
-              {['neck', 'chest', 'waist', 'hips', 'biceps', 'thighs'].map((field) => (
-                <TextField
-                  key={field}
-                  label={field.charAt(0).toUpperCase() + field.slice(1)}
-                  type="number"
-                  value={newMetric[field as keyof typeof newMetric]}
-                  onChange={(e) => setNewMetric({ ...newMetric, [field]: e.target.value })}
-                  InputProps={{ sx: styles.textFieldInput }}
-                  size="small"
-                />
-              ))}
+
+            <Box>
+              <Typography variant="overline" sx={{ color: 'primary.main', fontWeight: 900, letterSpacing: '4px', mb: 2, display: 'block' }}>
+                ANATOMICAL MEASUREMENTS (IN)
+              </Typography>
+              <Box sx={styles.anatomyGrid}>
+                {['neck', 'chest', 'waist', 'hips', 'biceps', 'thighs'].map((field) => (
+                  <Box key={field}>
+                    <TextField
+                      fullWidth
+                      label={field.toUpperCase()}
+                      variant="outlined"
+                      type="number"
+                      value={newMetric[field as keyof typeof newMetric]}
+                      onChange={(e) => setNewMetric({ ...newMetric, [field]: e.target.value })}
+                      sx={styles.selectControl(theme)}
+                      size="small"
+                    />
+                  </Box>
+                ))}
+              </Box>
             </Box>
-          </Box>
+          </Stack>
         </DialogContent>
-        <DialogActions sx={styles.dialogActions}>
-          <Button onClick={() => setOpenAddMetric(false)} sx={styles.genericButton} color="inherit">Cancel</Button>
-          <Button variant="contained" onClick={handleAddMetric} sx={styles.genericButton}>
-            Save Metrics
+        <DialogActions sx={{ p: 4, pt: 2 }}>
+          <Button onClick={() => setOpenAddMetric(false)} color="inherit" sx={{ fontWeight: 900 }}>ABORT</Button>
+          <Button
+            variant="contained"
+            onClick={handleAddMetric}
+            sx={{ ...styles.actionButton, bgcolor: 'primary.main', color: 'primary.contrastText', px: 6 }}
+          >
+            COMMIT DATA
           </Button>
         </DialogActions>
       </Dialog>
