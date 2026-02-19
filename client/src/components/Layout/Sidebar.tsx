@@ -1,4 +1,4 @@
-import { Box, Drawer, List, ListItem, ListItemButton, ListItemIcon, ListItemText, Avatar, Typography, Chip, alpha } from '@mui/material';
+import { Box, Drawer, List, ListItem, ListItemButton, ListItemIcon, ListItemText, Typography, alpha } from '@mui/material';
 import type { Theme } from '@mui/material';
 import { NavLink } from 'react-router-dom';
 import React from 'react';
@@ -15,6 +15,8 @@ import TrendingUpIcon from '@mui/icons-material/TrendingUp';
 import BookmarkIcon from '@mui/icons-material/Bookmark';
 import { useAuth } from '../../context/AuthContext';
 import { motion } from 'framer-motion';
+import { Logo } from '../common/Logo';
+import { useNavigate } from 'react-router-dom';
 
 export const drawerWidth = 280;
 
@@ -46,64 +48,54 @@ const menuItems: MenuItem[] = [
 
 export default function Sidebar({ mobileOpen, handleDrawerToggle }: SidebarProps) {
   const { user } = useAuth();
+  const navigate = useNavigate();
   const userRole = user?.role || 'MEMBER';
 
   const filteredItems = menuItems.filter(item => !item.roles || item.roles.includes(userRole));
 
   const drawerContent = (
     <Box sx={styles.content}>
-      <Box sx={styles.toolbar}>
-        <Box sx={styles.logoContainer}>
-          <motion.div
-            initial={{ scale: 0.8, opacity: 0 }}
-            animate={{ scale: 1, opacity: 1 }}
-            transition={{ duration: 0.5 }}
-          >
-            <Avatar
-              src={sessionStorage.getItem('profileImage') || user?.profileImage}
-              sx={styles.avatar}
+      <Box
+        onClick={() => {
+          navigate('/');
+          if (mobileOpen) handleDrawerToggle();
+        }}
+        sx={styles.logoWrapper}
+      >
+        <Logo size="small" />
+      </Box>
+      <Box sx={styles.listContainer}>
+        <Typography variant="caption" sx={styles.sectionHeader}>
+          Main Menu
+        </Typography>
+        <List sx={styles.list}>
+          {filteredItems.map((item, index) => (
+            <motion.div
+              key={item.text}
+              initial={{ x: -20, opacity: 0 }}
+              animate={{ x: 0, opacity: 1 }}
+              transition={{ delay: index * 0.05 }}
             >
-              {user?.fullName?.charAt(0) || 'U'}
-            </Avatar>
-          </motion.div>
-
-          <Box textAlign="center">
-            <Typography variant="subtitle1" sx={styles.userName} noWrap>
-              {user?.fullName || 'User'}
-            </Typography>
-            <Chip
-              label={userRole.replace('_', ' ')}
-              size="small"
-              sx={styles.roleChip}
-            />
-          </Box>
-        </Box>
+              <ListItem disablePadding sx={styles.listItem}>
+                <ListItemButton
+                  component={NavLink}
+                  to={item.path}
+                  onClick={() => mobileOpen && handleDrawerToggle()}
+                  sx={styles.navLink}
+                >
+                  <ListItemIcon sx={styles.icon}>{item.icon}</ListItemIcon>
+                  <ListItemText
+                    primary={item.text}
+                    primaryTypographyProps={{ sx: styles.listItemText }}
+                  />
+                </ListItemButton>
+              </ListItem>
+            </motion.div>
+          ))}
+        </List>
       </Box>
 
-      <List sx={styles.list}>
-        {filteredItems.map((item, index) => (
-          <motion.div
-            key={item.text}
-            initial={{ x: -20, opacity: 0 }}
-            animate={{ x: 0, opacity: 1 }}
-            transition={{ delay: index * 0.05 }}
-          >
-            <ListItem disablePadding sx={styles.listItem}>
-              <ListItemButton
-                component={NavLink}
-                to={item.path}
-                onClick={() => mobileOpen && handleDrawerToggle()}
-                sx={styles.navLink}
-              >
-                <ListItemIcon>{item.icon}</ListItemIcon>
-                <ListItemText primary={item.text} />
-              </ListItemButton>
-            </ListItem>
-          </motion.div>
-        ))}
-      </List>
-
-      <Box sx={styles.footer}>
+      <Box sx={styles.sidebarFooter}>
         <Typography sx={styles.version}>
           Fitness Platform v1.0.0
         </Typography>
@@ -149,10 +141,10 @@ const styles = {
       boxSizing: 'border-box',
       borderRight: '1px solid',
       borderColor: (theme: Theme) => theme.palette.mode === 'dark' ? alpha('#fff', 0.05) : alpha('#000', 0.05),
-      backgroundColor: 'background.default',
+      backgroundColor: (theme: Theme) => theme.palette.mode === 'dark' ? '#06090F' : '#FDFDFD',
       backgroundImage: (theme: Theme) => theme.palette.mode === 'dark'
-        ? 'linear-gradient(rgba(255, 255, 255, 0.02), rgba(255, 255, 255, 0.01))'
-        : 'linear-gradient(rgba(0, 0, 0, 0.01), rgba(0, 0, 0, 0.005))',
+        ? 'linear-gradient(rgba(255, 255, 255, 0.01), rgba(255, 255, 255, 0))'
+        : 'none',
     },
   },
   content: {
@@ -160,58 +152,25 @@ const styles = {
     display: 'flex',
     flexDirection: 'column',
     position: 'relative',
-    overflow: 'hidden',
   },
-  toolbar: {
+  logoWrapper: {
+    height: 70, // Match AppBar height
     display: 'flex',
-    flexDirection: 'column',
     alignItems: 'center',
-    justifyContent: 'center',
-    py: 4,
-    gap: 2,
-    background: (theme: Theme) => `linear-gradient(to bottom, ${alpha(theme.palette.primary.main, 0.05)}, transparent)`,
-  },
-  logoContainer: {
-    marginTop: '64px',
-    display: 'flex',
-    flexDirection: 'column',
-    alignItems: 'center',
-    gap: 1.5,
-  },
-  avatar: {
-    width: 64,
-    height: 64,
-    border: (theme: Theme) => `2px solid ${theme.palette.primary.main}`,
-    boxShadow: (theme: Theme) => `0 0 20px ${alpha(theme.palette.primary.main, 0.3)}`,
-    mb: 1,
+    px: 3,
     cursor: 'pointer',
-    transition: 'transform 0.3s ease',
+    borderBottom: '1px solid',
+    borderColor: (theme: Theme) => theme.palette.mode === 'dark' ? alpha('#fff', 0.05) : alpha('#000', 0.05),
+    transition: 'background-color 0.2s',
     '&:hover': {
-      transform: 'scale(1.05)',
+      bgcolor: (theme: Theme) => alpha(theme.palette.primary.main, 0.02),
     }
   },
-  userName: {
-    fontWeight: 800,
-    letterSpacing: '0.5px',
-    color: 'text.primary',
-    mb: 0.5,
-  },
-  roleChip: {
-    fontSize: '0.65rem',
-    fontWeight: 800,
-    height: 20,
-    borderRadius: 1,
-    textTransform: 'uppercase',
-    letterSpacing: '1px',
-    bgcolor: (theme: Theme) => alpha(theme.palette.primary.main, 0.5),
-    color: 'primary.main',
-    border: (theme: Theme) => `1px solid ${alpha(theme.palette.primary.main, 0.2)}`,
-  },
-  list: {
-    px: 2,
-    pt: 2,
+  listContainer: {
     flexGrow: 1,
     overflowY: 'auto',
+    px: 2,
+    pt: 3,
     scrollbarWidth: 'thin',
     '&::-webkit-scrollbar': { width: 4 },
     '&::-webkit-scrollbar-thumb': {
@@ -219,61 +178,87 @@ const styles = {
       backgroundColor: (theme: Theme) => alpha(theme.palette.primary.main, 0.2),
     },
   },
+  list: {
+    p: 0,
+    display: 'flex',
+    flexDirection: 'column',
+    gap: 0.5,
+  },
+  sectionHeader: {
+    px: 2,
+    mb: 2,
+    display: 'block',
+    fontWeight: 800,
+    letterSpacing: '1.5px',
+    textTransform: 'uppercase',
+    color: 'text.disabled',
+    fontSize: '0.65rem',
+  },
   listItem: {
-    mb: 1,
     px: 0,
   },
   navLink: {
-    borderRadius: '12px',
-    py: 1.2,
+    borderRadius: (theme: Theme) => theme.shape.borderRadius,
+    py: 1.5,
     px: 2,
     color: 'text.secondary',
     transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
     position: 'relative',
-    overflow: 'hidden',
-    '& .MuiListItemIcon-root': {
-      minWidth: 38,
-      color: 'inherit',
-      transition: 'all 0.3s',
-    },
-    '& .MuiListItemText-primary': {
-      fontWeight: 600,
-      fontSize: '0.9rem',
-      letterSpacing: '0.3px',
-    },
     '&.active': {
       color: 'primary.main',
-      bgcolor: (theme: Theme) => alpha(theme.palette.primary.main, 0.08),
-      '&::before': {
+      background: (theme: Theme) => theme.palette.mode === 'dark'
+        ? `linear-gradient(90deg, ${alpha(theme.palette.primary.main, 0.12)} 0%, transparent 100%)`
+        : `linear-gradient(90deg, ${alpha(theme.palette.primary.main, 0.08)} 0%, transparent 100%)`,
+      boxShadow: (theme: Theme) => `inset 4px 0 0 ${theme.palette.primary.main}`,
+      '&::after': {
         content: '""',
         position: 'absolute',
         left: 0,
         top: '20%',
         bottom: '20%',
-        width: 3,
+        width: '4px',
         bgcolor: 'primary.main',
+        boxShadow: (theme: Theme) => `0 0 15px ${alpha(theme.palette.primary.main, 0.6)}`,
         borderRadius: '0 4px 4px 0',
       },
       '& .MuiListItemIcon-root': {
         color: 'primary.main',
         transform: 'scale(1.1)',
       },
+      '& .MuiListItemText-primary': {
+        color: 'text.primary',
+        fontWeight: 700,
+      },
     },
     '&:hover:not(.active)': {
-      bgcolor: (theme: Theme) => alpha(theme.palette.primary.main, 0.04),
+      bgcolor: (theme: Theme) => alpha(theme.palette.primary.main, 0.05),
       color: 'text.primary',
       transform: 'translateX(4px)',
       '& .MuiListItemIcon-root': {
         color: 'primary.main',
-        transform: 'scale(1.1)',
       },
     },
   },
-  footer: {
+  icon: {
+    minWidth: 40,
+    color: 'inherit',
+    transition: 'all 0.3s ease',
+    '& svg': {
+      fontSize: '1.3rem',
+    },
+  },
+  listItemText: {
+    fontWeight: 600,
+    fontSize: '0.925rem',
+    letterSpacing: '0.2px',
+    transition: 'all 0.3s ease',
+  },
+  sidebarFooter: {
     p: 3,
+    mt: 'auto',
     borderTop: '1px solid',
-    borderColor: 'divider',
-    background: (theme: Theme) => alpha(theme.palette.background.paper, 0.5),
+    borderColor: (theme: Theme) => theme.palette.mode === 'dark' ? alpha('#fff', 0.05) : alpha('#000', 0.05),
+    background: (theme: Theme) => alpha(theme.palette.background.paper, 0.3),
   },
   version: {
     fontSize: '0.7rem',

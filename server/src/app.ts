@@ -22,6 +22,7 @@ import membershipRoutes from './modules/memberships/membership.routes.js';
 import ratingRoutes from './modules/ratings/rating.routes.js';
 import notificationRoutes from './modules/notifications/notification.routes.js';
 import dashboardRoutes from './modules/dashboard/dashboard.routes.js';
+import paymentRoutes from './modules/payment/payment.routes.js';
 
 const app: Application = express();
 
@@ -29,7 +30,14 @@ app.use(helmet());
 app.use(cors({ origin: process.env.CORS_ORIGIN || 'http://localhost:5173', credentials: true }));
 app.use(express.json({ limit: '10kb' }));
 app.use(hpp());
+import path from 'path';
+
+// ... existing code
+
 app.use(compression());
+
+// Serve static files
+app.use('/uploads', express.static(path.join(process.cwd(), 'public/uploads')));
 
 const limiter = rateLimit({
   windowMs: 15 * 60 * 1000,
@@ -55,6 +63,7 @@ app.use('/api/v1/memberships', membershipRoutes);
 app.use('/api/v1/ratings', ratingRoutes);
 app.use('/api/v1/notifications', notificationRoutes);
 app.use('/api/v1/dashboard', dashboardRoutes);
+app.use('/api/v1/payments', paymentRoutes);
 
 app.get('/', (_req: Request, res: Response) => {
   res.status(200).json({ status: 'success', message: 'Fitness Platform API Running' });

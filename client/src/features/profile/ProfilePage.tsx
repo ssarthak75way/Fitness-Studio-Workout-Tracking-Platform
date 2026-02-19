@@ -1,68 +1,184 @@
 import { useState, useEffect, useRef } from 'react';
-import { Box, Typography, Paper, Avatar, Chip, Divider, Button, TextField } from '@mui/material';
+import { Box, Typography, Paper, Avatar, Chip, Divider, Button, TextField, useTheme, alpha, Stack, Grid } from '@mui/material';
 import { useAuth } from '../../context/AuthContext';
 import { useToast } from '../../context/ToastContext';
 import { authService } from '../../services/auth.service';
-import { useTheme, alpha } from '@mui/material/styles';
 import type { Theme } from '@mui/material/styles';
 import EditIcon from '@mui/icons-material/Edit';
+import CameraAltIcon from '@mui/icons-material/CameraAlt';
 import EmailIcon from '@mui/icons-material/Email';
 import CalendarTodayIcon from '@mui/icons-material/CalendarToday';
 import VerifiedUserIcon from '@mui/icons-material/VerifiedUser';
-import BadgeIcon from '@mui/icons-material/Badge';
+import PaymentHistory from './PaymentHistory';
+import { motion, type Variants } from 'framer-motion';
+
+const containerVariants: Variants = {
+    hidden: { opacity: 0 },
+    visible: {
+        opacity: 1,
+        transition: { staggerChildren: 0.1 }
+    }
+};
+
+const itemVariants: Variants = {
+    hidden: { y: 20, opacity: 0 },
+    visible: {
+        y: 0,
+        opacity: 1,
+        transition: { type: 'spring', stiffness: 100 }
+    }
+};
 
 const styles = {
     pageContainer: {
-        maxWidth: 1000,
-        mx: 'auto',
-        px: { xs: 2, md: 4 },
-        py: 4
+        p: 0,
+        bgcolor: 'background.default',
+        minHeight: '100vh',
+        display: 'flex',
+        flexDirection: 'column',
+        overflow: 'hidden'
     },
-    headerTitle: (theme: Theme) => ({
-        background: `linear-gradient(45deg, ${theme.palette.primary.main} 30%, ${theme.palette.secondary.main} 90%)`,
-        WebkitBackgroundClip: 'text',
-        WebkitTextFillColor: 'transparent',
-        mb: 1
+    headerHero: (theme: Theme) => ({
+        pt: { xs: 10, md: 14 },
+        pb: { xs: 8, md: 12 },
+        px: { xs: 3, md: 6 },
+        position: 'relative',
+        backgroundImage: theme.palette.mode === 'dark'
+            ? `linear-gradient(rgba(6, 9, 15, 0.75), rgba(6, 9, 15, 1)), url(https://images.unsplash.com/photo-1571019613454-1cb2f99b2d8b?q=80&w=2070&auto=format&fit=crop)`
+            : `linear-gradient(rgba(255, 255, 255, 0.8), rgba(255, 255, 255, 0.95)), url(https://images.unsplash.com/photo-1571019613454-1cb2f99b2d8b?q=80&w=2070&auto=format&fit=crop)`,
+        backgroundSize: 'cover',
+        backgroundPosition: 'center',
+        backgroundAttachment: 'fixed',
+        display: 'flex',
+        justifyContent: 'space-between',
+        alignItems: 'flex-end',
+        flexWrap: 'wrap',
+        gap: 4,
+        borderBottom: `1px solid ${theme.palette.divider}`,
+        '&::before': {
+            content: '"IDENTITY"',
+            position: 'absolute',
+            top: '20%',
+            left: '5%',
+            fontSize: { xs: '5rem', md: '12rem' },
+            fontWeight: 950,
+            color: theme.palette.mode === 'dark' ? alpha('#fff', 0.03) : alpha('#000', 0.03),
+            letterSpacing: '20px',
+            zIndex: 0,
+            pointerEvents: 'none',
+            lineHeight: 0.8
+        }
     }),
+    headerTitle: (theme: Theme) => ({
+        fontWeight: 950,
+        fontSize: { xs: '3.5rem', md: '6rem' },
+        lineHeight: 0.85,
+        letterSpacing: '-4px',
+        color: theme.palette.text.primary,
+        textTransform: 'uppercase',
+        mb: 2,
+        position: 'relative',
+        zIndex: 1,
+        '& span': {
+            color: theme.palette.primary.main,
+            textShadow: theme.palette.mode === 'dark' ? `0 0 40px ${alpha(theme.palette.primary.main, 0.5)}` : 'none'
+        }
+    }),
+    sectionLabel: {
+        color: 'primary.main',
+        fontWeight: 900,
+        letterSpacing: '5px',
+        mb: 4,
+        display: 'block',
+        textTransform: 'uppercase',
+        fontSize: '0.7rem',
+        opacity: 0.8
+    },
+    contentWrapper: {
+        px: { xs: 3, md: 6 },
+        py: { xs: 4, md: 8 },
+        flexGrow: 1,
+        position: 'relative',
+        zIndex: 1
+    },
     userCard: (theme: Theme) => ({
         p: 4,
-        borderRadius: 4,
+        borderRadius: 2,
         textAlign: 'center',
-        boxShadow: theme.shadows[3],
-        background: `linear-gradient(135deg, ${alpha(theme.palette.background.paper, 0.8)} 0%, ${alpha(theme.palette.background.default, 0.9)} 100%)`,
-        backdropFilter: 'blur(20px)',
-        border: `1px solid ${theme.palette.divider}`
+        border: '1px solid',
+        borderColor: theme.palette.divider,
+        bgcolor: alpha(theme.palette.background.paper, theme.palette.mode === 'dark' ? 0.4 : 0.8),
+        backdropFilter: 'blur(24px) saturate(160%)',
+        boxShadow: theme.palette.mode === 'dark'
+            ? `inset 0 0 20px -10px ${alpha('#fff', 0.05)}, 0 10px 30px -15px ${alpha('#000', 0.5)}`
+            : `0 10px 30px -15px ${alpha(theme.palette.common.black, 0.1)}`,
+        transition: 'all 0.5s cubic-bezier(0.16, 1, 0.3, 1)',
+        '&:hover': {
+            borderColor: alpha(theme.palette.primary.main, 0.4),
+            boxShadow: `inset 0 0 30px -10px ${alpha(theme.palette.primary.main, 0.1)}, 0 20px 50px -20px ${alpha(theme.palette.primary.main, 0.4)}`,
+        }
     }),
     avatar: (theme: Theme) => ({
-        width: 120,
-        height: 120,
+        width: 140,
+        height: 140,
         mx: 'auto',
-        mb: 2,
+        mb: 3,
         bgcolor: theme.palette.primary.main,
-        fontSize: '3rem',
-        fontWeight: 700,
-        boxShadow: `0 8px 24px ${alpha(theme.palette.primary.main, 0.3)}`
+        fontSize: '4rem',
+        fontWeight: 950,
+        boxShadow: `0 20px 40px -10px ${alpha(theme.palette.primary.main, 0.5)}`,
+        border: `4px solid ${alpha(theme.palette.text.primary, 0.1)}`
     }),
-    roleChip: { fontWeight: 600, mb: 3 },
-    divider: { my: 3 },
-    infoBox: { display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 1, mb: 1, color: 'text.secondary' },
-    infoBoxAlt: { display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 1, color: 'text.secondary' },
-    editButton: { mt: 4, borderRadius: 2 },
+    roleChip: {
+        fontWeight: 900,
+        mb: 3,
+        borderRadius: 0,
+        letterSpacing: '2px',
+        fontSize: '0.7rem',
+        height: 28
+    },
+    infoBox: {
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        gap: 1.5,
+        mb: 1.5,
+        color: 'text.secondary',
+        fontWeight: 600,
+        fontSize: '0.875rem'
+    },
+    actionButton: {
+        borderRadius: 0,
+        fontWeight: 900,
+        letterSpacing: '2px',
+        py: 1.5,
+        mt: 3,
+        transition: 'all 0.3s ease'
+    },
     detailsCard: (theme: Theme) => ({
         p: 4,
-        borderRadius: 4,
-        boxShadow: theme.shadows[2],
-        height: '100%',
-        border: `1px solid ${theme.palette.divider}`
+        borderRadius: 2,
+        border: '1px solid',
+        borderColor: theme.palette.divider,
+        bgcolor: alpha(theme.palette.background.paper, theme.palette.mode === 'dark' ? 0.3 : 0.7),
+        backdropFilter: 'blur(20px)',
+        boxShadow: theme.palette.mode === 'dark'
+            ? `0 20px 50px -20px ${alpha('#000', 0.4)}`
+            : `0 20px 50px -20px ${alpha(theme.palette.common.black, 0.08)}`
     }),
-    detailsHeader: { display: 'flex', alignItems: 'center', gap: 2, mb: 3 },
-    detailsGrid: { display: 'grid', gridTemplateColumns: { xs: '1fr', sm: '1fr 1fr' }, gap: 3 },
-    statusBox: { display: 'flex', alignItems: 'center', gap: 1 },
-    footerNote: { mt: 6 }
+    inputField: (theme: Theme) => ({
+        '& .MuiOutlinedInput-root': {
+            borderRadius: 0,
+            bgcolor: alpha(theme.palette.text.primary, 0.03),
+            '& fieldset': { borderColor: theme.palette.divider },
+            '&:hover fieldset': { borderColor: 'primary.main' },
+        },
+        '& .MuiInputLabel-root': { fontWeight: 700, letterSpacing: '1px' }
+    })
 };
 
 export default function ProfilePage() {
-    const { user } = useAuth(); // login is restart to update user context
+    const { user, updateUser } = useAuth();
     const theme = useTheme();
     const { showToast } = useToast();
 
@@ -88,13 +204,9 @@ export default function ProfilePage() {
         }
     }, [user]);
 
-    const handleEditClick = () => {
-        setIsEditing(true);
-    };
-
+    const handleEditClick = () => setIsEditing(true);
     const handleCancelClick = () => {
         setIsEditing(false);
-        // Reset form
         if (user) {
             setFormData({
                 fullName: user.fullName || '',
@@ -106,271 +218,270 @@ export default function ProfilePage() {
     };
 
     const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-        setFormData({
-            ...formData,
-            [e.target.name]: e.target.value
-        });
+        setFormData({ ...formData, [e.target.name]: e.target.value });
     };
 
     const handleSaveClick = async () => {
         setLoading(true);
         try {
             const updateData: any = { fullName: formData.fullName };
-
             if (user?.role === 'INSTRUCTOR') {
                 updateData.bio = formData.bio;
                 updateData.specialties = formData.specialties.split(',').map(s => s.trim()).filter(Boolean);
                 updateData.certifications = formData.certifications.split(',').map(s => s.trim()).filter(Boolean);
             }
+            const response = await authService.updateProfile(updateData);
 
-            await authService.updateProfile(updateData);
+            if (response.data?.user) {
+                updateUser(response.data.user);
+            }
 
-
-            showToast('Profile updated successfully', 'success');
+            showToast('Profile evolved successfully', 'success');
             setIsEditing(false);
-            window.location.reload(); // Simple reload to refresh context for now
         } catch (error) {
             console.error('Failed to update profile:', error);
-            showToast('Failed to update profile', 'error');
+            showToast('Evolution failed', 'error');
         } finally {
             setLoading(false);
         }
     };
 
-    useEffect(() => {
-        const savedImage = sessionStorage.getItem("profileImage");
-        if (savedImage) {
-            setImage(savedImage);
-        }
-    }, []);
-    const handleImageChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const handleImageChange = async (event: React.ChangeEvent<HTMLInputElement>) => {
         const file = event.target.files?.[0];
         if (file) {
-            const reader = new FileReader();
+            try {
+                // Optimistic preview
+                const reader = new FileReader();
+                reader.onloadend = () => {
+                    setImage(reader.result as string);
+                };
+                reader.readAsDataURL(file);
 
-            reader.onloadend = () => {
-                const base64String = reader.result as string;
-                setImage(base64String);
+                const response = await authService.uploadProfileImage(file);
+                
+                // Update context immediately
+                if (response.data?.user) {
+                    updateUser(response.data.user);
+                    setImage(null);
+                }
 
-                // Save to sessionStorage
-                sessionStorage.setItem("profileImage", base64String);
-            };
-
-            reader.readAsDataURL(file);
+                showToast('Identity visualized & archived', 'success');
+            } catch (error) {
+                console.error("Upload failed:", error);
+                showToast('Visual archive failed', 'error');
+                setImage(null); // Revert preview on error
+            }
         }
     };
 
     if (!user) return null;
 
     return (
-        <Box sx={styles.pageContainer}>
-            {/* Header */}
-            <Box mb={5}>
-                <Typography variant="h3" fontWeight={800} sx={styles.headerTitle(theme)}>
-                    My Profile
-                </Typography>
-                <Typography variant="h6" color="text.secondary" fontWeight={400}>
-                    Manage your personal information and account settings.
-                </Typography>
+        <Box component={motion.div} variants={containerVariants} initial="hidden" animate="visible" sx={styles.pageContainer}>
+            {/* Cinematic Hero */}
+            <Box sx={styles.headerHero(theme)}>
+                <Box>
+                    <Typography sx={styles.sectionLabel}>ATHLETE IDENTITY</Typography>
+                    <Typography variant="h1" sx={styles.headerTitle(theme)}>
+                        ELITE <Box component="span">IDENTITY</Box>
+                    </Typography>
+                    <Typography variant="h6" sx={{ color: 'text.secondary', maxWidth: 600, fontWeight: 400, lineHeight: 1.6 }}>
+                        Manage your verified performance profile. Your identity is your contract with greatness. Stay optimized, stay elite.
+                    </Typography>
+                </Box>
             </Box>
 
-            <Box display="flex" flexDirection={{ xs: 'column', md: 'row' }} gap={4}>
-                {/* Left Column: User Card */}
-                <Box flex={{ xs: '1 1 100%', md: '0 0 350px' }}>
-                    <Paper sx={styles.userCard(theme)}>
-                        <input
-                            type="file"
-                            ref={fileInputRef}
-                            style={{ display: 'none' }}
-                            accept="image/*"
-                            onChange={handleImageChange}
-                        />
-
-                        <Box position="relative" display="inline-block">
-                            <Avatar
-                                src={image || ""}
-                                sx={{
-                                    ...styles.avatar(theme),
-                                    cursor: isEditing ? 'pointer' : 'default',
-                                    opacity: isEditing ? 0.8 : 1,
-                                    transition: '0.2s',
-                                    '&:hover': isEditing ? { opacity: 0.6 } : {}
-                                }}
-                                onClick={() => isEditing && fileInputRef.current?.click()}
-                            >
-                                {!image && user?.fullName?.charAt(0)}
-                            </Avatar>
-                            {isEditing && (
-                                <Box
-                                    sx={{
-                                        position: 'absolute',
-                                        bottom: 20,
-                                        right: 0,
-                                        bgcolor: 'primary.main',
-                                        color: 'white',
-                                        borderRadius: '50%',
-                                        p: 0.5,
-                                        pointerEvents: 'none'
-                                    }}
-                                >
-                                    <EditIcon fontSize="small" />
-                                </Box>
-                            )}
-                        </Box>
-
-                        {isEditing ? (
-                            <Box mb={2}>
-                                <TextField
-                                    fullWidth
-                                    label="Full Name"
-                                    name="fullName"
-                                    value={formData.fullName}
-                                    onChange={handleInputChange}
-                                    variant="outlined"
-                                    size="small"
+            <Box sx={styles.contentWrapper}>
+                <Box display="flex" flexDirection={{ xs: 'column', lg: 'row' }} gap={4}>
+                    {/* Profile Sidebar */}
+                    <Box flex={{ xs: '1 1 100%', lg: '0 0 380px' }}>
+                        <motion.div variants={itemVariants}>
+                            <Paper sx={styles.userCard(theme)}>
+                                <input
+                                    type="file"
+                                    ref={fileInputRef}
+                                    style={{ display: 'none' }}
+                                    accept="image/*"
+                                    onChange={handleImageChange}
                                 />
-                            </Box>
-                        ) : (
-                            <Typography variant="h5" fontWeight={700} gutterBottom>
-                                {user.fullName}
-                            </Typography>
-                        )}
 
-                        <Chip
-                            label={user.role.replace('_', ' ')}
-                            color="secondary"
-                            size="small"
-                            sx={styles.roleChip}
-                        />
+                                <Box position="relative" display="inline-block" mb={2}>
+                                    <Avatar
+                                        src={image || user?.profileImage || ""}
+                                        sx={{
+                                            ...styles.avatar(theme),
+                                            cursor: 'pointer',
+                                            transition: 'all 0.3s ease',
+                                            '&:hover': {
+                                                transform: 'scale(1.05)',
+                                                boxShadow: `0 30px 60px -10px ${alpha(theme.palette.primary.main, 0.6)}`
+                                            }
+                                        }}
+                                        onClick={() => fileInputRef.current?.click()}
+                                    >
+                                        {!image && !user?.profileImage && user?.fullName?.charAt(0)}
+                                    </Avatar>
 
-                        <Divider sx={styles.divider} />
+                                    <Box
+                                        sx={{
+                                            position: 'absolute',
+                                            bottom: 10,
+                                            right: 10,
+                                            bgcolor: 'primary.main',
+                                            color: theme.palette.primary.contrastText,
+                                            borderRadius: '50%',
+                                            p: 1.5,
+                                            boxShadow: `0 0 20px ${alpha(theme.palette.primary.main, 0.5)}`,
+                                            cursor: 'pointer',
+                                            zIndex: 2,
+                                            transition: 'transform 0.2s',
+                                            '&:hover': { transform: 'scale(1.1)' }
+                                        }}
+                                        onClick={(e) => {
+                                            e.stopPropagation();
+                                            fileInputRef.current?.click();
+                                        }}
+                                    >
+                                        <CameraAltIcon fontSize="small" />
+                                    </Box>
+                                </Box>
 
-                        <Box sx={styles.infoBox}>
-                            <EmailIcon fontSize="small" />
-                            <Typography variant="body2">{user.email}</Typography>
-                        </Box>
-                        <Box sx={styles.infoBoxAlt}>
-                            <CalendarTodayIcon fontSize="small" />
-                            <Typography variant="body2">
-                                Member since {new Date(user.createdAt || Date.now()).toLocaleDateString()}
-                            </Typography>
-                        </Box>
+                                {isEditing ? (
+                                    <TextField
+                                        fullWidth
+                                        label="ATHLETE NAME"
+                                        name="fullName"
+                                        value={formData.fullName}
+                                        onChange={handleInputChange}
+                                        sx={{ ...styles.inputField(theme), mb: 3 }}
+                                    />
+                                ) : (
+                                    <Typography variant="h4" fontWeight={950} sx={{ letterSpacing: '-1.5px', color: 'text.primary', mb: 1 }}>
+                                        {user.fullName.toUpperCase()}
+                                    </Typography>
+                                )}
 
-                        {!isEditing ? (
-                            <Button
-                                variant="outlined"
-                                startIcon={<EditIcon />}
-                                fullWidth
-                                sx={styles.editButton}
-                                onClick={handleEditClick}
-                            >
-                                Edit Profile
-                            </Button>
-                        ) : (
-                            <Box display="flex" gap={2} mt={4}>
-                                <Button
-                                    variant="outlined"
-                                    color="inherit"
-                                    fullWidth
-                                    onClick={handleCancelClick}
-                                    disabled={loading}
-                                >
-                                    Cancel
-                                </Button>
-                                <Button
-                                    variant="contained"
+                                <Chip
+                                    label={user.role.replace('_', ' ')}
                                     color="primary"
-                                    fullWidth
-                                    onClick={handleSaveClick}
-                                    disabled={loading}
-                                >
-                                    {loading ? 'Saving...' : 'Save'}
-                                </Button>
-                            </Box>
-                        )}
-                    </Paper>
-                </Box>
+                                    sx={styles.roleChip}
+                                />
 
-                {/* Right Column: Details & Stats */}
-                <Box flex={1}>
-                    <Paper sx={styles.detailsCard(theme)}>
-                        <Box sx={styles.detailsHeader}>
-                            <BadgeIcon color="primary" />
-                            <Typography variant="h6" fontWeight={700}>
-                                Account Details
-                            </Typography>
-                        </Box>
+                                <Divider sx={{ my: 4, borderColor: theme.palette.divider }} />
 
-                        <Box sx={styles.detailsGrid}>
-                            <Box>
-                                <Typography variant="subtitle2" color="text.secondary" gutterBottom>
-                                    Full Name
-                                </Typography>
-                                <Typography variant="body1" fontWeight={500}>
-                                    {isEditing ? formData.fullName : user.fullName}
-                                </Typography>
-                            </Box>
-                            <Box>
-                                <Typography variant="subtitle2" color="text.secondary" gutterBottom>
-                                    Email Address
-                                </Typography>
-                                <Typography variant="body1" fontWeight={500}>
-                                    {user.email}
-                                </Typography>
-                            </Box>
-                            <Box>
-                                <Typography variant="subtitle2" color="text.secondary" gutterBottom>
-                                    Role
-                                </Typography>
-                                <Typography variant="body1" fontWeight={500}>
-                                    {user.role}
-                                </Typography>
-                            </Box>
-                            <Box>
-                                <Typography variant="subtitle2" color="text.secondary" gutterBottom>
-                                    Status
-                                </Typography>
-                                <Box sx={styles.statusBox}>
-                                    <VerifiedUserIcon color="success" fontSize="small" />
-                                    <Typography variant="body1" fontWeight={500} color="success.main">
-                                        Active
+                                <Stack spacing={2}>
+                                    <Box sx={styles.infoBox}>
+                                        <EmailIcon sx={{ fontSize: '1.2rem', color: 'primary.main' }} />
+                                        <Typography sx={{ letterSpacing: '1px' }}>{user.email.toUpperCase()}</Typography>
+                                    </Box>
+                                    <Box sx={styles.infoBox}>
+                                        <CalendarTodayIcon sx={{ fontSize: '1.2rem', color: 'primary.main' }} />
+                                        <Typography sx={{ letterSpacing: '1px' }}>
+                                            ENLISTED {new Date(user.createdAt || Date.now()).toLocaleDateString().toUpperCase()}
+                                        </Typography>
+                                    </Box>
+                                </Stack>
+
+                                {!isEditing ? (
+                                    <Button
+                                        variant="outlined"
+                                        startIcon={<EditIcon />}
+                                        fullWidth
+                                        sx={{ ...styles.actionButton, borderColor: theme.palette.divider, color: 'text.primary' }}
+                                        onClick={handleEditClick}
+                                    >
+                                        RECONFIGURE IDENTITY
+                                    </Button>
+                                ) : (
+                                    <Stack direction="row" spacing={2} mt={3}>
+                                        <Button
+                                            variant="outlined"
+                                            fullWidth
+                                            sx={{ ...styles.actionButton, color: 'text.secondary', borderColor: theme.palette.divider }}
+                                            onClick={handleCancelClick}
+                                            disabled={loading}
+                                        >
+                                            ABORT
+                                        </Button>
+                                        <Button
+                                            variant="contained"
+                                            fullWidth
+                                            sx={{ ...styles.actionButton, bgcolor: 'primary.main', color: 'primary.contrastText' }}
+                                            onClick={handleSaveClick}
+                                            disabled={loading}
+                                        >
+                                            COMMIT
+                                        </Button>
+                                    </Stack>
+                                )}
+                            </Paper>
+                        </motion.div>
+                    </Box>
+
+                    {/* Account Details & History */}
+                    <Box flex={1}>
+                        <motion.div variants={itemVariants}>
+                            <Paper sx={styles.detailsCard(theme)}>
+                                <Typography sx={styles.sectionLabel} mb={3}>COMMAND DETAILS</Typography>
+
+                                <Grid container spacing={4} mb={6}>
+                                    <Grid size={{ xs: 12, sm: 6 }}>
+                                        <Typography variant="overline" color="text.secondary" fontWeight={900} letterSpacing={2}>LEGAL DESIGNATION</Typography>
+                                        <Typography variant="h6" fontWeight={900} color="text.primary">
+                                            {isEditing ? formData.fullName.toUpperCase() : user.fullName.toUpperCase()}
+                                        </Typography>
+                                    </Grid>
+                                    <Grid size={{ xs: 12, sm: 6 }}>
+                                        <Typography variant="overline" color="text.secondary" fontWeight={900} letterSpacing={2}>COMM CHANNEL</Typography>
+                                        <Typography variant="h6" fontWeight={900} color="text.primary">{user.email.toUpperCase()}</Typography>
+                                    </Grid>
+                                    <Grid size={{ xs: 12, sm: 6 }}>
+                                        <Typography variant="overline" color="text.secondary" fontWeight={900} letterSpacing={2}>AUTHORITY LEVEL</Typography>
+                                        <Typography variant="h6" fontWeight={900} color="primary.main">{user.role}</Typography>
+                                    </Grid>
+                                    <Grid size={{ xs: 12, sm: 6 }}>
+                                        <Typography variant="overline" color="text.secondary" fontWeight={900} letterSpacing={2}>CLEARANCE STATUS</Typography>
+                                        <Stack direction="row" spacing={1} alignItems="center">
+                                            <VerifiedUserIcon sx={{ color: 'success.main', fontSize: '1.2rem' }} />
+                                            <Typography variant="h6" fontWeight={900} color="success.main">VERIFIED ACTIVE</Typography>
+                                        </Stack>
+                                    </Grid>
+
+                                    {user.role === 'INSTRUCTOR' && (
+                                        <Grid size={{ xs: 12 }}>
+                                            <Typography variant="overline" color="text.secondary" fontWeight={900} letterSpacing={2}>MISSION OBJECTIVES (BIO)</Typography>
+                                            {isEditing ? (
+                                                <TextField
+                                                    fullWidth
+                                                    multiline
+                                                    rows={4}
+                                                    name="bio"
+                                                    value={formData.bio}
+                                                    onChange={handleInputChange}
+                                                    sx={{ ...styles.inputField(theme), mt: 1 }}
+                                                />
+                                            ) : (
+                                                <Typography variant="body1" sx={{ color: 'text.secondary', fontWeight: 500, mt: 1, opacity: 0.8 }}>
+                                                    {user.bio || 'NO MISSION PROFILE LOGGED.'}
+                                                </Typography>
+                                            )}
+                                        </Grid>
+                                    )}
+                                </Grid>
+
+                                <Divider sx={{ mb: 6, borderColor: theme.palette.divider }} />
+
+                                <Typography sx={styles.sectionLabel} mb={3}>TRANSACTION CHRONICLE</Typography>
+                                <PaymentHistory />
+
+                                <Box sx={{ mt: 6, p: 3, borderLeft: '4px solid', borderColor: 'primary.main', bgcolor: alpha(theme.palette.text.primary, 0.02) }}>
+                                    <Typography variant="caption" sx={{ color: 'text.secondary', fontWeight: 700, letterSpacing: '1px', opacity: 0.5 }}>
+                                        * SECURITY NOTICE: TO UPDATE CORE CREDENTIALS OR SECURITY PROTOCOLS, ACCESS THE 'SETTINGS' COMMAND MODAL.
                                     </Typography>
                                 </Box>
-                            </Box>
-
-                            {/* Instructor Fields (Example) */}
-                            {user.role === 'INSTRUCTOR' && (
-                                <>
-                                    <Box sx={{ gridColumn: '1 / -1' }}>
-                                        <Typography variant="subtitle2" color="text.secondary" gutterBottom>
-                                            Bio
-                                        </Typography>
-                                        {isEditing ? (
-                                            <TextField
-                                                fullWidth
-                                                multiline
-                                                rows={3}
-                                                name="bio"
-                                                value={formData.bio}
-                                                onChange={handleInputChange}
-                                                placeholder="Tell us about yourself..."
-                                            />
-                                        ) : (
-                                            <Typography variant="body1" fontWeight={500}>
-                                                {user.bio || 'No bio provided.'}
-                                            </Typography>
-                                        )}
-                                    </Box>
-                                </>
-                            )}
-                        </Box>
-
-                        <Box sx={styles.footerNote}>
-                            <Typography variant="body2" color="text.secondary">
-                                * To update your email or change your password, please visit the Settings page.
-                            </Typography>
-                        </Box>
-                    </Paper>
+                            </Paper>
+                        </motion.div>
+                    </Box>
                 </Box>
             </Box>
         </Box>

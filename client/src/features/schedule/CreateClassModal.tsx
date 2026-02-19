@@ -46,7 +46,7 @@ interface Props {
 const styles = {
   formContainer: { display: 'flex', flexDirection: 'column', gap: 2 },
   formRow: { display: 'flex', gap: 2 },
-  recurringSection: { display: 'flex', gap: 2, p: 2, bgcolor: '#f8fafc', borderRadius: 2 }
+  recurringSection: { display: 'flex', gap: 2, p: 2, bgcolor: 'action.hover', borderRadius: 2 }
 };
 
 export default function CreateClassModal({ open, onClose, onSuccess }: Props) {

@@ -187,3 +187,15 @@ export interface WorkoutFormValues {
     }[];
     notes?: string;
 }
+export interface Payment {
+    _id: string;
+    user: string | User;
+    amount: number;
+    currency: string;
+    planType: string;
+    status: 'SUCCESS' | 'FAILED' | 'PENDING';
+    razorpayPaymentId?: string;
+    razorpayOrderId: string;
+    createdAt: string;
+    updatedAt: string;
+}

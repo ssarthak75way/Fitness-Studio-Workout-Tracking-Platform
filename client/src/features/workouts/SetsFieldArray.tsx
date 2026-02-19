@@ -13,15 +13,33 @@ interface SetsFieldArrayProps {
 
 const styles = {
     setsHeader: { display: 'flex', gap: 2, mb: 1 },
-    setLabel: { width: 40, fontWeight: 'bold' },
-    fieldLabel: { width: 100, fontWeight: 'bold' },
+    setLabel: { width: 40, fontWeight: 900, letterSpacing: '1px', opacity: 0.5, textTransform: 'uppercase' },
+    fieldLabel: { width: 100, fontWeight: 900, letterSpacing: '1px', opacity: 0.5, textTransform: 'uppercase' },
     setRow: { display: 'flex', gap: 2, mb: 1, alignItems: 'center' },
-    setNumber: { width: 40 },
-    setField: { width: 100 },
-    addSetButton: { mt: 1 }
+    setNumber: { width: 40, fontWeight: 900, opacity: 0.6 },
+    setField: (theme: Theme) => ({
+        width: 100,
+        '& .MuiOutlinedInput-root': {
+            borderRadius: 0,
+            bgcolor: alpha(theme.palette.text.primary, 0.02),
+            height: 40,
+            '& fieldset': { borderColor: theme.palette.divider },
+            '&:hover fieldset': { borderColor: 'primary.main' },
+        }
+    }),
+    addSetButton: {
+        mt: 1,
+        fontWeight: 900,
+        letterSpacing: '1px',
+        fontSize: '0.65rem'
+    }
 };
 
+import type { Theme } from '@mui/material/styles';
+import { useTheme, alpha } from '@mui/material/styles';
+
 export default function SetsFieldArray({ nestIndex, control, register }: SetsFieldArrayProps) {
+    const theme = useTheme();
     const { fields, append, remove } = useFieldArray({
         control,
         name: `exercises.${nestIndex}.sets`
@@ -41,13 +59,13 @@ export default function SetsFieldArray({ nestIndex, control, register }: SetsFie
                         {...register(`exercises.${nestIndex}.sets.${k}.reps`, { valueAsNumber: true })}
                         type="number"
                         size="small"
-                        sx={styles.setField}
+                        sx={styles.setField(theme)}
                     />
                     <TextField
                         {...register(`exercises.${nestIndex}.sets.${k}.weight`, { valueAsNumber: true })}
                         type="number"
                         size="small"
-                        sx={styles.setField}
+                        sx={styles.setField(theme)}
                     />
                     <IconButton size="small" onClick={() => remove(k)} disabled={fields.length === 1}>
                         <DeleteIcon fontSize="small" />
@@ -59,8 +77,9 @@ export default function SetsFieldArray({ nestIndex, control, register }: SetsFie
                 startIcon={<AddCircleOutlineIcon />}
                 onClick={() => append({ reps: 10, weight: 0 })}
                 sx={styles.addSetButton}
+                color="primary"
             >
-                Add Set
+                APPEND SET
             </Button>
         </Box>
     );

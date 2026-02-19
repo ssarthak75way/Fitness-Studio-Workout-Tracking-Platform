@@ -1,5 +1,6 @@
 import { Request, Response, NextFunction } from 'express';
 import { MembershipModel } from './membership.model.js';
+import { PaymentModel, PaymentStatus } from '../payment/payment.model.js';
 import { AppError } from '../../utils/AppError.js';
 
 import { RazorpayService } from '../payment/razorpay.service.js';
@@ -58,6 +59,21 @@ export const verifyMembershipPaymentHandler = async (req: Request, res: Response
             isActive: true,
             paymentId: razorpay_payment_id,
             paymentOrderId: razorpay_order_id,
+        });
+
+        // 5. Create Payment Record
+        let amount = 0;
+        if (type === 'MONTHLY') amount = 99;
+        else if (type === 'ANNUAL') amount = 999;
+        else if (type === 'CLASS_PACK_10') amount = 150;
+
+        await PaymentModel.create({
+            user: userId,
+            amount,
+            planType: type,
+            status: PaymentStatus.SUCCESS,
+            razorpayPaymentId: razorpay_payment_id,
+            razorpayOrderId: razorpay_order_id,
         });
 
         res.status(201).json({

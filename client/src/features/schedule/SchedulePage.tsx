@@ -18,109 +18,206 @@ import PersonIcon from '@mui/icons-material/Person';
 import type { Theme } from '@mui/material';
 import type { ClassSession } from '../../types';
 const styles = {
-  pageContainer: { maxWidth: 1200, mx: 'auto', p: { xs: 2, md: 3 } },
+  pageContainer: {
+    p: 0,
+    bgcolor: 'background.default',
+    minHeight: '100vh',
+    display: 'flex',
+    flexDirection: 'column',
+    overflow: 'hidden'
+  },
+  headerHero: (theme: Theme) => ({
+    pt: { xs: 10, md: 14 },
+    pb: { xs: 8, md: 12 },
+    px: { xs: 3, md: 6 },
+    position: 'relative',
+    backgroundImage: theme.palette.mode === 'dark'
+      ? `linear-gradient(rgba(6, 9, 15, 0.75), rgba(6, 9, 15, 1)), url(https://images.unsplash.com/photo-1540497077202-7c8a3999166f?q=80&w=2070&auto=format&fit=crop)`
+      : `linear-gradient(rgba(255, 255, 255, 0.8), rgba(255, 255, 255, 0.95)), url(https://images.unsplash.com/photo-1540497077202-7c8a3999166f?q=80&w=2070&auto=format&fit=crop)`,
+    backgroundSize: 'cover',
+    backgroundPosition: 'center',
+    backgroundAttachment: 'fixed',
+    display: 'flex',
+    justifyContent: 'space-between',
+    alignItems: 'flex-end',
+    flexWrap: 'wrap',
+    gap: 4,
+    borderBottom: `1px solid ${alpha(theme.palette.divider, 0.08)}`,
+    '&::before': {
+      content: '"SCHEDULE"',
+      position: 'absolute',
+      top: '15%',
+      left: '5%',
+      fontSize: { xs: '5rem', md: '12rem' },
+      fontWeight: 950,
+      color: theme.palette.mode === 'dark' ? alpha('#fff', 0.03) : alpha('#000', 0.03),
+      letterSpacing: '30px',
+      zIndex: 0,
+      pointerEvents: 'none',
+      lineHeight: 0.8
+    }
+  }),
   headerTitle: (theme: Theme) => ({
-    background: `linear-gradient(45deg, ${theme.palette.text.primary} 30%, ${theme.palette.primary.main} 90%)`,
-    WebkitBackgroundClip: 'text',
-    WebkitTextFillColor: 'transparent'
+    fontWeight: 950,
+    fontSize: { xs: '3.5rem', md: '6rem' },
+    lineHeight: 0.85,
+    letterSpacing: '-4px',
+    color: theme.palette.text.primary,
+    textTransform: 'uppercase',
+    mb: 2,
+    position: 'relative',
+    zIndex: 1,
+    '& span': {
+      color: theme.palette.primary.main,
+      textShadow: `0 0 40px ${alpha(theme.palette.primary.main, 0.5)}`
+    }
   }),
+  sectionLabel: {
+    color: 'primary.main',
+    fontWeight: 900,
+    letterSpacing: '5px',
+    mb: 2,
+    display: 'block',
+    textTransform: 'uppercase',
+    fontSize: '0.7rem',
+    opacity: 0.8
+  },
   createButton: (theme: Theme) => ({
-    borderRadius: 2,
-    px: 3,
-    boxShadow: `0 8px 16px -4px ${alpha(theme.palette.primary.main, 0.3)}`
+    borderRadius: 0,
+    px: 4,
+    py: 1.5,
+    fontWeight: 900,
+    letterSpacing: '1px',
+    boxShadow: `0 8px 32px -8px ${alpha(theme.palette.primary.main, 0.4)}`,
+    transition: 'all 0.3s ease',
+    '&:hover': {
+      transform: 'translateY(-2px)',
+      boxShadow: `0 12px 40px -8px ${alpha(theme.palette.primary.main, 0.6)}`,
+    }
   }),
+  contentWrapper: {
+    px: { xs: 3, md: 6 },
+    py: { xs: 4, md: 8 },
+    flexGrow: 1,
+    position: 'relative',
+    zIndex: 1
+  },
   calendarCard: (theme: Theme) => ({
     p: 0,
     overflow: 'hidden',
-    boxShadow: theme.shadows[3],
-    border: `1px solid ${theme.palette.divider}`,
-    borderRadius: 3,
-    bgcolor: 'background.paper',
+    borderRadius: 2,
+    border: '1px solid',
+    borderColor: 'divider',
+    bgcolor: theme.palette.mode === 'dark' ? alpha(theme.palette.background.paper, 0.4) : alpha(theme.palette.background.paper, 0.8),
+    backdropFilter: 'blur(24px) saturate(180%)',
+    boxShadow: theme.palette.mode === 'dark'
+      ? `inset 0 0 20px -10px ${alpha('#fff', 0.05)}, 0 20px 50px -20px rgba(0,0,0,0.5)`
+      : `0 20px 50px -20px ${alpha(theme.palette.common.black, 0.05)}`,
     '& .fc': {
       fontFamily: theme.typography.fontFamily,
-      '--fc-border-color': theme.palette.divider,
-      '--fc-page-bg-color': theme.palette.background.paper,
-      '--fc-neutral-bg-color': theme.palette.action.hover,
-      '--fc-list-event-hover-bg-color': theme.palette.action.hover,
-      '--fc-today-bg-color': alpha(theme.palette.primary.main, 0.04),
+      '--fc-border-color': alpha(theme.palette.divider, 0.1),
+      '--fc-page-bg-color': 'transparent',
+      '--fc-neutral-bg-color': alpha(theme.palette.action.hover, 0.05),
+      '--fc-list-event-hover-bg-color': alpha(theme.palette.action.hover, 0.1),
+      '--fc-today-bg-color': alpha(theme.palette.primary.main, 0.05),
       '--fc-now-indicator-color': theme.palette.secondary.main,
-      '--fc-button-bg-color': theme.palette.primary.main,
-      '--fc-button-border-color': theme.palette.primary.main,
-      '--fc-button-hover-bg-color': theme.palette.primary.dark,
-      '--fc-button-hover-border-color': theme.palette.primary.dark,
-      '--fc-button-active-bg-color': theme.palette.primary.dark,
-      '--fc-button-active-border-color': theme.palette.primary.dark,
+      '--fc-button-bg-color': alpha(theme.palette.background.paper, 0.1),
+      '--fc-button-border-color': alpha(theme.palette.divider, 0.1),
+      '--fc-button-hover-bg-color': alpha(theme.palette.primary.main, 0.8),
+      '--fc-button-hover-border-color': theme.palette.primary.main,
+      '--fc-button-active-bg-color': theme.palette.primary.main,
+      '--fc-button-active-border-color': theme.palette.primary.main,
+      '--fc-button-text-color': 'text.primary',
     },
-    '& .fc-theme-standard td, & .fc-theme-standard th': {
-      borderColor: theme.palette.divider,
+    '& .fc-header-toolbar': {
+      p: 3,
+      borderBottom: `1px solid ${alpha(theme.palette.divider, 0.08)}`,
+      background: alpha(theme.palette.background.paper, 0.2),
+    },
+    '& .fc-toolbar-title': {
+      fontWeight: 900,
+      letterSpacing: '-1px',
+      textTransform: 'uppercase',
+      fontSize: '1.5rem !important'
     },
     '& .fc-col-header-cell': {
-      bgcolor: alpha(theme.palette.background.default, 0.6),
-      py: 2,
+      bgcolor: alpha(theme.palette.background.default, 0.4),
+      py: 2.5,
       textTransform: 'uppercase',
-      fontSize: '0.75rem',
-      letterSpacing: '0.05em',
-      fontWeight: 600,
-      color: theme.palette.text.secondary
+      fontSize: '0.7rem',
+      letterSpacing: '3px',
+      fontWeight: 900,
+      color: alpha(theme.palette.text.secondary, 0.8)
     },
     '& .fc-timegrid-slot': {
-      height: '40px !important',
+      height: '80px !important',
     },
     '& .fc-timegrid-slot-label': {
-      color: theme.palette.text.secondary,
-      fontSize: '0.8rem',
-      fontWeight: 500
+      color: alpha(theme.palette.text.secondary, 0.6),
+      fontSize: '0.75rem',
+      fontWeight: 700,
+      textTransform: 'uppercase',
+      verticalAlign: 'middle !important'
     },
     '& .fc-event': {
       border: 'none',
-      boxShadow: 'none',
-      backgroundColor: 'transparent',
-      cursor: 'pointer',
-      transition: 'transform 0.2s',
-      '&:hover': {
-        transform: 'scale(1.02)'
-      }
-    },
-    '& .fc-toolbar.fc-header-toolbar': {
-      p: 2,
-      mb: 0
+      background: 'transparent',
+      borderRadius: 1,
+      overflow: 'hidden'
     },
     '& .fc-button': {
-      borderRadius: 8,
-      textTransform: 'capitalize',
-      fontWeight: 600,
-      fontSize: '0.875rem'
+      borderRadius: 0,
+      fontWeight: 900,
+      letterSpacing: '1px',
+      fontSize: '0.75rem',
+      textTransform: 'uppercase',
+      transition: 'all 0.3s ease'
     }
   }),
   eventContent: (theme: Theme) => ({
-    bgcolor: alpha(theme.palette.primary.main, 0.15),
-    color: theme.palette.primary.main,
-    borderLeft: `3px solid ${theme.palette.primary.main}`,
-    p: 0.5,
-    height: '100%',
+    bgcolor: alpha(theme.palette.primary.main, 0.1),
+    backdropFilter: 'blur(10px)',
+    color: theme.palette.mode === 'dark' ? '#fff' : theme.palette.text.primary,
+    borderLeft: `4px solid ${theme.palette.primary.main}`,
+    p: 1.5,
+    height: '50%',
     width: '100%',
-    overflow: 'hidden',
-    borderRadius: '4px',
     display: 'flex',
     flexDirection: 'column',
-    justifyContent: 'center'
+    justifyContent: 'center',
+    transition: 'all 0.3s ease',
+    boxShadow: `inset 0 0 20px ${alpha(theme.palette.primary.main, 0.05)}`,
+    '&:hover': {
+      bgcolor: alpha(theme.palette.primary.main, 0.2),
+      transform: 'scale(1.02)',
+    }
   }),
-  eventTime: { lineHeight: 1.2 },
-  eventTitle: { fontWeight: 500 },
-  dialogPaper: { borderRadius: 3 },
-  dialogTitleChip: { mt: 1, fontWeight: 600 },
-  dialogContentContainer: { display: 'flex', flexDirection: 'column', gap: 2, mt: 1 },
+  eventTime: { opacity: 0.6, fontSize: '0.7rem' },
+  eventTitle: { fontWeight: 900, letterSpacing: '-0.5px', fontSize: '0.85rem' },
+  dialogPaper: (theme: Theme) => ({
+    borderRadius: 2,
+    bgcolor: 'background.default',
+    backgroundImage: theme.palette.mode === 'dark'
+      ? `linear-gradient(rgba(6, 9, 15, 0.8), rgba(6, 9, 15, 1))`
+      : 'none',
+    border: `1px solid ${theme.palette.divider}`,
+    overflow: 'hidden'
+  }),
+  dialogTitleChip: (theme: Theme) => ({ borderRadius: 0, fontWeight: 900, letterSpacing: '2px', border: `1px solid ${alpha(theme.palette.divider, 0.1)}` }),
+  dialogContentContainer: { display: 'flex', flexDirection: 'column', gap: 4, mt: 2 },
   detailsStack: (theme: Theme) => ({
-    bgcolor: alpha(theme.palette.background.default, 0.5),
-    p: 2,
-    borderRadius: 2
+    bgcolor: alpha(theme.palette.background.paper, 0.4),
+    p: 3,
+    borderRadius: 1.5,
+    border: `1px solid ${alpha(theme.palette.divider, 0.05)}`,
+    gap: 4
   }),
   instructorLink: { textDecoration: 'none', color: 'inherit' },
-  instructorText: { color: 'primary.main', '&:hover': { textDecoration: 'underline' } },
-  capacityContainer: { width: '100%', mr: 1, position: 'relative' },
+  instructorText: { color: 'primary.main', fontWeight: 900, '&:hover': { textDecoration: 'underline' } },
+  capacityContainer: { width: '100%', position: 'relative' },
   progressBarBackground: (theme: Theme) => ({
-    height: 8,
-    borderRadius: 4,
+    height: 6,
+    borderRadius: 0,
     bgcolor: alpha(theme.palette.primary.main, 0.1),
     overflow: 'hidden'
   }),
@@ -128,10 +225,18 @@ const styles = {
     height: '100%',
     width: `${percentage}%`,
     bgcolor: theme.palette.primary.main,
+    boxShadow: `0 0 15px ${alpha(theme.palette.primary.main, 0.4)}`
   }),
-  dialogActions: { p: 3, pt: 0 },
-  closeButton: { fontWeight: 600 },
-  bookButton: { borderRadius: 2, px: 4 }
+  dialogActions: { p: 4, pt: 0 },
+  closeButton: { fontWeight: 900, letterSpacing: '1px' },
+  bookButton: (theme: Theme) => ({
+    borderRadius: 0,
+    px: 6,
+    py: 2,
+    fontWeight: 900,
+    letterSpacing: '2px',
+    boxShadow: theme.palette.mode === 'dark' ? `0 0 30px ${alpha('#fff', 0.1)}` : 'none'
+  })
 };
 
 export default function SchedulePage() {
@@ -203,45 +308,52 @@ export default function SchedulePage() {
 
   return (
     <Box sx={styles.pageContainer}>
-      <Box display="flex" flexDirection={{ xs: 'column', sm: 'row' }} justifyContent="space-between" alignItems={{ xs: 'start', sm: 'center' }} mb={4} gap={2}>
+      {/* Cinematic Hero */}
+      <Box sx={styles.headerHero(theme)}>
         <Box>
-          <Typography variant="h4" fontWeight="800" sx={styles.headerTitle(theme)}>
-            Class Schedule
+          <Typography sx={styles.sectionLabel}>GLOBAL ACCESS</Typography>
+          <Typography variant="h1" sx={styles.headerTitle(theme)}>
+            STUDIO <Box component="span">SCHEDULE</Box>
           </Typography>
-          <Typography variant="body1" color="text.secondary" mt={0.5}>
-            Browse and book your weekly classes.
+          <Typography variant="h6" sx={{ color: 'text.secondary', maxWidth: 600, fontWeight: 400, lineHeight: 1.6 }}>
+            Your weekly roadmap to elite performance. Secure your spot in the next session and master your discipline.
           </Typography>
         </Box>
-        {(user?.role === 'INSTRUCTOR' || user?.role === 'STUDIO_ADMIN') && (
-          <Button
-            variant="contained"
-            startIcon={<AddIcon />}
-            onClick={() => setOpenCreate(true)}
-            sx={styles.createButton(theme)}
-          >
-            Create Class
-          </Button>
-        )}
+        <Box>
+          {(user?.role === 'INSTRUCTOR' || user?.role === 'STUDIO_ADMIN') && (
+            <Button
+              variant="contained"
+              startIcon={<AddIcon />}
+              onClick={() => setOpenCreate(true)}
+              sx={styles.createButton(theme)}
+            >
+              CREATE CLASS
+            </Button>
+          )}
+        </Box>
       </Box>
 
-      <Card sx={styles.calendarCard(theme)}>
-        <FullCalendar
-          plugins={[dayGridPlugin, timeGridPlugin, interactionPlugin]}
-          initialView="timeGridWeek"
-          headerToolbar={{
-            left: 'prev,next today',
-            center: 'title',
-            right: 'dayGridMonth,timeGridWeek'
-          }}
-          allDaySlot={false}
-          slotMinTime="06:00:00"
-          slotMaxTime="22:00:00"
-          events={events}
-          eventClick={handleEventClick}
-          eventContent={renderEventContent}
-          height="auto"
-        />
-      </Card>
+      <Box sx={styles.contentWrapper}>
+        <Typography sx={styles.sectionLabel}>TIME GRID</Typography>
+        <Card sx={styles.calendarCard(theme)}>
+          <FullCalendar
+            plugins={[dayGridPlugin, timeGridPlugin, interactionPlugin]}
+            initialView="timeGridWeek"
+            headerToolbar={{
+              left: 'prev,next today',
+              center: 'title',
+              right: 'dayGridMonth,timeGridWeek'
+            }}
+            allDaySlot={false}
+            slotMinTime="06:00:00"
+            slotMaxTime="22:00:00"
+            events={events}
+            eventClick={handleEventClick}
+            eventContent={renderEventContent}
+            height="auto"
+          />
+        </Card>
+      </Box>
 
       {/* Class Details Dialog */}
       <Dialog
@@ -249,7 +361,7 @@ export default function SchedulePage() {
         onClose={() => setOpenDetails(false)}
         maxWidth="sm"
         fullWidth
-        PaperProps={{ sx: styles.dialogPaper }}
+        PaperProps={{ sx: styles.dialogPaper(theme) }}
         TransitionProps={{ timeout: 300 }}
       >
         {selectedClass && (
@@ -261,7 +373,7 @@ export default function SchedulePage() {
                 size="small"
                 color="primary"
                 variant="outlined"
-                sx={styles.dialogTitleChip}
+                sx={styles.dialogTitleChip(theme)}
               />
             </DialogTitle>
             <DialogContent>
@@ -333,7 +445,7 @@ export default function SchedulePage() {
                   size="large"
                   disabled={false} // Always enabled to allow waitlist
                   color={selectedClass.enrolledCount >= selectedClass.capacity ? "warning" : "primary"}
-                  sx={styles.bookButton}
+                  sx={styles.bookButton(theme)}
                 >
                   {selectedClass.enrolledCount >= selectedClass.capacity ? 'Join Waitlist' : 'Book Class'}
                 </Button>

@@ -1,8 +1,8 @@
 import { useState } from 'react';
 import {
-  Box, Typography, Card, CardContent, TextField, Button,
+  Box, Typography, Paper, TextField, Button,
   Tabs, Tab, Switch, FormControlLabel, InputAdornment, IconButton,
-  useTheme, alpha, Grid
+  useTheme, alpha, Stack
 } from '@mui/material';
 import { useAuth } from '../../context/AuthContext';
 import api from '../../services/api';
@@ -13,14 +13,31 @@ import SettingsIcon from '@mui/icons-material/Settings';
 import Visibility from '@mui/icons-material/Visibility';
 import VisibilityOff from '@mui/icons-material/VisibilityOff';
 import SaveIcon from '@mui/icons-material/Save';
-import { motion, AnimatePresence } from 'framer-motion';
-import type { Theme } from '@mui/material';
+import { motion, AnimatePresence, type Variants } from 'framer-motion';
+import type { Theme } from '@mui/material/styles';
 
 interface TabPanelProps {
   children?: React.ReactNode;
   index: number;
   value: number;
 }
+
+const containerVariants: Variants = {
+  hidden: { opacity: 0 },
+  visible: {
+    opacity: 1,
+    transition: { staggerChildren: 0.1 }
+  }
+};
+
+const itemVariants: Variants = {
+  hidden: { y: 20, opacity: 0 },
+  visible: {
+    y: 0,
+    opacity: 1,
+    transition: { type: 'spring', stiffness: 100 }
+  }
+};
 
 function CustomTabPanel(props: TabPanelProps) {
   const { children, value, index, ...other } = props;
@@ -36,12 +53,12 @@ function CustomTabPanel(props: TabPanelProps) {
       <AnimatePresence mode="wait">
         {value === index && (
           <motion.div
-            initial={{ opacity: 0, y: 10 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: -10 }}
-            transition={{ duration: 0.2 }}
+            initial={{ opacity: 0, x: 20 }}
+            animate={{ opacity: 1, x: 0 }}
+            exit={{ opacity: 0, x: -20 }}
+            transition={{ duration: 0.3, ease: 'easeOut' }}
           >
-            <Box sx={{ py: 3 }}>
+            <Box sx={{ py: 4 }}>
               {children}
             </Box>
           </motion.div>
@@ -51,6 +68,186 @@ function CustomTabPanel(props: TabPanelProps) {
   );
 }
 
+const styles = {
+  pageContainer: {
+    p: 0,
+    bgcolor: 'background.default',
+    minHeight: '100vh',
+    display: 'flex',
+    flexDirection: 'column',
+    overflow: 'hidden'
+  },
+  headerHero: (theme: Theme) => ({
+    pt: { xs: 10, md: 14 },
+    pb: { xs: 8, md: 12 },
+    px: { xs: 3, md: 6 },
+    position: 'relative',
+    backgroundImage: theme.palette.mode === 'dark'
+      ? `linear-gradient(rgba(6, 9, 15, 0.8), rgba(6, 9, 15, 1)), url(https://images.unsplash.com/photo-1534438327276-14e5300c3a48?q=80&w=2070&auto=format&fit=crop)`
+      : `linear-gradient(rgba(255, 255, 255, 0.8), rgba(255, 255, 255, 0.95)), url(https://images.unsplash.com/photo-1534438327276-14e5300c3a48?q=80&w=2070&auto=format&fit=crop)`,
+    backgroundSize: 'cover',
+    backgroundPosition: 'center',
+    backgroundAttachment: 'fixed',
+    display: 'flex',
+    justifyContent: 'space-between',
+    alignItems: 'flex-end',
+    flexWrap: 'wrap',
+    gap: 4,
+    borderBottom: `1px solid ${theme.palette.divider}`,
+    '&::before': {
+      content: '"COMMAND"',
+      position: 'absolute',
+      top: '20%',
+      left: '5%',
+      fontSize: { xs: '5rem', md: '12rem' },
+      fontWeight: 950,
+      color: theme.palette.mode === 'dark' ? alpha('#fff', 0.02) : alpha('#000', 0.02),
+      letterSpacing: '20px',
+      zIndex: 0,
+      pointerEvents: 'none',
+      lineHeight: 0.8
+    }
+  }),
+  headerTitle: (theme: Theme) => ({
+    fontWeight: 950,
+    fontSize: { xs: '3.5rem', md: '6rem' },
+    lineHeight: 0.85,
+    letterSpacing: '-4px',
+    color: theme.palette.text.primary,
+    textTransform: 'uppercase',
+    mb: 2,
+    position: 'relative',
+    zIndex: 1,
+    '& span': {
+      color: theme.palette.primary.main,
+      textShadow: theme.palette.mode === 'dark' ? `0 0 40px ${alpha(theme.palette.primary.main, 0.5)}` : 'none'
+    }
+  }),
+  sectionLabel: {
+    color: 'primary.main',
+    fontWeight: 900,
+    letterSpacing: '5px',
+    mb: 4,
+    display: 'block',
+    textTransform: 'uppercase',
+    fontSize: '0.7rem',
+    opacity: 0.8
+  },
+  contentWrapper: {
+    px: { xs: 3, md: 6 },
+    py: { xs: 4, md: 8 },
+    maxWidth: 1200,
+    mx: 'auto',
+    width: '100%',
+    flexGrow: 1,
+    position: 'relative',
+    zIndex: 1
+  },
+  controlCard: (theme: Theme) => ({
+    borderRadius: 2,
+    background: alpha(theme.palette.background.paper, theme.palette.mode === 'dark' ? 0.4 : 0.8),
+    backdropFilter: 'blur(24px) saturate(180%)',
+    border: '1px solid',
+    borderColor: theme.palette.divider,
+    boxShadow: theme.palette.mode === 'dark'
+      ? `inset 0 0 20px -10px ${alpha('#fff', 0.05)}, 0 20px 50px -20px rgba(0,0,0,0.5)`
+      : `0 20px 50px -20px ${alpha(theme.palette.common.black, 0.1)}`,
+    overflow: 'hidden'
+  }),
+  tabsContainer: (theme: Theme) => ({
+    borderBottom: `1px solid ${theme.palette.divider}`,
+    background: alpha(theme.palette.background.paper, 0.2),
+    px: 2
+  }),
+  tabs: {
+    '& .MuiTab-root': {
+      textTransform: 'uppercase',
+      fontWeight: 900,
+      fontSize: '0.75rem',
+      letterSpacing: '2px',
+      minHeight: 70,
+      color: 'text.secondary',
+      transition: 'all 0.3s ease',
+      '&.Mui-selected': {
+        color: 'primary.main'
+      }
+    },
+    '& .MuiTabs-indicator': {
+      height: 4,
+      borderRadius: '4px 4px 0 0',
+      boxShadow: (theme: Theme) => `0 -4px 20px ${theme.palette.primary.main}`
+    }
+  },
+  formTitle: {
+    fontWeight: 900,
+    letterSpacing: '2px',
+    textTransform: 'uppercase',
+    fontSize: '0.85rem',
+    color: 'primary.main',
+    mb: 4,
+    display: 'flex',
+    alignItems: 'center',
+    gap: 1.5,
+    '&::after': {
+      content: '""',
+      flex: 1,
+      height: '1px',
+      bgcolor: 'divider'
+    }
+  },
+  inputField: (theme: Theme) => ({
+    '& .MuiOutlinedInput-root': {
+      borderRadius: 0,
+      bgcolor: alpha(theme.palette.text.primary, 0.02),
+      '& fieldset': { borderColor: theme.palette.divider },
+      '&:hover fieldset': { borderColor: 'primary.main' },
+      '&.Mui-focused fieldset': { borderColor: 'primary.main', borderWidth: '1px' }
+    },
+    '& .MuiInputLabel-root': {
+      fontWeight: 800,
+      letterSpacing: '1px',
+      textTransform: 'uppercase',
+      fontSize: '0.7rem',
+      color: 'text.secondary'
+    }
+  }),
+  actionButton: {
+    borderRadius: 0,
+    fontWeight: 950,
+    letterSpacing: '3px',
+    py: 2,
+    px: 6,
+    textTransform: 'uppercase',
+    transition: 'all 0.4s cubic-bezier(0.165, 0.84, 0.44, 1)',
+    color: 'primary.contrastText',
+    '&:hover': {
+      transform: 'translateY(-2px)',
+      boxShadow: (theme: Theme) => `0 10px 30px -5px ${alpha(theme.palette.primary.main, 0.5)}`
+    }
+  },
+  preferenceCard: (theme: Theme) => ({
+    borderRadius: 0,
+    bgcolor: alpha(theme.palette.text.primary, 0.01),
+    border: `1px solid ${theme.palette.divider}`,
+    mb: 2,
+    transition: 'all 0.3s ease',
+    '&:hover': {
+      bgcolor: alpha(theme.palette.text.primary, 0.03),
+      borderColor: 'primary.main'
+    }
+  }),
+  preferenceLabel: {
+    width: '100%',
+    m: 0,
+    p: 2.5,
+    '& .MuiTypography-root': { fontWeight: 900, color: 'text.primary', fontSize: '0.85rem', letterSpacing: '1px' }
+  },
+  identityGrid: {
+    display: 'grid',
+    gridTemplateColumns: { xs: '1fr', md: '1fr 1fr' },
+    gap: 4
+  }
+};
 
 export default function SettingsPage() {
   const theme = useTheme();
@@ -89,15 +286,15 @@ export default function SettingsPage() {
         certifications: profile.certifications.split(',').map((s: string) => s.trim()).filter(Boolean)
       };
       await api.patch('/users/profile', payload);
-      showToast('Profile updated successfully!', 'success');
-    } catch (error: unknown) {
-      showToast((error as Error)?.message || 'Update failed', 'error');
+      showToast('Profile configuration updated', 'success');
+    } catch (error: any) {
+      showToast(error?.message || 'Update failed', 'error');
     }
   };
 
   const handleChangePassword = async () => {
     if (passwords.newPassword !== passwords.confirmPassword) {
-      showToast('Passwords do not match', 'error');
+      showToast('Password mismatch detected', 'error');
       return;
     }
 
@@ -106,311 +303,238 @@ export default function SettingsPage() {
         currentPassword: passwords.currentPassword,
         newPassword: passwords.newPassword,
       });
-      showToast('Password changed successfully!', 'success');
+      showToast('Security protocols updated', 'success');
       setPasswords({ currentPassword: '', newPassword: '', confirmPassword: '' });
-    } catch (error: unknown) {
-      showToast((error as Error).message || 'Password change failed', 'error');
+    } catch (error: any) {
+      showToast(error.message || 'Security update failed', 'error');
     }
   };
 
   return (
-    <Box sx={styles.pageContainer}>
-      <Box sx={styles.header}>
-        <Typography variant="h3" fontWeight={800} sx={styles.headerTitle(theme)}>
-          Settings
-        </Typography>
-        <Typography variant="h6" color="text.secondary" fontWeight={400}>
-          Manage your account and preferences.
-        </Typography>
+    <Box component={motion.div} variants={containerVariants} initial="hidden" animate="visible" sx={styles.pageContainer}>
+      {/* Cinematic Hero */}
+      <Box sx={styles.headerHero(theme)}>
+        <Box>
+          <Typography sx={styles.sectionLabel}>CORE OVERRIDES</Typography>
+          <Typography variant="h1" sx={styles.headerTitle(theme)}>
+            CORE <Box component="span">CONFIG</Box>
+          </Typography>
+          <Typography variant="h6" sx={{ color: 'text.secondary', maxWidth: 600, fontWeight: 400, lineHeight: 1.6 }}>
+            Fine-tune your athlete experience. Adjust security protocols, identity data, and system preferences to optimize your studio performance.
+          </Typography>
+        </Box>
       </Box>
 
-      <Card sx={styles.card(theme)}>
-        <Box sx={styles.tabsContainer(theme)}>
-          <Tabs
-            value={tabValue}
-            onChange={handleTabChange}
-            centered
-            variant="fullWidth"
-            textColor="primary"
-            indicatorColor="primary"
-            sx={styles.tabs}
-          >
-            <Tab icon={<PersonIcon />} iconPosition="start" label="Profile" />
-            <Tab icon={<SecurityIcon />} iconPosition="start" label="Security" />
-            <Tab icon={<SettingsIcon />} iconPosition="start" label="Preferences" />
-          </Tabs>
-        </Box>
+      <Box sx={styles.contentWrapper}>
+        <motion.div variants={itemVariants}>
+          <Paper sx={styles.controlCard(theme)}>
+            <Box sx={styles.tabsContainer(theme)}>
+              <Tabs
+                value={tabValue}
+                onChange={handleTabChange}
+                variant="fullWidth"
+                sx={styles.tabs}
+              >
+                <Tab icon={<PersonIcon sx={{ fontSize: '1.2rem' }} />} iconPosition="start" label="Identity" />
+                <Tab icon={<SecurityIcon sx={{ fontSize: '1.2rem' }} />} iconPosition="start" label="Security" />
+                <Tab icon={<SettingsIcon sx={{ fontSize: '1.2rem' }} />} iconPosition="start" label="Preferences" />
+              </Tabs>
+            </Box>
 
-        <Box sx={styles.tabPanelContainer}>
-          <CustomTabPanel value={tabValue} index={0}>
-            <Typography variant="h6" fontWeight={700} gutterBottom sx={styles.sectionTitle}>
-              Personal Information
-            </Typography>
-            <Grid container spacing={3}>
-              <Grid size={{ xs: 12, md: 6 }}>
-                <TextField
-                  fullWidth
-                  label="Full Name"
-                  value={profile.fullName}
-                  onChange={(e) => setProfile({ ...profile, fullName: e.target.value })}
-                  variant="outlined"
-                  InputProps={{ sx: styles.textField }}
-                />
-              </Grid>
-              <Grid size={{ xs: 12, md: 6 }}>
-                <TextField
-                  fullWidth
-                  label="Email"
-                  value={profile.email}
-                  onChange={(e) => setProfile({ ...profile, email: e.target.value })}
-                  variant="outlined"
-                  InputProps={{ sx: styles.textField }}
-                />
-              </Grid>
-              <Grid size={{ xs: 12 }}>
-                <TextField
-                  fullWidth
-                  label="Role"
-                  value={user?.role}
-                  disabled
-                  variant="filled"
-                  InputProps={{ sx: styles.textField }}
-                />
-                <Typography variant="caption" color="text.secondary" sx={styles.caption}>
-                  Role cannot be changed manually. Contact support for assistance.
+            <Box sx={{ p: { xs: 3, md: 6 } }}>
+              <CustomTabPanel value={tabValue} index={0}>
+                <Typography sx={styles.formTitle}>
+                  IDENTITY PARAMETERS
                 </Typography>
-              </Grid>
-
-              {user?.role === 'INSTRUCTOR' && (
-                <>
-                  <Grid size={{ xs: 12 }}>
+                <Box sx={styles.identityGrid}>
+                  <Box>
                     <TextField
                       fullWidth
-                      label="Bio"
-                      multiline
-                      rows={4}
-                      value={profile.bio}
-                      onChange={(e) => setProfile({ ...profile, bio: e.target.value })}
-                      placeholder="Tell us about yourself..."
-                      InputProps={{ sx: styles.textField }}
+                      label="DESIGNATION NAME"
+                      value={profile.fullName}
+                      onChange={(e) => setProfile({ ...profile, fullName: e.target.value })}
+                      sx={styles.inputField(theme)}
                     />
-                  </Grid>
-                  <Grid size={{ xs: 12 }}>
+                  </Box>
+                  <Box>
                     <TextField
                       fullWidth
-                      label="Certifications"
-                      value={profile.certifications}
-                      onChange={(e) => setProfile({ ...profile, certifications: e.target.value })}
-                      placeholder="e.g., NASM Personal Trainer, CrossFit Level 2"
-                      helperText="Separate multiple certifications with commas"
-                      InputProps={{ sx: styles.textField }}
+                      label="COMM CHANNEL (EMAIL)"
+                      value={profile.email}
+                      onChange={(e) => setProfile({ ...profile, email: e.target.value })}
+                      sx={styles.inputField(theme)}
                     />
-                  </Grid>
-                </>
-              )}
+                  </Box>
+                  <Box sx={{ gridColumn: 'span 2' }}>
+                    <TextField
+                      fullWidth
+                      label="CLEARANCE LEVEL"
+                      value={user?.role}
+                      disabled
+                      variant="outlined"
+                      sx={{
+                        ...styles.inputField(theme),
+                        '& .MuiOutlinedInput-root': { bgcolor: alpha(theme.palette.text.primary, 0.01), opacity: 0.6 }
+                      }}
+                    />
+                    <Typography variant="caption" sx={{ mt: 1, display: 'block', color: 'text.secondary', fontWeight: 700, letterSpacing: '1px', opacity: 0.5 }}>
+                      * CLEARANCE LEVEL IS FIXED. CONTACT COMMAND OVERRIDE FOR ASSISTANCE.
+                    </Typography>
+                  </Box>
 
-              <Grid size={{ xs: 12 }}>
-                <Box sx={styles.buttonContainer}>
-                  <Button
-                    variant="contained"
-                    size="large"
-                    startIcon={<SaveIcon />}
-                    onClick={handleUpdateProfile}
-                    sx={styles.saveButton}
-                  >
-                    Save Changes
-                  </Button>
+                  {user?.role === 'INSTRUCTOR' && (
+                    <>
+                      <Box sx={{ gridColumn: 'span 2' }}>
+                        <TextField
+                          fullWidth
+                          label="MISSION OBJECTIVES (BIO)"
+                          multiline
+                          rows={4}
+                          value={profile.bio}
+                          onChange={(e) => setProfile({ ...profile, bio: e.target.value })}
+                          placeholder="LOG MISSION OBJECTIVES..."
+                          sx={styles.inputField(theme)}
+                        />
+                      </Box>
+                      <Box sx={{ gridColumn: 'span 2' }}>
+                        <TextField
+                          fullWidth
+                          label="VERIFIED CREDENTIALS"
+                          value={profile.certifications}
+                          onChange={(e) => setProfile({ ...profile, certifications: e.target.value })}
+                          placeholder="e.g., NASM, CROSSFIT LEVEL 2..."
+                          helperText="USE COMMAS FOR MULTIPLE ENTRIES"
+                          sx={styles.inputField(theme)}
+                        />
+                      </Box>
+                    </>
+                  )}
+
+                  <Box sx={{ gridColumn: 'span 2' }}>
+                    <Box display="flex" justifyContent="flex-end" mt={2}>
+                      <Button
+                        variant="contained"
+                        startIcon={<SaveIcon />}
+                        onClick={handleUpdateProfile}
+                        sx={styles.actionButton}
+                      >
+                        COMMIT PARAMETERS
+                      </Button>
+                    </Box>
+                  </Box>
                 </Box>
-              </Grid>
-            </Grid>
-          </CustomTabPanel>
+              </CustomTabPanel>
 
-          <CustomTabPanel value={tabValue} index={1}>
-            <Typography variant="h6" fontWeight={700} gutterBottom sx={styles.sectionTitle}>
-              Password Management
-            </Typography>
-            <Box sx={styles.passwordContainer}>
-              <Grid container spacing={3}>
-                <Grid size={{ xs: 12 }}>
+              <CustomTabPanel value={tabValue} index={1}>
+                <Typography sx={styles.formTitle}>
+                  SECURITY PROTOCOLS
+                </Typography>
+                <Stack spacing={4} sx={{ maxWidth: 700, mx: 'auto' }}>
                   <TextField
                     fullWidth
-                    label="Current Password"
+                    label="CURRENT ENCRYPTION KEY"
                     type={showPassword ? 'text' : 'password'}
                     value={passwords.currentPassword}
                     onChange={(e) => setPasswords({ ...passwords, currentPassword: e.target.value })}
+                    sx={styles.inputField(theme)}
                     InputProps={{
-                      sx: styles.textField,
                       endAdornment: (
                         <InputAdornment position="end">
-                          <IconButton
-                            onClick={() => setShowPassword(!showPassword)}
-                            edge="end"
-                          >
+                          <IconButton onClick={() => setShowPassword(!showPassword)} edge="end" sx={{ color: 'primary.main' }}>
                             {showPassword ? <VisibilityOff /> : <Visibility />}
                           </IconButton>
                         </InputAdornment>
                       )
                     }}
                   />
-                </Grid>
-                <Grid size={{ xs: 12 }}>
                   <TextField
                     fullWidth
-                    label="New Password"
+                    label="NEW ENCRYPTION KEY"
                     type={showPassword ? 'text' : 'password'}
                     value={passwords.newPassword}
                     onChange={(e) => setPasswords({ ...passwords, newPassword: e.target.value })}
-                    InputProps={{ sx: styles.textField }}
+                    sx={styles.inputField(theme)}
                   />
-                </Grid>
-                <Grid size={{ xs: 12 }}>
                   <TextField
                     fullWidth
-                    label="Confirm New Password"
+                    label="CONFIRM NEW KEY"
                     type={showPassword ? 'text' : 'password'}
                     value={passwords.confirmPassword}
                     onChange={(e) => setPasswords({ ...passwords, confirmPassword: e.target.value })}
-                    InputProps={{ sx: styles.textField }}
+                    sx={styles.inputField(theme)}
                   />
-                </Grid>
-                <Grid size={{ xs: 12 }}>
-                  <Box sx={styles.buttonContainer}>
+                  <Box display="flex" justifyContent="center" mt={4}>
                     <Button
                       variant="contained"
-                      size="large"
-                      color="secondary"
+                      color="primary"
                       startIcon={<SaveIcon />}
                       onClick={handleChangePassword}
-                      sx={styles.saveButton}
+                      sx={{ ...styles.actionButton, width: '100%', maxWidth: 400 }}
                     >
-                      Update Password
+                      REFLASH SECURITY
                     </Button>
                   </Box>
-                </Grid>
-              </Grid>
-            </Box>
-          </CustomTabPanel>
+                </Stack>
+              </CustomTabPanel>
 
-          <CustomTabPanel value={tabValue} index={2}>
-            <Typography variant="h6" fontWeight={700} gutterBottom sx={styles.sectionTitle}>
-              App Preferences
-            </Typography>
-            <Box sx={styles.preferencesContainer}>
-              <Grid container spacing={3}>
-                <Grid size={{ xs: 12 }}>
-                  <Card variant="outlined" sx={styles.preferenceCard}>
-                    <CardContent>
-                      <FormControlLabel
-                        control={
-                          <Switch
-                            checked={preferences.emailNotifications}
-                            onChange={(e) => setPreferences({ ...preferences, emailNotifications: e.target.checked })}
-                          />
-                        }
-                        label={
-                          <Box>
-                            <Typography variant="subtitle1" fontWeight={600}>Email Notifications</Typography>
-                            <Typography variant="body2" color="text.secondary">Receive updates about your bookings and account.</Typography>
-                          </Box>
-                        }
-                        sx={styles.preferenceLabel}
-                      />
-                    </CardContent>
-                  </Card>
-                </Grid>
-                <Grid size={{ xs: 12 }}>
-                  <Card variant="outlined" sx={styles.preferenceCard}>
-                    <CardContent>
-                      <FormControlLabel
-                        control={
-                          <Switch
-                            checked={preferences.darkMode}
-                            onChange={(e) => setPreferences({ ...preferences, darkMode: e.target.checked })}
-                          />
-                        }
-                        label={
-                          <Box>
-                            <Typography variant="subtitle1" fontWeight={600}>Dark Mode</Typography>
-                            <Typography variant="body2" color="text.secondary">Use dark theme for the application interface.</Typography>
-                          </Box>
-                        }
-                        sx={styles.preferenceLabel}
-                      />
-                    </CardContent>
-                  </Card>
-                </Grid>
-                <Grid size={{ xs: 12 }}>
-                  <Card variant="outlined" sx={styles.preferenceCard}>
-                    <CardContent>
-                      <FormControlLabel
-                        control={
-                          <Switch
-                            checked={preferences.publicProfile}
-                            onChange={(e) => setPreferences({ ...preferences, publicProfile: e.target.checked })}
-                          />
-                        }
-                        label={
-                          <Box>
-                            <Typography variant="subtitle1" fontWeight={600}>Public Profile</Typography>
-                            <Typography variant="body2" color="text.secondary">Allow other users to see your basic profile information.</Typography>
-                          </Box>
-                        }
-                        sx={styles.preferenceLabel}
-                      />
-                    </CardContent>
-                  </Card>
-                </Grid>
-              </Grid>
-              <Box sx={styles.autoSaveButton}>
-                <Button variant="outlined" disabled>Save Preferences (Auto-saved)</Button>
-              </Box>
+              <CustomTabPanel value={tabValue} index={2}>
+                <Typography sx={styles.formTitle}>
+                  SYSTEM PREFERENCES
+                </Typography>
+                <Stack spacing={3} sx={{ maxWidth: 800, mx: 'auto' }}>
+                  {[
+                    {
+                      key: 'emailNotifications',
+                      label: 'COMM CHANNEL UPLINK',
+                      desc: 'RECEIVE UNIT UPDATES AND ACCOUNT ALERTS.'
+                    },
+                    {
+                      key: 'darkMode',
+                      label: 'STEALTH MODE INTERFACE',
+                      desc: 'OPTIMIZE VISUALS FOR LOW-LIGHT OPERATIONS.'
+                    },
+                    {
+                      key: 'publicProfile',
+                      label: 'SQUAD VISIBILITY',
+                      desc: 'ALLOW EXTERNAL AGENTS TO VIEW YOUR IDENTITY DATA.'
+                    }
+                  ].map((pref) => (
+                    <Box key={pref.key}>
+                      <Paper sx={styles.preferenceCard(theme)}>
+                        <FormControlLabel
+                          control={
+                            <Switch
+                              checked={(preferences as any)[pref.key]}
+                              onChange={(e) => setPreferences({ ...preferences, [pref.key]: e.target.checked })}
+                              color="primary"
+                            />
+                          }
+                          label={
+                            <Box ml={2}>
+                              <Typography sx={{ mb: 0.5 }}>{pref.label}</Typography>
+                              <Typography variant="body2" sx={{ color: 'text.secondary', fontWeight: 600, letterSpacing: '0.5px' }}>
+                                {pref.desc}
+                              </Typography>
+                            </Box>
+                          }
+                          sx={styles.preferenceLabel}
+                        />
+                      </Paper>
+                    </Box>
+                  ))}
+                  <Box>
+                    <Box display="flex" justifyContent="center" mt={6}>
+                      <Typography variant="caption" sx={{ color: 'primary.main', fontWeight: 900, letterSpacing: '2px', opacity: 0.8, textTransform: 'uppercase' }}>
+                        SYSTEM PARAMETERS ARE SYNCED IN REAL-TIME
+                      </Typography>
+                    </Box>
+                  </Box>
+                </Stack>
+              </CustomTabPanel>
             </Box>
-          </CustomTabPanel>
-        </Box>
-      </Card>
+          </Paper>
+        </motion.div>
+      </Box>
     </Box>
   );
 }
-
-
-const styles = {
-  pageContainer: { maxWidth: 1000, mx: 'auto', px: { xs: 2, md: 4 }, py: 4 },
-  header: { mb: 5, textAlign: 'center' },
-  headerTitle: (theme: Theme) => ({
-    background: `linear-gradient(45deg, ${theme.palette.primary.main} 30%, ${theme.palette.secondary.main} 90%)`,
-    WebkitBackgroundClip: 'text',
-    WebkitTextFillColor: 'transparent',
-    mb: 1
-  }),
-  card: (theme: Theme) => ({
-    borderRadius: 4,
-    background: theme.palette.background.paper,
-    boxShadow: theme.shadows[2],
-    border: `1px solid ${theme.palette.divider}`,
-    overflow: 'hidden'
-  }),
-  tabsContainer: (theme: Theme) => ({
-    borderBottom: 1,
-    borderColor: 'divider',
-    bgcolor: alpha(theme.palette.primary.main, 0.05)
-  }),
-  tabs: {
-    '& .MuiTab-root': {
-      textTransform: 'none',
-      fontWeight: 600,
-      fontSize: '1rem',
-      minHeight: 60,
-    }
-  },
-  tabPanelContainer: { p: { xs: 2, md: 4 } },
-  sectionTitle: { mb: 3 },
-  textField: { borderRadius: 2 },
-  caption: { ml: 1, mt: 0.5, display: 'block' },
-  buttonContainer: { display: 'flex', justifyContent: 'flex-end', mt: 2 },
-  saveButton: { borderRadius: 2, px: 4, fontWeight: 700 },
-  passwordContainer: { maxWidth: 600, mx: 'auto' },
-  preferencesContainer: { maxWidth: 800, mx: 'auto' },
-  preferenceCard: { borderRadius: 2 },
-  preferenceLabel: { width: '100%', alignItems: 'flex-start', ml: 0 },
-  autoSaveButton: { mt: 4, display: 'flex', justifyContent: 'center' }
-};

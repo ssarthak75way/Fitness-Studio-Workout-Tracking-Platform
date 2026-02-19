@@ -4,102 +4,215 @@ import {
     TextField, InputAdornment, CardActionArea,
     Dialog, DialogTitle, DialogContent, DialogActions,
     List, ListItem, ListItemText,
-    Grid,
     useTheme,
     alpha,
-    Stack
+    Stack,
+    Skeleton
 } from '@mui/material';
-import SearchIcon from '@mui/icons-material/Search';
-import FitnessCenterIcon from '@mui/icons-material/FitnessCenter';
-import SpeedIcon from '@mui/icons-material/Speed';
-import PlayArrowIcon from '@mui/icons-material/PlayArrow';
-import ArrowBackIcon from '@mui/icons-material/ArrowBack';
+import {
+    Search as SearchIcon,
+    FitnessCenter as FitnessCenterIcon,
+    Speed as SpeedIcon,
+    PlayArrow as PlayArrowIcon,
+    ArrowBack as ArrowBackIcon,
+    Timer as TimerIcon,
+    Repeat as RepeatIcon,
+} from '@mui/icons-material';
 import { workoutService } from '../../services';
 import LogWorkoutModal from './LogWorkoutModal';
 import { useNavigate } from 'react-router-dom';
 import type { Theme } from '@mui/material';
 import type { WorkoutTemplate, WorkoutFormValues } from '../../types';
+import { motion, type Variants } from 'framer-motion';
 
 const CATEGORIES = ['ALL', 'STRENGTH', 'CARDIO', 'HIIT', 'FLEXIBILITY'];
 
+const containerVariants: Variants = {
+    hidden: { opacity: 0 },
+    visible: {
+        opacity: 1,
+        transition: {
+            staggerChildren: 0.1
+        }
+    }
+};
+
 const styles = {
-    pageContainer: { maxWidth: 1200, mx: 'auto', p: { xs: 2, md: 3 } },
-    headerTitle: (theme: Theme) => ({
-        background: `linear-gradient(45deg, ${theme.palette.text.primary} 30%, ${theme.palette.primary.main} 90%)`,
-        WebkitBackgroundClip: 'text',
-        WebkitTextFillColor: 'transparent',
+    pageContainer: {
+        p: 0,
+        bgcolor: 'background.default',
+        minHeight: '100vh',
+        display: 'flex',
+        flexDirection: 'column',
+        overflow: 'hidden'
+    },
+    headerHero: (theme: Theme) => ({
+        pt: { xs: 10, md: 14 },
+        pb: { xs: 8, md: 12 },
+        px: { xs: 3, md: 6 },
+        position: 'relative',
+        backgroundImage: theme.palette.mode === 'dark'
+            ? `linear-gradient(rgba(6, 9, 15, 0.75), rgba(6, 9, 15, 1)), url(https://images.unsplash.com/photo-1599058945522-28d584b6f0ff?q=80&w=2069&auto=format&fit=crop)`
+            : `linear-gradient(rgba(255, 255, 255, 0.8), rgba(255, 255, 255, 0.95)), url(https://images.unsplash.com/photo-1599058945522-28d584b6f0ff?q=80&w=2069&auto=format&fit=crop)`,
+        backgroundSize: 'cover',
+        backgroundPosition: 'center',
+        backgroundAttachment: 'fixed',
+        display: 'flex',
+        justifyContent: 'space-between',
+        alignItems: 'flex-end',
+        flexWrap: 'wrap',
+        gap: 4,
+        borderBottom: `1px solid ${theme.palette.divider}`,
+        '&::before': {
+            content: '"LIBRARY"',
+            position: 'absolute',
+            top: '20%',
+            left: '5%',
+            fontSize: { xs: '5rem', md: '12rem' },
+            fontWeight: 950,
+            color: theme.palette.mode === 'dark' ? alpha('#fff', 0.03) : alpha('#000', 0.03),
+            letterSpacing: '20px',
+            zIndex: 0,
+            pointerEvents: 'none',
+            lineHeight: 0.8
+        }
     }),
-    backButton: { borderRadius: 2 },
+    headerTitle: (theme: Theme) => ({
+        fontWeight: 950,
+        fontSize: { xs: '3.5rem', md: '6rem' },
+        lineHeight: 0.85,
+        letterSpacing: '-4px',
+        color: theme.palette.text.primary,
+        textTransform: 'uppercase',
+        mb: 2,
+        position: 'relative',
+        zIndex: 1,
+        '& span': {
+            color: theme.palette.primary.main,
+            textShadow: theme.palette.mode === 'dark' ? `0 0 40px ${alpha(theme.palette.primary.main, 0.5)}` : 'none'
+        }
+    }),
+    sectionLabel: {
+        color: 'primary.main',
+        fontWeight: 900,
+        letterSpacing: '5px',
+        mb: 4,
+        display: 'block',
+        textTransform: 'uppercase',
+        fontSize: '0.7rem',
+        opacity: 0.8
+    },
+    contentWrapper: {
+        px: { xs: 3, md: 6 },
+        py: { xs: 4, md: 8 },
+        flexGrow: 1,
+        position: 'relative',
+        zIndex: 1
+    },
     filterContainer: (theme: Theme) => ({
         p: 3,
-        borderRadius: 3,
-        bgcolor: alpha(theme.palette.background.paper, 0.6),
-        backdropFilter: 'blur(10px)',
-        border: `1px solid ${theme.palette.divider}`,
-        mb: 4,
-        boxShadow: theme.shadows[1]
-    }),
-    searchInput: { borderRadius: 2, bgcolor: 'background.paper' },
-    categoryChip: {
-        fontWeight: 600,
         borderRadius: 2,
+        bgcolor: alpha(theme.palette.background.paper, 0.4),
+        backdropFilter: 'blur(20px)',
+        border: `1px solid ${alpha(theme.palette.divider, 0.1)}`,
+        mb: 6,
+        boxShadow: `0 8px 32px 0 ${alpha(theme.palette.common.black, 0.05)}`
+    }),
+    categoryChip: (theme: Theme, selected: boolean) => ({
+        fontWeight: 900,
+        borderRadius: 1,
         height: 48,
-        px: 1
+        px: 2,
+        letterSpacing: '1px',
+        transition: 'all 0.3s ease',
+        border: selected ? 'none' : `1px solid ${alpha(theme.palette.divider, 0.2)}`,
+        bgcolor: selected ? theme.palette.primary.main : 'transparent',
+        color: selected ? '#fff' : theme.palette.text.secondary,
+        '&:hover': {
+            bgcolor: selected ? theme.palette.primary.dark : alpha(theme.palette.text.primary, 0.05),
+            transform: 'translateY(-2px)'
+        }
+    }),
+    templatesGrid: {
+        display: 'grid',
+        gridTemplateColumns: { xs: '1fr', md: 'repeat(2, 1fr)', lg: 'repeat(3, 1fr)' },
+        gap: 4
     },
     card: (theme: Theme) => ({
         height: '100%',
         display: 'flex',
         flexDirection: 'column',
-        transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
-        '&:hover': {
-            transform: 'translateY(-4px)',
-            boxShadow: theme.shadows[8],
-            borderColor: theme.palette.primary.main
-        },
-        border: `1px solid ${theme.palette.divider}`,
-        borderRadius: 3
-    }),
-    categoryChipSmall: { fontWeight: 600, borderRadius: 1 },
-    difficultyChip: (theme: Theme, difficulty: string) => ({
-        bgcolor: difficulty === 'BEGINNER' ? alpha(theme.palette.info.main, 0.1) :
-            difficulty === 'INTERMEDIATE' ? alpha(theme.palette.warning.main, 0.1) : alpha(theme.palette.error.main, 0.1),
-        color: difficulty === 'BEGINNER' ? theme.palette.info.main :
-            difficulty === 'INTERMEDIATE' ? theme.palette.warning.main : theme.palette.error.main,
-        fontWeight: 700,
-        borderRadius: 1
-    }),
-    cardDescription: {
-        minHeight: 40,
-        mb: 3,
-        display: '-webkit-box',
-        WebkitLineClamp: 2,
-        WebkitBoxOrient: 'vertical',
-        overflow: 'hidden'
-    },
-    cardFooter: { color: 'text.secondary' },
-    startButton: (theme: Theme) => ({
+        transition: 'all 0.4s cubic-bezier(0.16, 1, 0.3, 1)',
+        bgcolor: alpha(theme.palette.background.paper, 0.3),
+        backdropFilter: 'blur(20px)',
+        border: `1px solid ${alpha(theme.palette.divider, 0.1)}`,
         borderRadius: 2,
-        py: 1,
-        fontWeight: 600,
-        boxShadow: 'none',
-        '&:hover': { boxShadow: theme.shadows[2] }
+        overflow: 'hidden',
+        '&:hover': {
+            transform: 'translateY(-8px)',
+            boxShadow: `0 20px 40px -10px ${alpha(theme.palette.common.black, 0.2)}`,
+            borderColor: alpha(theme.palette.primary.main, 0.4),
+            '& .card-action-arrow': {
+                transform: 'translate(4px, -4px)',
+                opacity: 1
+            }
+        }
     }),
-    dialogPaper: { borderRadius: 3 },
-    dialogTitle: { pb: 1 },
-    dialogContent: { border: 'none' },
-    exercisesLabel: { mt: 1, fontWeight: 700, letterSpacing: '0.05em' },
-    listItem: (theme: Theme, isLast: boolean) => ({
-        py: 2,
-        px: 0,
-        borderBottom: !isLast ? `1px dashed ${theme.palette.divider}` : 'none'
+    cardContent: { p: 4, flexGrow: 1 },
+    difficultyChip: (theme: Theme, difficulty: string) => {
+        const color = difficulty === 'BEGINNER' ? theme.palette.success.main :
+            difficulty === 'INTERMEDIATE' ? theme.palette.warning.main : theme.palette.error.main;
+
+        return {
+            bgcolor: alpha(color, 0.1),
+            color: color,
+            fontWeight: 800,
+            borderRadius: 0.5,
+            letterSpacing: '1px',
+            fontSize: '0.7rem'
+        };
+    },
+    startButton: (theme: Theme) => ({
+        borderRadius: 1.5,
+        py: 1.5,
+        fontWeight: 800,
+        letterSpacing: '1px',
+        boxShadow: `0 8px 16px -4px ${alpha(theme.palette.primary.main, 0.3)}`,
+        '&:hover': {
+            boxShadow: `0 12px 20px -4px ${alpha(theme.palette.primary.main, 0.4)}`,
+            transform: 'translateY(-2px)'
+        }
+    }),
+    dialogPaper: (theme: Theme) => ({
+        borderRadius: 3,
+        bgcolor: alpha(theme.palette.background.paper, 0.95),
+        backdropFilter: 'blur(20px)',
+        border: `1px solid ${alpha(theme.palette.divider, 0.1)}`,
+        boxShadow: `0 40px 80px -20px ${alpha(theme.palette.common.black, 0.5)}`
     }),
     statBadge: (theme: Theme) => ({
-        bgcolor: alpha(theme.palette.background.default, 0.5),
-        px: 1,
+        bgcolor: alpha(theme.palette.action.hover, 0.05),
+        px: 1.5,
         py: 0.5,
-        borderRadius: 1
+        borderRadius: 1,
+        border: `1px solid ${alpha(theme.palette.divider, 0.1)}`,
+        color: theme.palette.text.secondary
     }),
-    dialogActions: { p: 3, gap: 1 }
+    searchInput: (theme: Theme) => ({
+        '& .MuiOutlinedInput-root': {
+            borderRadius: 1,
+            bgcolor: alpha(theme.palette.background.paper, 0.5),
+            backdropFilter: 'blur(10px)',
+            transition: 'all 0.3s ease',
+            '&:hover': {
+                bgcolor: alpha(theme.palette.background.paper, 0.8)
+            },
+            '&.Mui-focused': {
+                bgcolor: theme.palette.background.paper,
+                boxShadow: `0 8px 20px -5px ${alpha(theme.palette.primary.main, 0.2)}`
+            }
+        }
+    })
 };
 
 export default function WorkoutTemplatesPage() {
@@ -111,6 +224,7 @@ export default function WorkoutTemplatesPage() {
     const [selectedTemplate, setSelectedTemplate] = useState<Partial<WorkoutFormValues> | null>(null);
     const [viewTemplate, setViewTemplate] = useState<WorkoutTemplate | null>(null);
     const [openLog, setOpenLog] = useState(false);
+    const [loading, setLoading] = useState(true);
     const navigate = useNavigate();
 
     useEffect(() => {
@@ -132,11 +246,23 @@ export default function WorkoutTemplatesPage() {
 
     const fetchTemplates = async () => {
         try {
+            setLoading(true);
             const response = await workoutService.getWorkoutTemplates();
-            setTemplates(response.data.templates);
-            setFilteredTemplates(response.data.templates);
+            const templatesData = response.data?.templates || [];
+
+            if (templatesData.length === 0) {
+                console.log('No templates found in API response');
+            }
+
+            setTemplates(templatesData);
+            setFilteredTemplates(templatesData);
         } catch (error) {
             console.error('Failed to fetch templates:', error);
+            // Optionally set empty state on error, but keeping invalid state might be better for debugging
+            setTemplates([]);
+            setFilteredTemplates([]);
+        } finally {
+            setLoading(false);
         }
     };
 
@@ -154,112 +280,181 @@ export default function WorkoutTemplatesPage() {
     };
 
     return (
-        <Box sx={styles.pageContainer}>
-            <Box display="flex" justifyContent="space-between" alignItems="center" mb={4} flexWrap="wrap" gap={2}>
+        <Box component={motion.div} variants={containerVariants} initial="hidden" animate="visible" sx={styles.pageContainer}>
+            {/* Cinematic Hero */}
+            <Box sx={styles.headerHero(theme)}>
                 <Box>
-                    <Typography variant="h4" fontWeight="800" sx={styles.headerTitle(theme)}>
-                        Workout Library
+                    <Typography sx={styles.sectionLabel}>BLUEPRINTS FOR SUCCESS</Typography>
+                    <Typography variant="h1" sx={styles.headerTitle(theme)}>
+                        WORKOUT <Box component="span">LIBRARY</Box>
                     </Typography>
-                    <Typography variant="body1" color="text.secondary" mt={0.5}>
-                        Choose a pre-built routine to follow or customize.
+                    <Typography variant="h6" sx={{ color: 'text.secondary', maxWidth: 600, fontWeight: 400, lineHeight: 1.6 }}>
+                        Battle-tested routines designed for peak performance. Select your protocol and begin the transformation.
                     </Typography>
                 </Box>
                 <Button
                     variant="outlined"
                     startIcon={<ArrowBackIcon />}
                     onClick={() => navigate('/workouts')}
-                    sx={styles.backButton}
+                    sx={{
+                        borderRadius: 0,
+                        py: 2, px: 4,
+                        fontWeight: 900,
+                        letterSpacing: '1px',
+                        borderColor: alpha(theme.palette.divider, 0.2),
+                        color: theme.palette.text.primary,
+                        backdropFilter: 'blur(10px)',
+                        '&:hover': {
+                            borderColor: theme.palette.primary.main,
+                            bgcolor: alpha(theme.palette.primary.main, 0.1)
+                        }
+                    }}
                 >
-                    Back to History
+                    RETURN TO HUB
                 </Button>
             </Box>
 
-            <Box sx={styles.filterContainer(theme)}>
-                <Box display="flex" flexDirection={{ xs: 'column', md: 'row' }} gap={2}>
-                    <TextField
-                        placeholder="Search workouts..."
-                        variant="outlined"
-                        fullWidth
-                        value={searchTerm}
-                        onChange={(e) => setSearchTerm(e.target.value)}
-                        InputProps={{
-                            startAdornment: (
-                                <InputAdornment position="start">
-                                    <SearchIcon color="action" />
-                                </InputAdornment>
-                            ),
-                            sx: styles.searchInput
-                        }}
-                    />
-                    <Stack direction="row" gap={1} flexWrap="wrap">
-                        {CATEGORIES.map(cat => (
-                            <Chip
-                                key={cat}
-                                label={cat}
-                                onClick={() => setSelectedCategory(cat)}
-                                color={selectedCategory === cat ? "primary" : "default"}
-                                variant={selectedCategory === cat ? "filled" : "outlined"}
-                                clickable
-                                sx={styles.categoryChip}
+            {/* Main Content Area */}
+            <Box sx={styles.contentWrapper}>
+                {/* Filter Section */}
+                <Box sx={styles.filterContainer(theme)}>
+                    <Stack direction={{ xs: 'column', md: 'row' }} spacing={3} alignItems="center">
+                        <Box sx={{ flexGrow: 1, width: '100%' }}>
+                            <TextField
+                                placeholder="Search protocols..."
+                                variant="outlined"
+                                fullWidth
+                                value={searchTerm}
+                                onChange={(e) => setSearchTerm(e.target.value)}
+                                sx={styles.searchInput(theme)}
+                                InputProps={{
+                                    startAdornment: (
+                                        <InputAdornment position="start">
+                                            <SearchIcon sx={{ color: 'text.secondary', opacity: 0.7 }} />
+                                        </InputAdornment>
+                                    )
+                                }}
                             />
-                        ))}
+                        </Box>
+                        <Stack direction="row" spacing={1} sx={{ overflowX: 'auto', width: { xs: '100%', md: 'auto' }, pb: { xs: 1, md: 0 } }}>
+                            {CATEGORIES.map(cat => (
+                                <Chip
+                                    key={cat}
+                                    label={cat}
+                                    onClick={() => setSelectedCategory(cat)}
+                                    sx={styles.categoryChip(theme, selectedCategory === cat)}
+                                />
+                            ))}
+                        </Stack>
                     </Stack>
                 </Box>
+
+                {/* Templates Grid */}
+                {loading ? (
+                    <Box sx={styles.templatesGrid}>
+                        {[1, 2, 3, 4, 5, 6].map((i) => (
+                            <Skeleton key={i} variant="rectangular" height={300} sx={{ borderRadius: 2 }} />
+                        ))}
+                    </Box>
+                ) : filteredTemplates.length > 0 ? (
+                    <Box
+                        sx={styles.templatesGrid}
+                    >
+                        {filteredTemplates.map((template) => (
+                            <motion.div
+                                key={template._id}
+                                initial={{ opacity: 0, y: 20 }}
+                                animate={{ opacity: 1, y: 0 }}
+                                exit={{ opacity: 0, scale: 0.95 }}
+                                transition={{ duration: 0.3 }}
+                                layout
+                            >
+                                <Card sx={styles.card(theme)}>
+                                    <CardActionArea sx={{ flexGrow: 1, display: 'flex', flexDirection: 'column', alignItems: 'flex-start' }} onClick={() => setViewTemplate(template)}>
+                                        <CardContent sx={styles.cardContent}>
+                                            <Box display="flex" justifyContent="space-between" mb={3} width="100%">
+                                                <Chip
+                                                    label={template.category}
+                                                    size="small"
+                                                    sx={{
+                                                        borderRadius: 0.5,
+                                                        fontWeight: 800,
+                                                        fontSize: '0.7rem',
+                                                        bgcolor: alpha(theme.palette.primary.main, 0.1),
+                                                        color: theme.palette.primary.main,
+                                                        letterSpacing: '1px'
+                                                    }}
+                                                />
+                                                <Chip
+                                                    label={template.difficulty}
+                                                    size="small"
+                                                    sx={styles.difficultyChip(theme, template.difficulty)}
+                                                />
+                                            </Box>
+
+                                            <Typography variant="h4" fontWeight={900} gutterBottom sx={{ letterSpacing: '-0.5px' }}>
+                                                {template.name}
+                                            </Typography>
+
+                                            <Typography
+                                                variant="body2"
+                                                color="text.secondary"
+                                                sx={{
+                                                    mb: 4,
+                                                    display: '-webkit-box',
+                                                    WebkitLineClamp: 2,
+                                                    WebkitBoxOrient: 'vertical',
+                                                    overflow: 'hidden',
+                                                    fontWeight: 500,
+                                                    lineHeight: 1.6,
+                                                    opacity: 0.8
+                                                }}
+                                            >
+                                                {template.description}
+                                            </Typography>
+
+                                            <Box display="flex" gap={4} sx={{ color: 'text.secondary' }}>
+                                                <Box display="flex" alignItems="center" gap={1}>
+                                                    <FitnessCenterIcon fontSize="small" sx={{ color: theme.palette.primary.main, opacity: 0.8 }} />
+                                                    <Typography variant="button" fontWeight={800} sx={{ fontSize: '0.75rem' }}>
+                                                        {template.exercises.length} MOVES
+                                                    </Typography>
+                                                </Box>
+                                                <Box display="flex" alignItems="center" gap={1}>
+                                                    <TimerIcon fontSize="small" sx={{ color: theme.palette.secondary.main, opacity: 0.8 }} />
+                                                    <Typography variant="button" fontWeight={800} sx={{ fontSize: '0.75rem' }}>
+                                                        ~45 MIN
+                                                    </Typography>
+                                                </Box>
+                                            </Box>
+                                        </CardContent>
+                                    </CardActionArea>
+                                    <Box sx={{ p: 3, pt: 0, bgcolor: 'transparent' }}>
+                                        <Button
+                                            fullWidth
+                                            variant="contained"
+                                            onClick={() => handleUseTemplate(template)}
+                                            startIcon={<PlayArrowIcon />}
+                                            sx={styles.startButton(theme)}
+                                        >
+                                            START SESSION
+                                        </Button>
+                                    </Box>
+                                </Card>
+                            </motion.div>
+                        ))}
+                    </Box>
+                ) : (
+                    <Box textAlign="center" py={10}>
+                        <Typography variant="h5" color="text.secondary" gutterBottom>
+                            No templates found
+                        </Typography>
+                        <Typography variant="body2" color="text.secondary" sx={{ opacity: 0.6 }}>
+                            Try adjusting your search or filters
+                        </Typography>
+                    </Box>
+                )}
             </Box>
-
-            <Grid container spacing={3}>
-                {filteredTemplates.map((template) => (
-                    <Grid size={{ xs: 12, md: 6, lg: 4 }} key={template._id}>
-                        <Card sx={styles.card(theme)}>
-                            <CardActionArea sx={{ flexGrow: 1 }} onClick={() => setViewTemplate(template)}>
-                                <CardContent sx={{ p: 3 }}>
-                                    <Box display="flex" justifyContent="space-between" mb={2}>
-                                        <Chip label={template.category} size="small" color="primary" variant="outlined" sx={styles.categoryChipSmall} />
-                                        <Chip
-                                            label={template.difficulty}
-                                            size="small"
-                                            variant="filled"
-                                            sx={styles.difficultyChip(theme, template.difficulty)}
-                                        />
-                                    </Box>
-                                    <Typography variant="h5" fontWeight="800" gutterBottom>
-                                        {template.name}
-                                    </Typography>
-                                    <Typography variant="body2" color="text.secondary" sx={styles.cardDescription}>
-                                        {template.description}
-                                    </Typography>
-
-                                    <Box display="flex" gap={3} sx={styles.cardFooter}>
-                                        <Box display="flex" alignItems="center" gap={0.5}>
-                                            <FitnessCenterIcon fontSize="small" color="inherit" />
-                                            <Typography variant="body2" fontWeight={500}>
-                                                {template.exercises.length} Exercises
-                                            </Typography>
-                                        </Box>
-                                        <Box display="flex" alignItems="center" gap={0.5}>
-                                            <SpeedIcon fontSize="small" color="inherit" />
-                                            <Typography variant="body2" fontWeight={500}>
-                                                {template.difficulty}
-                                            </Typography>
-                                        </Box>
-                                    </Box>
-                                </CardContent>
-                            </CardActionArea>
-                            <Box sx={{ p: 2, pt: 0 }}>
-                                <Button
-                                    fullWidth
-                                    variant="contained"
-                                    onClick={() => handleUseTemplate(template)}
-                                    startIcon={<PlayArrowIcon />}
-                                    sx={styles.startButton(theme)}
-                                >
-                                    Start Workout
-                                </Button>
-                            </Box>
-                        </Card>
-                    </Grid>
-                ))}
-            </Grid>
 
             {/* View Template Details Dialog */}
             <Dialog
@@ -267,57 +462,106 @@ export default function WorkoutTemplatesPage() {
                 onClose={() => setViewTemplate(null)}
                 maxWidth="sm"
                 fullWidth
-                PaperProps={{ sx: styles.dialogPaper }}
+                PaperProps={{ sx: styles.dialogPaper(theme) }}
                 TransitionProps={{ timeout: 400 }}
             >
                 {viewTemplate && (
                     <>
-                        <DialogTitle component="div" sx={styles.dialogTitle}>
-                            <Typography variant="h5" fontWeight="800">{viewTemplate.name}</Typography>
-                            <Typography variant="body2" color="text.secondary">{viewTemplate.description}</Typography>
-                        </DialogTitle>
-                        <DialogContent dividers sx={styles.dialogContent}>
-                            <Typography variant="subtitle2" color="primary" gutterBottom sx={styles.exercisesLabel}>
-                                EXERCISES ({viewTemplate.exercises.length})
+                        <DialogTitle sx={{ p: 4, pb: 0 }}>
+                            <Box display="flex" alignItems="center" gap={2} mb={2}>
+                                <Chip
+                                    label={viewTemplate.category}
+                                    size="small"
+                                    sx={{
+                                        borderRadius: 0.5,
+                                        fontWeight: 800,
+                                        bgcolor: theme.palette.primary.main,
+                                        color: '#fff'
+                                    }}
+                                />
+                                <Typography variant="caption" fontWeight={700} color="text.secondary" sx={{ letterSpacing: '2px' }}>
+                                    {viewTemplate.difficulty}
+                                </Typography>
+                            </Box>
+                            <Typography variant="h3" fontWeight={900} sx={{ letterSpacing: '-1px', mb: 1 }}>
+                                {viewTemplate.name}
                             </Typography>
+                            <Typography variant="body1" color="text.secondary" sx={{ lineHeight: 1.6 }}>
+                                {viewTemplate.description}
+                            </Typography>
+                        </DialogTitle>
+
+                        <DialogContent sx={{ p: 4 }}>
+                            <Typography variant="overline" color="primary" sx={{ fontWeight: 900, letterSpacing: '3px', display: 'block', mb: 3 }}>
+                                SEQUENCE ({viewTemplate.exercises.length})
+                            </Typography>
+
                             <List disablePadding>
                                 {viewTemplate.exercises.map((ex, idx: number) => (
-                                    <Box key={idx}>
-                                        <ListItem sx={styles.listItem(theme, idx === viewTemplate.exercises.length - 1)}>
-                                            <ListItemText
-                                                primary={ex.name}
-                                                primaryTypographyProps={{ fontWeight: 700, fontSize: '1rem' }}
-                                                secondary={
-                                                    <Box display="flex" gap={2} mt={0.5}>
-                                                        <Box display="flex" alignItems="center" gap={0.5} sx={styles.statBadge(theme)}>
-                                                            <Typography variant="body2" fontWeight={600}>{ex.sets} sets</Typography>
-                                                        </Box>
-                                                        <Box display="flex" alignItems="center" gap={0.5} sx={styles.statBadge(theme)}>
-                                                            <Typography variant="body2" fontWeight={600}>{ex.reps} reps</Typography>
-                                                        </Box>
-                                                        {(ex.weight || 0) > 0 && (
-                                                            <Box display="flex" alignItems="center" gap={0.5} sx={styles.statBadge(theme)}>
-                                                                <Typography variant="body2" fontWeight={600}>@{ex.weight}kg</Typography>
-                                                            </Box>
-                                                        )}
+                                    <ListItem
+                                        key={idx}
+                                        sx={{
+                                            p: 2,
+                                            mb: 2,
+                                            borderRadius: 2,
+                                            bgcolor: alpha(theme.palette.background.default, 0.5),
+                                            border: `1px solid ${alpha(theme.palette.divider, 0.1)}`
+                                        }}
+                                    >
+                                        <ListItemText
+                                            primary={
+                                                <Box display="flex" justifyContent="space-between" alignItems="center" mb={1}>
+                                                    <Typography variant="h6" fontWeight={800} sx={{ fontSize: '1rem' }}>
+                                                        {ex.name}
+                                                    </Typography>
+                                                    <Typography variant="caption" fontWeight={900} color="text.secondary" sx={{ opacity: 0.5 }}>
+                                                        {String(idx + 1).padStart(2, '0')}
+                                                    </Typography>
+                                                </Box>
+                                            }
+                                            secondary={
+                                                <Box display="flex" gap={2}>
+                                                    <Box display="flex" alignItems="center" gap={0.5} sx={styles.statBadge(theme)}>
+                                                        <RepeatIcon sx={{ fontSize: 14 }} />
+                                                        <Typography variant="caption" fontWeight={700}>{ex.sets} SETS</Typography>
                                                     </Box>
-                                                }
-                                            />
-                                        </ListItem>
-                                    </Box>
+                                                    <Box display="flex" alignItems="center" gap={0.5} sx={styles.statBadge(theme)}>
+                                                        <SpeedIcon sx={{ fontSize: 14 }} />
+                                                        <Typography variant="caption" fontWeight={700}>{ex.reps} REPS</Typography>
+                                                    </Box>
+                                                    {(ex.weight || 0) > 0 && (
+                                                        <Box display="flex" alignItems="center" gap={0.5} sx={styles.statBadge(theme)}>
+                                                            <FitnessCenterIcon sx={{ fontSize: 14 }} />
+                                                            <Typography variant="caption" fontWeight={700}>{ex.weight}kg</Typography>
+                                                        </Box>
+                                                    )}
+                                                </Box>
+                                            }
+                                        />
+                                    </ListItem>
                                 ))}
                             </List>
                         </DialogContent>
-                        <DialogActions sx={styles.dialogActions}>
-                            <Button onClick={() => setViewTemplate(null)} sx={{ borderRadius: 2, fontWeight: 600 }} color="inherit">
-                                Close
+
+                        <DialogActions sx={{ p: 4, pt: 0, gap: 2 }}>
+                            <Button
+                                onClick={() => setViewTemplate(null)}
+                                sx={{
+                                    borderRadius: 1.5,
+                                    fontWeight: 800,
+                                    color: 'text.secondary',
+                                    px: 3
+                                }}
+                            >
+                                CLOSE
                             </Button>
                             <Button
                                 variant="contained"
+                                fullWidth
                                 onClick={() => handleUseTemplate(viewTemplate)}
-                                sx={{ borderRadius: 2, px: 4, fontWeight: 700 }}
+                                sx={styles.startButton(theme)}
                             >
-                                Start Workout
+                                START WORKOUT
                             </Button>
                         </DialogActions>
                     </>

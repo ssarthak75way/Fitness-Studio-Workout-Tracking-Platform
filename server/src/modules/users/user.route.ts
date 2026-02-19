@@ -10,9 +10,12 @@ router.use(protect);
 // Admin routes
 router.get('/', restrictTo('STUDIO_ADMIN'), userController.getAllUsers);
 
+import { uploadProfile } from '../../middlewares/upload.middleware';
+
 // User profile
 router.get('/profile', userController.getProfile);
 router.patch('/profile', userController.updateProfile);
+router.post('/profile-image', uploadProfile.single('profileImage'), userController.uploadProfileImage);
 router.patch('/password', userController.updatePassword);
 
 // Instructors

@@ -51,40 +51,186 @@ interface Booking {
 }
 
 const styles = {
-    pageContainer: { maxWidth: 1200, mx: 'auto', p: { xs: 2, md: 3 } },
-    headerTitle: (theme: Theme) => ({
-        background: `linear-gradient(45deg, ${theme.palette.text.primary} 30%, ${theme.palette.primary.main} 90%)`,
-        WebkitBackgroundClip: 'text',
-        WebkitTextFillColor: 'transparent',
-    }),
-    tabsContainer: { borderBottom: 1, borderColor: 'divider', mb: 3 },
-    card: (theme: Theme) => ({
-        height: '100%',
+    pageContainer: {
+        p: 0,
+        bgcolor: 'background.default',
+        minHeight: '100vh',
         display: 'flex',
         flexDirection: 'column',
-        transition: 'transform 0.2s, box-shadow 0.2s',
-        '&:hover': {
-            transform: 'translateY(-4px)',
-            boxShadow: theme.shadows[4]
-        },
-        border: `1px solid ${theme.palette.divider}`,
-        borderRadius: 3
+        overflow: 'hidden'
+    },
+    headerHero: (theme: Theme) => ({
+        pt: { xs: 10, md: 14 },
+        pb: { xs: 8, md: 12 },
+        px: { xs: 3, md: 6 },
+        position: 'relative',
+        backgroundImage: theme.palette.mode === 'dark'
+            ? `linear-gradient(rgba(6, 9, 15, 0.75), rgba(6, 9, 15, 1)), url(https://images.unsplash.com/photo-1571902943202-507ec2618e8f?q=80&w=2075&auto=format&fit=crop)`
+            : `linear-gradient(rgba(255, 255, 255, 0.8), rgba(255, 255, 255, 0.95)), url(https://images.unsplash.com/photo-1571902943202-507ec2618e8f?q=80&w=2075&auto=format&fit=crop)`,
+        backgroundSize: 'cover',
+        backgroundPosition: 'center',
+        backgroundAttachment: 'fixed',
+        display: 'flex',
+        justifyContent: 'space-between',
+        alignItems: 'flex-end',
+        flexWrap: 'wrap',
+        gap: 4,
+        borderBottom: `1px solid ${alpha(theme.palette.divider, 0.08)}`,
+        '&::before': {
+            content: '"SESSIONS"',
+            position: 'absolute',
+            top: '20%',
+            left: '5%',
+            fontSize: { xs: '5rem', md: '12rem' },
+            fontWeight: 950,
+            color: theme.palette.mode === 'dark' ? alpha('#fff', 0.03) : alpha('#000', 0.03),
+            letterSpacing: '20px',
+            zIndex: 0,
+            pointerEvents: 'none',
+            lineHeight: 0.8
+        }
     }),
-    cardContent: { flexGrow: 1, p: 3 },
-    chip: { fontWeight: 600, borderRadius: 1 },
-    qrIconButton: (theme: Theme) => ({
-        bgcolor: alpha(theme.palette.primary.main, 0.1),
+    headerTitle: (theme: Theme) => ({
+        fontWeight: 950,
+        fontSize: { xs: '3.5rem', md: '6rem' },
+        lineHeight: 0.85,
+        letterSpacing: '-4px',
+        color: theme.palette.text.primary,
+        textTransform: 'uppercase',
+        mb: 2,
+        position: 'relative',
+        zIndex: 1,
+        '& span': {
+            color: theme.palette.primary.main,
+            textShadow: `0 0 40px ${alpha(theme.palette.primary.main, 0.5)}`
+        }
+    }),
+    sectionLabel: {
         color: 'primary.main',
-        '&:hover': { bgcolor: alpha(theme.palette.primary.main, 0.2) }
+        fontWeight: 900,
+        letterSpacing: '5px',
+        mb: 3,
+        display: 'block',
+        textTransform: 'uppercase',
+        fontSize: '0.7rem',
+        opacity: 0.8
+    },
+    contentWrapper: {
+        px: { xs: 3, md: 6 },
+        py: { xs: 4, md: 8 },
+        flexGrow: 1,
+        position: 'relative',
+        zIndex: 1
+    },
+    tabsContainer: {
+        mb: 6,
+        '& .MuiTabs-indicator': {
+            height: 4,
+            borderRadius: 0,
+            bgcolor: 'primary.main',
+            boxShadow: (theme: Theme) => `0 -4px 20px ${alpha(theme.palette.primary.main, 0.6)}`
+        },
+        '& .MuiTab-root': {
+            fontWeight: 900,
+            letterSpacing: '2px',
+            fontSize: '0.8rem',
+            textTransform: 'uppercase',
+            color: 'text.secondary',
+            py: 3,
+            '&.Mui-selected': {
+                color: 'text.primary'
+            }
+        }
+    },
+    card: (theme: Theme) => ({
+        height: '100%',
+        position: 'relative',
+        overflow: 'hidden',
+        borderRadius: 2,
+        border: '1px solid',
+        borderColor: theme.palette.divider,
+        bgcolor: alpha(theme.palette.background.paper, 0.6),
+        backdropFilter: 'blur(24px) saturate(160%)',
+        transition: 'all 0.5s cubic-bezier(0.16, 1, 0.3, 1)',
+        boxShadow: theme.palette.mode === 'dark'
+            ? `inset 0 0 20px -10px ${alpha('#fff', 0.05)}, 0 10px 30px -15px ${alpha('#000', 0.5)}`
+            : `0 10px 30px -15px ${alpha(theme.palette.common.black, 0.1)}`,
+        '&:hover': {
+            transform: 'translateY(-10px) scale(1.02)',
+            borderColor: alpha(theme.palette.primary.main, 0.4),
+            boxShadow: `inset 0 0 30px -10px ${alpha(theme.palette.primary.main, 0.1)}, 0 20px 50px -20px ${alpha(theme.palette.primary.main, 0.4)}`,
+            '& .qr-btn': {
+                bgcolor: theme.palette.primary.main,
+                color: '#fff',
+                boxShadow: `0 0 20px ${alpha(theme.palette.primary.main, 0.6)}`
+            }
+        }
+    }),
+    cardContent: { p: 4 },
+    chip: {
+        fontWeight: 900,
+        borderRadius: 0,
+        letterSpacing: '1.5px',
+        textTransform: 'uppercase',
+        fontSize: '0.65rem',
+        height: 24
+    },
+    qrIconButton: (theme: Theme) => ({
+        borderRadius: 0,
+        bgcolor: alpha(theme.palette.primary.main, 0.08),
+        color: 'primary.main',
+        width: 44,
+        height: 44,
+        transition: 'all 0.3s ease',
+        '&:hover': {
+            bgcolor: theme.palette.primary.main,
+            color: '#fff',
+            boxShadow: `0 0 20px ${alpha(theme.palette.primary.main, 0.4)}`
+        }
     }),
     instructorLink: { textDecoration: 'none', color: 'inherit' },
-    instructorText: { fontWeight: 500, '&:hover': { textDecoration: 'underline' } },
-    button: { borderRadius: 2 },
-    noBookingsContainer: { textAlign: 'center', py: 8, opacity: 0.7 },
-    noBookingsIcon: { fontSize: 64, color: 'text.secondary', mb: 2, opacity: 0.5 },
-    qrDialogContent: { textAlign: 'center', py: 4 },
-    qrWrapper: { p: 2, bgcolor: 'white', borderRadius: 2, display: 'inline-block', mb: 2 },
-    qrImage: { width: 200, height: 200 }
+    instructorText: { fontWeight: 900, color: 'primary.main', '&:hover': { textDecoration: 'underline' } },
+    bookingButton: {
+        borderRadius: 0,
+        fontWeight: 900,
+        py: 1.5,
+        letterSpacing: '1px',
+        transition: 'all 0.3s ease'
+    },
+    noBookingsContainer: {
+        textAlign: 'center',
+        py: 12,
+        bgcolor: alpha('#fff', 0.02),
+        border: '1px dashed rgba(255,255,255,0.1)',
+        borderRadius: 2
+    },
+    noBookingsIcon: { fontSize: 80, color: 'primary.main', mb: 3, opacity: 0.2 },
+    dialogPaper: (theme: Theme) => ({
+        borderRadius: 2,
+        bgcolor: 'background.default',
+        backgroundImage: theme.palette.mode === 'dark'
+            ? `linear-gradient(rgba(6, 9, 15, 0.8), rgba(6, 9, 15, 1))`
+            : `linear-gradient(rgba(255, 255, 255, 0.8), rgba(255, 255, 255, 1))`,
+        border: `1px solid ${theme.palette.divider}`,
+        overflow: 'hidden'
+    }),
+    qrDialogContent: { textAlign: 'center', py: 6, px: 4 },
+    qrWrapper: {
+        p: 3,
+        bgcolor: 'white',
+        borderRadius: 1.5,
+        display: 'inline-block',
+        mb: 4,
+        boxShadow: `0 0 40px ${alpha('#fff', 0.1)}`
+    },
+    qrImage: { width: 220, height: 220 },
+    manualCodeBox: (theme: Theme) => ({
+        mt: 4,
+        p: 3,
+        bgcolor: alpha(theme.palette.background.paper, 0.4),
+        border: `1px solid ${alpha(theme.palette.divider, 0.05)}`,
+        borderRadius: 1.5
+    })
 };
 
 export default function BookingsPage() {
@@ -104,7 +250,13 @@ export default function BookingsPage() {
     const fetchBookings = async () => {
         try {
             const response = await bookingService.getMyBookings();
-            setBookings(response.data.bookings);
+            const bookingsData = response.data?.bookings || [];
+
+            if (!response.data?.bookings) {
+                console.log('No bookings found in API response or data structure mismatch');
+            }
+
+            setBookings(bookingsData);
         } catch (error) {
             console.error('Failed to fetch bookings:', error);
             showToast('Failed to load bookings', 'error');
@@ -162,150 +314,191 @@ export default function BookingsPage() {
 
     return (
         <Box sx={styles.pageContainer}>
-            <Box mb={4}>
-                <Typography variant="h4" fontWeight="800" gutterBottom sx={styles.headerTitle(theme)}>
-                    My Bookings
-                </Typography>
-                <Typography variant="body1" color="text.secondary">
-                    Manage your upcoming classes and view your booking history.
-                </Typography>
+            {/* Cinematic Hero */}
+            <Box sx={styles.headerHero(theme)}>
+                <Box>
+                    <Typography sx={styles.sectionLabel}>YOUR MISSION</Typography>
+                    <Typography variant="h1" sx={styles.headerTitle(theme)}>
+                        MY <Box component="span">BOOKINGS</Box>
+                    </Typography>
+                    <Typography variant="h6" sx={{ color: 'text.secondary', maxWidth: 600, fontWeight: 400, lineHeight: 1.6 }}>
+                        Track your evolution. Your roadmap to peak performance, documented and verified in the elite FITNESS STUDIO network.
+                    </Typography>
+                </Box>
+                <Box>
+                    <Button
+                        variant="contained"
+                        onClick={() => navigate('/schedule')}
+                        sx={{
+                            borderRadius: 0,
+                            py: 2.5, px: 6,
+                            fontWeight: 900,
+                            letterSpacing: '2px',
+                            bgcolor: 'white',
+                            color: 'secondary.main',
+                            '&:hover': {
+                                bgcolor: 'primary.main',
+                                color: 'white',
+                                boxShadow: `0 0 30px ${alpha(theme.palette.primary.main, 0.5)}`
+                            }
+                        }}
+                    >
+                        NEW BOOKING
+                    </Button>
+                </Box>
             </Box>
 
-            <Box sx={styles.tabsContainer}>
-                <Tabs value={tabValue} onChange={handleTabChange} aria-label="booking tabs">
-                    <Tab label="Upcoming" />
-                    <Tab label="History" />
-                    <Tab label="Cancelled" />
-                </Tabs>
-            </Box>
+            <Box sx={styles.contentWrapper}>
+                <Typography sx={styles.sectionLabel}>FILTER SESSIONS</Typography>
+                <Box sx={styles.tabsContainer}>
+                    <Tabs value={tabValue} onChange={handleTabChange} aria-label="booking tabs">
+                        <Tab label="Upcoming" />
+                        <Tab label="History" />
+                        <Tab label="Cancelled" />
+                    </Tabs>
+                </Box>
 
-            <Grid container spacing={3}>
-                {filteredBookings.map((booking) => (
-                    <Grid size={{ xs: 12, md: 6, lg: 4 }} key={booking._id}>
-                        <Card sx={styles.card(theme)}>
-                            <CardContent sx={styles.cardContent}>
-                                <Box display="flex" justifyContent="space-between" alignItems="start" mb={2}>
-                                    <Chip
-                                        label={booking.status}
-                                        color={getStatusColor(booking.status)}
-                                        size="small"
-                                        variant="filled"
-                                        sx={styles.chip}
-                                    />
-                                    {booking.status === 'CONFIRMED' && booking.qrCodeUrl && (
-                                        <IconButton
+                <Grid container spacing={4}>
+                    {filteredBookings.map((booking) => (
+                        <Grid size={{ xs: 12, md: 6, lg: 4 }} key={booking._id}>
+                            <Card sx={styles.card(theme)}>
+                                <CardContent sx={styles.cardContent}>
+                                    <Box display="flex" justifyContent="space-between" alignItems="center" mb={3}>
+                                        <Chip
+                                            label={booking.status}
+                                            color={getStatusColor(booking.status)}
                                             size="small"
-                                            onClick={() => {
-                                                setSelectedBooking(booking);
-                                                setOpenQR(true);
-                                            }}
-                                            sx={styles.qrIconButton(theme)}
-                                        >
-                                            <QrCodeIcon fontSize="small" />
-                                        </IconButton>
-                                    )}
-                                </Box>
-
-                                <Typography variant="h6" fontWeight="bold" gutterBottom>
-                                    {booking?.classSession?.title || "NA"}
-                                </Typography>
-
-                                <Stack spacing={1.5} mt={2}>
-                                    <Box display="flex" alignItems="center" gap={1.5}>
-                                        <AccessTimeIcon color="action" fontSize="small" />
-                                        <Typography variant="body2" color="text.secondary">
-                                            {new Date(booking?.classSession?.startTime).toLocaleString(undefined, {
-                                                weekday: 'short', month: 'short', day: 'numeric',
-                                                hour: 'numeric', minute: '2-digit'
-                                            })}
-                                        </Typography>
-                                    </Box>
-                                    <Box display="flex" alignItems="center" gap={1.5}>
-                                        <PersonIcon color="action" fontSize="small" />
-                                        {booking?.classSession?.instructor ? (
-                                            <Link to={`/instructors/${booking.classSession.instructor._id}`} style={styles.instructorLink}>
-                                                <Typography variant="body2" color="primary" sx={styles.instructorText}>
-                                                    {booking.classSession.instructor.fullName}
-                                                </Typography>
-                                            </Link>
-                                        ) : (
-                                            <Typography variant="body2" color="text.secondary">
-                                                TBA
-                                            </Typography>
+                                            variant="filled"
+                                            sx={styles.chip}
+                                        />
+                                        {booking.status === 'CONFIRMED' && booking.qrCodeUrl && (
+                                            <IconButton
+                                                className="qr-btn"
+                                                size="medium"
+                                                onClick={() => {
+                                                    setSelectedBooking(booking);
+                                                    setOpenQR(true);
+                                                }}
+                                                sx={styles.qrIconButton(theme)}
+                                            >
+                                                <QrCodeIcon fontSize="small" />
+                                            </IconButton>
                                         )}
                                     </Box>
-                                    <Box display="flex" alignItems="center" gap={1.5}>
-                                        <LocationOnIcon color="action" fontSize="small" />
-                                        <Typography variant="body2" color="text.secondary">
-                                            {booking?.classSession?.location || 'NA'}
-                                        </Typography>
-                                    </Box>
-                                </Stack>
-                            </CardContent>
 
-                            <Box sx={{ p: 2, pt: 0 }}>
-                                {tabValue === 0 && (booking.status === 'CONFIRMED' || booking.status === 'WAITLISTED') && (
-                                    <Button
-                                        variant="outlined"
-                                        color="error"
-                                        fullWidth
-                                        startIcon={<CancelIcon />}
-                                        onClick={() => setCancelId(booking._id)}
-                                        sx={styles.button}
-                                    >
-                                        Cancel Booking
-                                    </Button>
-                                )}
-                                {tabValue !== 0 && (
-                                    <Button
-                                        variant="outlined"
-                                        color="primary"
-                                        fullWidth
-                                        onClick={() => navigate('/schedule')}
-                                        sx={styles.button}
-                                    >
-                                        Book Again
-                                    </Button>
-                                )}
-                            </Box>
-                        </Card>
-                    </Grid>
-                ))}
-            </Grid>
+                                    <Typography variant="h5" fontWeight={950} sx={{ letterSpacing: '-1px', color: 'text.primary', mb: 3 }}>
+                                        {booking?.classSession?.title || "ELITE SESSION"}
+                                    </Typography>
 
-            {filteredBookings.length === 0 && (
-                <Box sx={styles.noBookingsContainer}>
-                    <EventIcon sx={styles.noBookingsIcon} />
-                    <Typography variant="h6" color="text.secondary">
-                        No {tabValue === 0 ? 'upcoming' : tabValue === 1 ? 'past' : 'cancelled'} bookings found.
-                    </Typography>
-                    {tabValue === 0 && (
-                        <Button variant="contained" sx={{ mt: 2 }} onClick={() => navigate('/schedule')}>
-                            Browse Schedule
-                        </Button>
-                    )}
-                </Box>
-            )}
+                                    <Stack spacing={2}>
+                                        <Box display="flex" alignItems="center" gap={2}>
+                                            <AccessTimeIcon sx={{ color: 'primary.main', fontSize: '1.2rem' }} />
+                                            <Typography variant="body2" sx={{ fontWeight: 700, color: 'text.secondary' }}>
+                                                {new Date(booking?.classSession?.startTime).toLocaleString(undefined, {
+                                                    weekday: 'short', month: 'short', day: 'numeric',
+                                                    hour: 'numeric', minute: '2-digit'
+                                                })}
+                                            </Typography>
+                                        </Box>
+                                        <Box display="flex" alignItems="center" gap={2}>
+                                            <PersonIcon sx={{ color: 'primary.main', fontSize: '1.2rem' }} />
+                                            {booking?.classSession?.instructor ? (
+                                                <Link to={`/instructors/${booking.classSession.instructor._id}`} style={styles.instructorLink}>
+                                                    <Typography variant="body2" sx={styles.instructorText}>
+                                                        {booking.classSession.instructor.fullName.toUpperCase()}
+                                                    </Typography>
+                                                </Link>
+                                            ) : (
+                                                <Typography variant="body2" sx={{ fontWeight: 700, opacity: 0.5 }}>
+                                                    TBA
+                                                </Typography>
+                                            )}
+                                        </Box>
+                                        <Box display="flex" alignItems="center" gap={2}>
+                                            <LocationOnIcon sx={{ color: 'primary.main', fontSize: '1.2rem' }} />
+                                            <Typography variant="body2" sx={{ fontWeight: 700, color: 'text.secondary' }}>
+                                                {booking?.classSession?.location?.toUpperCase() || 'MAIN STUDIO'}
+                                            </Typography>
+                                        </Box>
+                                    </Stack>
+                                </CardContent>
+
+                                <Box sx={{ p: 4, pt: 0 }}>
+                                    {tabValue === 0 && (booking.status === 'CONFIRMED' || booking.status === 'WAITLISTED') && (
+                                        <Button
+                                            variant="outlined"
+                                            color="error"
+                                            fullWidth
+                                            startIcon={<CancelIcon />}
+                                            onClick={() => setCancelId(booking._id)}
+                                            sx={styles.bookingButton}
+                                        >
+                                            CANCEL MISSION
+                                        </Button>
+                                    )}
+                                    {tabValue !== 0 && (
+                                        <Button
+                                            variant="contained"
+                                            fullWidth
+                                            onClick={() => navigate('/schedule')}
+                                            sx={{ ...styles.bookingButton, bgcolor: 'primary.main' }}
+                                        >
+                                            RE-BOOK
+                                        </Button>
+                                    )}
+                                </Box>
+                            </Card>
+                        </Grid>
+                    ))}
+                </Grid>
+
+                {filteredBookings.length === 0 && (
+                    <Box sx={styles.noBookingsContainer}>
+                        <EventIcon sx={styles.noBookingsIcon} />
+                        <Typography variant="h5" fontWeight={900} color="text.secondary" sx={{ opacity: 0.5, letterSpacing: '2px', textTransform: 'uppercase' }}>
+                            ZERO {tabValue === 0 ? 'UPCOMING' : tabValue === 1 ? 'PAST' : 'CANCELLED'} MISSIONS
+                        </Typography>
+                        {tabValue === 0 && (
+                            <Button
+                                variant="contained"
+                                sx={{ mt: 4, borderRadius: 0, fontWeight: 900, py: 2, px: 6, letterSpacing: '2px' }}
+                                onClick={() => navigate('/schedule')}
+                            >
+                                BROWSE INTEL
+                            </Button>
+                        )}
+                    </Box>
+                )}
+            </Box>
 
             {/* QR Code Dialog */}
-            <Dialog open={openQR} onClose={() => setOpenQR(false)} maxWidth="xs" fullWidth>
+            <Dialog
+                open={openQR}
+                onClose={() => setOpenQR(false)}
+                maxWidth="xs"
+                fullWidth
+                PaperProps={{ sx: styles.dialogPaper(theme) }}
+            >
                 <DialogContent sx={styles.qrDialogContent}>
-                    <Typography variant="h6" gutterBottom fontWeight="bold">
-                        Check-in QR Code
+                    <Typography variant="subtitle2" sx={styles.sectionLabel}>AUTHENTICATION</Typography>
+                    <Typography variant="h4" fontWeight={950} sx={{ letterSpacing: '-1.5px', color: 'text.primary', mb: 4 }}>
+                        CHECK-IN <Box component="span" sx={{ color: 'primary.main' }}>QR</Box>
                     </Typography>
+
                     <Box sx={styles.qrWrapper}>
                         {selectedBooking?.qrCodeUrl && <img src={selectedBooking.qrCodeUrl} alt="QR Code" style={styles.qrImage} />}
                     </Box>
-                    <Typography variant="body2" color="text.secondary" paragraph>
-                        Scan this at the studio front desk.
+
+                    <Typography variant="body2" sx={{ color: 'text.secondary', fontWeight: 500, mb: 4 }}>
+                        Present this high-fidelity token at the elite studio command for instant verification.
                     </Typography>
 
-                    <Box sx={{ mt: 2, p: 2, bgcolor: alpha(theme.palette.primary.main, 0.05), borderRadius: 2, border: `1px dashed ${theme.palette.primary.main}` }}>
-                        <Typography variant="caption" color="text.secondary" display="block" gutterBottom>
-                            MANUAL VERIFICATION CODE
+                    <Box sx={styles.manualCodeBox(theme)}>
+                        <Typography variant="overline" sx={{ color: 'primary.main', fontWeight: 900, letterSpacing: '3px', display: 'block', mb: 2 }}>
+                            MANUAL VERIFICATION
                         </Typography>
-                        <Stack direction="row" alignItems="center" justifyContent="center" spacing={1}>
-                            <Typography variant="h6" fontFamily="monospace" fontWeight="700" letterSpacing={2}>
+                        <Stack direction="row" alignItems="center" justifyContent="center" spacing={2}>
+                            <Typography variant="h4" sx={{ fontFamily: 'monospace', fontWeight: 950, letterSpacing: '4px', color: 'text.primary' }}>
                                 {selectedBooking?._id.slice(-6).toUpperCase()}
                             </Typography>
                             <IconButton
@@ -313,34 +506,52 @@ export default function BookingsPage() {
                                 onClick={() => {
                                     if (selectedBooking?._id) {
                                         navigator.clipboard.writeText(selectedBooking._id);
-                                        showToast('Booking ID copied to clipboard', 'success');
+                                        showToast('Intel copied to clipboard', 'success');
                                     }
                                 }}
+                                sx={{ color: 'primary.main' }}
                             >
-                                <ContentCopyIcon fontSize="small" />
+                                <ContentCopyIcon />
                             </IconButton>
                         </Stack>
-                        <Typography variant="caption" color="text.secondary" sx={{ display: 'block', mt: 1 }}>
-                            Full ID: {selectedBooking?._id}
-                        </Typography>
                     </Box>
 
-                    <Button onClick={() => setOpenQR(false)} sx={{ mt: 3 }} fullWidth variant="outlined">Close</Button>
+                    <Button
+                        onClick={() => setOpenQR(false)}
+                        sx={{ mt: 6, borderRadius: 0, fontWeight: 900, letterSpacing: '2px' }}
+                        fullWidth
+                        variant="outlined"
+                        color="inherit"
+                    >
+                        CLOSE SECURE VIEW
+                    </Button>
                 </DialogContent>
             </Dialog>
 
             {/* Cancel Confirmation Dialog */}
-            <Dialog open={!!cancelId} onClose={() => setCancelId(null)}>
-                <DialogTitle>Cancel Booking?</DialogTitle>
-                <DialogContent>
-                    <Typography>
-                        Are you sure you want to cancel this booking? This action cannot be undone.
+            <Dialog
+                open={!!cancelId}
+                onClose={() => setCancelId(null)}
+                PaperProps={{ sx: styles.dialogPaper(theme) }}
+            >
+                <DialogTitle sx={{ p: 4, pb: 2 }}>
+                    <Typography variant="h5" fontWeight={950} sx={{ letterSpacing: '-1px' }}>ABORT MISSION?</Typography>
+                </DialogTitle>
+                <DialogContent sx={{ px: 4 }}>
+                    <Typography sx={{ color: 'rgba(255,255,255,0.7)', fontWeight: 500 }}>
+                        Are you sure you want to terminate this high-performance session? This action is permanent and cannot be reversed.
                     </Typography>
                 </DialogContent>
-                <DialogActions>
-                    <Button onClick={() => setCancelId(null)} color="inherit">Keep Booking</Button>
-                    <Button onClick={handleCancelBooking} color="error" variant="contained" autoFocus>
-                        Yes, Cancel
+                <DialogActions sx={{ p: 4 }}>
+                    <Button onClick={() => setCancelId(null)} color="inherit" sx={{ fontWeight: 900 }}>STAY ATHLETE</Button>
+                    <Button
+                        onClick={handleCancelBooking}
+                        color="error"
+                        variant="contained"
+                        autoFocus
+                        sx={{ borderRadius: 0, fontWeight: 900, px: 4 }}
+                    >
+                        YES, TERMINATE
                     </Button>
                 </DialogActions>
             </Dialog>

@@ -44,23 +44,62 @@ const styles = {
   formContainer: { display: 'flex', flexDirection: 'column', gap: 3 },
   formRow: { display: 'flex', gap: 2 },
   exerciseContainer: (theme: Theme) => ({
-    mb: 3,
-    p: 2,
+    mb: 4,
+    p: 3,
     border: `1px solid ${theme.palette.divider}`,
     borderRadius: 2,
-    bgcolor: alpha(theme.palette.background.paper, 0.05) // Subtle background distinction
+    bgcolor: alpha(theme.palette.text.primary, 0.02),
+    transition: 'all 0.3s ease',
+    '&:hover': {
+      borderColor: alpha(theme.palette.primary.main, 0.3),
+      bgcolor: alpha(theme.palette.text.primary, 0.03),
+    }
   }),
-  exerciseHeader: { display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2 },
-  exerciseName: { mr: 2 },
-  exerciseNotes: { mt: 2 },
-  addExerciseButton: { borderRadius: 2 },
-  setsHeader: { display: 'flex', gap: 2, mb: 1 },
-  setLabel: { width: 40, fontWeight: 'bold' },
-  fieldLabel: { width: 100, fontWeight: 'bold' },
-  setRow: { display: 'flex', gap: 2, mb: 1, alignItems: 'center' },
-  setNumber: { width: 40 },
-  setField: { width: 100 },
-  addSetButton: { mt: 1 }
+  exerciseHeader: { display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 3 },
+  exerciseName: (theme: Theme) => ({
+    '& .MuiOutlinedInput-root': {
+      borderRadius: 0,
+      bgcolor: alpha(theme.palette.text.primary, 0.03),
+      fontWeight: 800,
+      letterSpacing: '1px',
+      '& fieldset': { borderColor: theme.palette.divider },
+      '&:hover fieldset': { borderColor: 'primary.main' },
+    }
+  }),
+  inputField: (theme: Theme) => ({
+    '& .MuiOutlinedInput-root': {
+      borderRadius: 0,
+      bgcolor: alpha(theme.palette.text.primary, 0.03),
+      '& fieldset': { borderColor: theme.palette.divider },
+      '&:hover fieldset': { borderColor: 'primary.main' },
+    }
+  }),
+  sectionLabel: {
+    color: 'primary.main',
+    fontWeight: 900,
+    letterSpacing: '4px',
+    mb: 2,
+    display: 'block',
+    textTransform: 'uppercase',
+    fontSize: '0.65rem'
+  },
+  dialogPaper: (theme: Theme) => ({
+    borderRadius: 2,
+    bgcolor: 'background.paper',
+    backgroundImage: theme.palette.mode === 'dark'
+      ? `linear-gradient(rgba(6, 9, 15, 0.8), rgba(6, 9, 15, 1))`
+      : 'none',
+    border: `1px solid ${theme.palette.divider}`,
+    overflow: 'hidden'
+  }),
+  actionButton: {
+    borderRadius: 0,
+    fontWeight: 950,
+    letterSpacing: '2px',
+    textTransform: 'uppercase',
+    py: 1.5,
+    px: 4
+  }
 };
 
 export default function LogWorkoutModal({ open, onClose, onSuccess, initialValues }: LogWorkoutModalProps) {
@@ -107,39 +146,64 @@ export default function LogWorkoutModal({ open, onClose, onSuccess, initialValue
   };
 
   return (
-    <Dialog open={open} onClose={onClose} fullWidth maxWidth="md">
-      <DialogTitle>Log Workout</DialogTitle>
-      <form onSubmit={handleSubmit(onSubmit)}>
+    <Dialog
+      open={open}
+      onClose={onClose}
+      fullWidth
+      maxWidth="md"
+      PaperProps={{ sx: styles.dialogPaper(theme) }}
+    >
+      <DialogTitle sx={{ p: 4, pb: 2 }}>
+        <Typography sx={styles.sectionLabel} mb={1}>PERFORMANCE LOG</Typography>
+        <Typography variant="h4" fontWeight={950} sx={{ letterSpacing: '-1.5px', color: 'text.primary' }}>
+          INITIALIZE <Box component="span" sx={{ color: 'primary.main' }}>SESSION</Box>
+        </Typography>
+      </DialogTitle>
+      <form onSubmit={handleSubmit(onSubmit)} style={{ display: 'contents' }}>
         <DialogContent dividers>
           <Box sx={styles.formContainer}>
             <Box sx={styles.formRow}>
               <Box flex={2}>
                 <TextField
                   {...register("title")}
-                  label="Workout Title"
+                  label="MISSION OBJECTIVE (TITLE)"
                   fullWidth
                   error={!!errors.title}
                   helperText={errors.title?.message}
+                  sx={styles.inputField(theme)}
                 />
               </Box>
               <Box flex={1}>
-                <TextField {...register("durationMinutes")} label="Duration (min)" type="number" fullWidth />
+                <TextField
+                  {...register("durationMinutes")}
+                  label="TIME REACH (MIN)"
+                  type="number"
+                  fullWidth
+                  sx={styles.inputField(theme)}
+                />
               </Box>
             </Box>
 
-            <TextField {...register("notes")} label="Workout Notes" multiline rows={2} fullWidth />
+            <TextField
+              {...register("notes")}
+              label="OPERATIONAL NOTES"
+              multiline
+              rows={2}
+              fullWidth
+              sx={styles.inputField(theme)}
+            />
 
-            <Typography variant="h6">Exercises</Typography>
+            <Typography sx={styles.sectionLabel} mt={2}>DRILL CONFIGURATION</Typography>
 
             {exerciseFields.map((field, index) => (
               <Box key={field.id} sx={styles.exerciseContainer(theme)}>
                 <Box sx={styles.exerciseHeader}>
                   <TextField
                     {...register(`exercises.${index}.name` as const)}
-                    label={`Exercise ${index + 1}`}
+                    label={`TARGET DRILL ${index + 1}`}
                     size="small"
                     fullWidth
-                    sx={styles.exerciseName}
+                    sx={styles.exerciseName(theme)}
                     error={!!errors.exercises?.[index]?.name}
                   />
                   <IconButton color="error" onClick={() => removeExercise(index)}>
@@ -149,12 +213,13 @@ export default function LogWorkoutModal({ open, onClose, onSuccess, initialValue
 
                 <SetsFieldArray nestIndex={index} control={control} register={register} />
 
-                <Box sx={styles.exerciseNotes}>
+                <Box sx={{ mt: 3 }}>
                   <TextField
                     {...register(`exercises.${index}.notes` as const)}
-                    label="Exercise Notes"
+                    label="DRILL SPECIFIC NOTES"
                     size="small"
                     fullWidth
+                    sx={styles.inputField(theme)}
                   />
                 </Box>
               </Box>
@@ -164,15 +229,15 @@ export default function LogWorkoutModal({ open, onClose, onSuccess, initialValue
               variant="outlined"
               startIcon={<AddCircleOutlineIcon />}
               onClick={() => appendExercise({ name: '', sets: [{ reps: 10, weight: 0 }] })}
-              sx={styles.addExerciseButton}
+              sx={{ ...styles.actionButton, borderColor: theme.palette.divider, color: 'text.primary' }}
             >
-              Add Exercise
+              DEPLOY NEW DRILL
             </Button>
           </Box>
         </DialogContent>
-        <DialogActions>
-          <Button onClick={onClose}>Cancel</Button>
-          <Button type="submit" variant="contained">Save Log</Button>
+        <DialogActions sx={{ p: 4, pt: 2 }}>
+          <Button onClick={onClose} sx={{ fontWeight: 900, color: 'text.secondary', letterSpacing: '1px' }}>ABORT</Button>
+          <Button type="submit" variant="contained" sx={{ ...styles.actionButton, bgcolor: 'primary.main', color: 'primary.contrastText' }}>COMMIT LOG</Button>
         </DialogActions>
       </form>
     </Dialog>
