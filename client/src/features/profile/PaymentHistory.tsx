@@ -14,11 +14,83 @@ import {
     alpha,
     useTheme
 } from '@mui/material';
+import type { Theme } from '@mui/material';
 import VisibilityIcon from '@mui/icons-material/Visibility';
 import { format } from 'date-fns';
 import { paymentService } from '../../services/payment.service';
 import PaymentDetailModal from './PaymentDetailModal';
 import type { Payment } from '../../types';
+
+const styles = {
+    loadingContainer: {
+        display: 'flex',
+        justifyContent: 'center',
+        py: 8
+    },
+    tableContainer: {
+        borderRadius: 0,
+        overflow: 'hidden',
+        bgcolor: 'transparent',
+        boxShadow: 'none',
+        border: '1px solid rgba(255,255,255,0.08)'
+    },
+    tableHeader: (theme: Theme) => ({
+        bgcolor: alpha(theme.palette.primary.main, 0.05),
+        '& .MuiTableCell-root': {
+            color: 'primary.main',
+            borderBottom: '1px solid rgba(255,255,255,0.08)',
+            fontWeight: 900,
+            letterSpacing: '2px',
+            textTransform: 'uppercase',
+            fontSize: '0.65rem',
+            py: 2
+        }
+    }),
+    emptyRow: {
+        py: 6
+    },
+    emptyText: {
+        opacity: 0.4,
+        fontWeight: 700,
+        letterSpacing: '1px'
+    },
+    tableRow: (theme: Theme) => ({
+        transition: 'all 0.3s ease',
+        cursor: 'pointer',
+        '&:hover': {
+            bgcolor: alpha(theme.palette.primary.main, 0.03),
+            '& .MuiTableCell-root': { color: 'primary.main' }
+        },
+        '& .MuiTableCell-root': {
+            borderBottom: '1px solid rgba(255,255,255,0.03)',
+            color: theme.palette.text.primary,
+            fontWeight: 600,
+            fontSize: '0.85rem',
+            py: 2.5
+        }
+    }),
+    dateCell: {
+        fontWeight: 800
+    },
+    amountCell: {
+        fontWeight: 900
+    },
+    statusChip: (theme: Theme, status: string) => ({
+        borderRadius: 0,
+        fontWeight: 900,
+        fontSize: '0.6rem',
+        letterSpacing: '1px',
+        bgcolor: status === 'SUCCESS' ? alpha(theme.palette.success.main, 0.1) : alpha(theme.palette.error.main, 0.1),
+        color: status === 'SUCCESS' ? 'success.main' : 'error.main',
+        border: `1px solid ${alpha(status === 'SUCCESS' ? theme.palette.success.main : theme.palette.error.main, 0.2)}`
+    }),
+    actionIcon: {
+        color: 'primary.main'
+    },
+    visibilityIcon: {
+        fontSize: '1.2rem'
+    }
+};
 
 export default function PaymentHistory() {
     const theme = useTheme();
@@ -48,54 +120,17 @@ export default function PaymentHistory() {
 
     if (loading) {
         return (
-            <Box display="flex" justifyContent="center" py={8}>
+            <Box sx={styles.loadingContainer}>
                 <CircularProgress color="primary" thickness={5} />
             </Box>
         );
     }
 
-    const tableStyles = {
-        container: {
-            borderRadius: 0,
-            overflow: 'hidden',
-            bgcolor: 'transparent',
-            boxShadow: 'none',
-            border: '1px solid rgba(255,255,255,0.08)'
-        },
-        header: {
-            bgcolor: alpha(theme.palette.primary.main, 0.05),
-            '& .MuiTableCell-root': {
-                color: 'primary.main',
-                borderBottom: '1px solid rgba(255,255,255,0.08)',
-                fontWeight: 900,
-                letterSpacing: '2px',
-                textTransform: 'uppercase',
-                fontSize: '0.65rem',
-                py: 2
-            }
-        },
-        row: {
-            transition: 'all 0.3s ease',
-            cursor: 'pointer',
-            '&:hover': {
-                bgcolor: alpha(theme.palette.primary.main, 0.03),
-                '& .MuiTableCell-root': { color: 'primary.main' }
-            },
-            '& .MuiTableCell-root': {
-                borderBottom: '1px solid rgba(255,255,255,0.03)',
-                color: theme.palette.text.primary,
-                fontWeight: 600,
-                fontSize: '0.85rem',
-                py: 2.5
-            }
-        }
-    };
-
     return (
         <Box>
-            <TableContainer sx={tableStyles.container}>
+            <TableContainer sx={styles.tableContainer}>
                 <Table>
-                    <TableHead sx={tableStyles.header}>
+                    <TableHead sx={styles.tableHeader(theme)}>
                         <TableRow>
                             <TableCell>CHRONO DATE</TableCell>
                             <TableCell>MISSION PLAN</TableCell>
@@ -107,8 +142,8 @@ export default function PaymentHistory() {
                     <TableBody>
                         {payments.length === 0 ? (
                             <TableRow>
-                                <TableCell colSpan={5} align="center" sx={{ py: 6 }}>
-                                    <Typography variant="body2" sx={{ opacity: 0.4, fontWeight: 700, letterSpacing: '1px' }}>
+                                <TableCell colSpan={5} align="center" sx={styles.emptyRow}>
+                                    <Typography variant="body2" sx={styles.emptyText}>
                                         NO TRANSACTION DATA ARCHIVED.
                                     </Typography>
                                 </TableCell>
@@ -117,36 +152,28 @@ export default function PaymentHistory() {
                             payments.map((payment) => (
                                 <TableRow
                                     key={payment._id}
-                                    sx={tableStyles.row}
+                                    sx={styles.tableRow(theme)}
                                     onClick={() => handleViewDetails(payment)}
                                 >
-                                    <TableCell sx={{ fontWeight: 800 }}>
+                                    <TableCell sx={styles.dateCell}>
                                         {format(new Date(payment.createdAt), 'MMM dd, yyyy').toUpperCase()}
                                     </TableCell>
                                     <TableCell>
                                         {payment.planType.replace('_', ' ').toUpperCase()}
                                     </TableCell>
-                                    <TableCell sx={{ fontWeight: 900 }}>
+                                    <TableCell sx={styles.amountCell}>
                                         ₹{payment.amount}
                                     </TableCell>
                                     <TableCell>
                                         <Chip
                                             label={payment.status.toUpperCase()}
                                             size="small"
-                                            sx={{
-                                                borderRadius: 0,
-                                                fontWeight: 900,
-                                                fontSize: '0.6rem',
-                                                letterSpacing: '1px',
-                                                bgcolor: payment.status === 'SUCCESS' ? alpha(theme.palette.success.main, 0.1) : alpha(theme.palette.error.main, 0.1),
-                                                color: payment.status === 'SUCCESS' ? 'success.main' : 'error.main',
-                                                border: `1px solid ${alpha(payment.status === 'SUCCESS' ? theme.palette.success.main : theme.palette.error.main, 0.2)}`
-                                            }}
+                                            sx={styles.statusChip(theme, payment.status)}
                                         />
                                     </TableCell>
                                     <TableCell align="right">
-                                        <IconButton size="small" sx={{ color: 'primary.main' }}>
-                                            <VisibilityIcon sx={{ fontSize: '1.2rem' }} />
+                                        <IconButton size="small" sx={styles.actionIcon}>
+                                            <VisibilityIcon sx={styles.visibilityIcon} />
                                         </IconButton>
                                     </TableCell>
                                 </TableRow>

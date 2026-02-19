@@ -3,12 +3,14 @@ import { v2 as cloudinary } from 'cloudinary';
 import { CloudinaryStorage } from 'multer-storage-cloudinary';
 import { Request } from 'express';
 import { AppError } from '../utils/AppError';
+import dotenv from 'dotenv';
+dotenv.config();
 
 // Configure Cloudinary
 cloudinary.config({
-    cloud_name: 'dt7owuhss',
-    api_key: '237275669714973',
-    api_secret: 'FDrXRUZn_Bfa74xRcByWp7rY3Qw'
+    cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
+    api_key: process.env.CLOUDINARY_API_KEY,
+    api_secret: process.env.CLOUDINARY_API_SECRET
 });
 
 // Configure Storage
@@ -18,7 +20,7 @@ const storage = new CloudinaryStorage({
         folder: 'fitness-studio/profiles',
         allowed_formats: ['jpg', 'png', 'jpeg', 'webp', 'avif'],
         transformation: [{ width: 500, height: 500, crop: 'limit' }]
-    } as any // Type assertion needed for some multer-storage-cloudinary versions
+    } as Record<string, string | string[] | { width: number; height: number; crop: string }[]>
 });
 
 // File Filter
@@ -26,7 +28,7 @@ const fileFilter = (_req: Request, file: Express.Multer.File, cb: multer.FileFil
     if (file.mimetype.startsWith('image/')) {
         cb(null, true);
     } else {
-        cb(new AppError('Not an image! Please upload only images.', 400) as unknown as null, false);
+        cb(new AppError('Not an image! Please upload only images.', 400) as Error);
     }
 };
 

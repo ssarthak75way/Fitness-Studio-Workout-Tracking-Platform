@@ -11,6 +11,7 @@ import {
     useTheme,
     Stack
 } from '@mui/material';
+import type { Theme } from '@mui/material';
 import ReceiptLongIcon from '@mui/icons-material/ReceiptLong';
 import { format } from 'date-fns';
 import type { Payment } from '../../types';
@@ -22,13 +23,24 @@ interface PaymentDetailModalProps {
 }
 
 const styles = {
-    dialogPaper: {
+    dialogPaper: () => ({
         borderRadius: 2,
         bgcolor: 'background.default',
         backgroundImage: `linear-gradient(rgba(6, 9, 15, 0.8), rgba(6, 9, 15, 1))`,
         border: '1px solid rgba(255,255,255,0.08)',
         overflow: 'hidden',
         backdropFilter: 'blur(20px)'
+    }),
+    titleBox: {
+        p: 4,
+        pb: 2,
+        display: 'flex',
+        alignItems: 'center',
+        gap: 2
+    },
+    titleIcon: {
+        color: 'primary.main',
+        fontSize: '2rem'
     },
     sectionLabel: {
         color: 'primary.main',
@@ -40,6 +52,24 @@ const styles = {
         fontSize: '0.65rem',
         opacity: 0.8
     },
+    titleText: {
+        letterSpacing: '-1px',
+        color: '#fff'
+    },
+    contentBox: {
+        px: 4,
+        py: 2
+    },
+    statusBox: (theme: Theme, status: string) => ({
+        display: 'flex',
+        justifyContent: 'space-between',
+        alignItems: 'center',
+        mb: 4,
+        p: 2,
+        borderLeft: '4px solid',
+        borderColor: status === 'SUCCESS' ? 'success.main' : 'error.main',
+        bgcolor: alpha(status === 'SUCCESS' ? theme.palette.success.main : theme.palette.error.main, 0.05)
+    }),
     detailBox: {
         p: 2.5,
         bgcolor: 'rgba(255,255,255,0.03)',
@@ -52,6 +82,12 @@ const styles = {
         letterSpacing: '-0.5px',
         fontSize: '1rem'
     },
+    priceText: {
+        color: 'primary.main',
+        fontWeight: 900,
+        letterSpacing: '-0.5px',
+        fontSize: '1rem'
+    },
     captionText: {
         color: 'rgba(255,255,255,0.4)',
         fontWeight: 700,
@@ -59,12 +95,36 @@ const styles = {
         fontSize: '0.65rem',
         mb: 0.5
     },
+    monoText: {
+        wordBreak: 'break-all',
+        fontFamily: 'monospace',
+        color: 'rgba(255,255,255,0.6)',
+        fontWeight: 600
+    },
+    verificationBox: (theme: Theme) => ({
+        mt: 4,
+        p: 3,
+        border: '1px dashed rgba(255,255,255,0.1)',
+        bgcolor: alpha(theme.palette.primary.main, 0.02)
+    }),
+    verificationText: {
+        color: 'primary.main',
+        fontWeight: 900,
+        display: 'block',
+        letterSpacing: '2px'
+    },
+    actionBox: {
+        p: 4,
+        pt: 2
+    },
     actionButton: {
         borderRadius: 0,
         fontWeight: 900,
         letterSpacing: '2px',
         py: 2,
-        transition: 'all 0.3s ease'
+        transition: 'all 0.3s ease',
+        bgcolor: 'primary.main',
+        color: '#fff'
     }
 };
 
@@ -79,18 +139,18 @@ export default function PaymentDetailModal({ open, onClose, payment }: PaymentDe
             fullWidth
             PaperProps={{ sx: styles.dialogPaper }}
         >
-            <DialogTitle sx={{ p: 4, pb: 2, display: 'flex', alignItems: 'center', gap: 2 }}>
-                <ReceiptLongIcon sx={{ color: 'primary.main', fontSize: '2rem' }} />
+            <DialogTitle sx={styles.titleBox}>
+                <ReceiptLongIcon sx={styles.titleIcon} />
                 <Box>
                     <Typography sx={styles.sectionLabel} mb={0.5}>MISSION DATA</Typography>
-                    <Typography variant="h5" fontWeight={950} sx={{ letterSpacing: '-1px', color: '#fff' }}>
+                    <Typography variant="h5" fontWeight={950} sx={styles.titleText}>
                         PAYMENT INTEL
                     </Typography>
                 </Box>
             </DialogTitle>
 
-            <DialogContent sx={{ px: 4, py: 2 }}>
-                <Box display="flex" justifyContent="space-between" alignItems="center" mb={4} p={2} borderLeft="4px solid" borderColor={payment.status === 'SUCCESS' ? 'success.main' : 'error.main'} bgcolor={alpha(payment.status === 'SUCCESS' ? theme.palette.success.main : theme.palette.error.main, 0.05)}>
+            <DialogContent sx={styles.contentBox}>
+                <Box sx={styles.statusBox(theme, payment.status)}>
                     <Typography sx={styles.captionText} mb={0}>CLEARANCE STATUS</Typography>
                     <Typography fontWeight={950} color={payment.status === 'SUCCESS' ? 'success.main' : 'error.main'} sx={{ letterSpacing: '1px', fontSize: '0.8rem' }}>
                         {payment.status.toUpperCase()}
@@ -108,21 +168,21 @@ export default function PaymentDetailModal({ open, onClose, payment }: PaymentDe
                         <Grid size={6}>
                             <Box sx={styles.detailBox}>
                                 <Typography sx={styles.captionText}>PAYLOAD</Typography>
-                                <Typography sx={styles.valueText} color="primary.main !important">₹{payment.amount}</Typography>
+                                <Typography sx={styles.priceText}>₹{payment.amount}</Typography>
                             </Box>
                         </Grid>
                     </Grid>
 
                     <Box sx={styles.detailBox}>
                         <Typography sx={styles.captionText}>PAYMENT SIGNATURE</Typography>
-                        <Typography variant="body2" sx={{ wordBreak: 'break-all', fontFamily: 'monospace', color: 'rgba(255,255,255,0.6)', fontWeight: 600 }}>
+                        <Typography variant="body2" sx={styles.monoText}>
                             {payment.razorpayPaymentId || 'UNREGISTERED_DATA'}
                         </Typography>
                     </Box>
 
                     <Box sx={styles.detailBox}>
                         <Typography sx={styles.captionText}>ORDER REFERENCE</Typography>
-                        <Typography variant="body2" sx={{ wordBreak: 'break-all', fontFamily: 'monospace', color: 'rgba(255,255,255,0.6)', fontWeight: 600 }}>
+                        <Typography variant="body2" sx={styles.monoText}>
                             {payment.razorpayOrderId}
                         </Typography>
                     </Box>
@@ -135,26 +195,19 @@ export default function PaymentDetailModal({ open, onClose, payment }: PaymentDe
                     </Box>
                 </Stack>
 
-                <Box
-                    sx={{
-                        mt: 4,
-                        p: 3,
-                        border: '1px dashed rgba(255,255,255,0.1)',
-                        bgcolor: alpha(theme.palette.primary.main, 0.02)
-                    }}
-                >
-                    <Typography variant="caption" align="center" sx={{ color: 'primary.main', fontWeight: 900, display: 'block', letterSpacing: '2px' }}>
+                <Box sx={styles.verificationBox(theme)}>
+                    <Typography variant="caption" align="center" sx={styles.verificationText}>
                         VERIFIED TRANSACTION ARCHIVE
                     </Typography>
                 </Box>
             </DialogContent>
 
-            <DialogActions sx={{ p: 4, pt: 2 }}>
+            <DialogActions sx={styles.actionBox}>
                 <Button
                     onClick={onClose}
                     variant="contained"
                     fullWidth
-                    sx={{ ...styles.actionButton, bgcolor: 'primary.main', color: '#fff' }}
+                    sx={styles.actionButton}
                 >
                     CLOSE REPORT
                 </Button>

@@ -3,6 +3,33 @@ import KeyboardArrowUpIcon from '@mui/icons-material/KeyboardArrowUp';
 import { motion, AnimatePresence, useScroll } from 'framer-motion';
 import { useEffect, useState } from 'react';
 
+const styles = {
+    scrollContainer: {
+        position: 'fixed' as const, // Type cast for position
+        bottom: 40,
+        right: 40,
+        zIndex: 1000,
+        cursor: 'pointer',
+        width: 60,
+        height: 60,
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center'
+    },
+    iconBox: {
+        position: 'absolute',
+        width: 45,
+        height: 45,
+        bgcolor: 'primary.main',
+        borderRadius: '50%',
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        color: '#fff',
+        boxShadow: '0 10px 30px rgba(0,0,0,0.3)'
+    }
+};
+
 export const ScrollToTop = () => {
     const theme = useTheme();
     const { scrollYProgress, scrollY } = useScroll();
@@ -29,18 +56,7 @@ export const ScrollToTop = () => {
                     whileHover={{ scale: 1.1 }}
                     whileTap={{ scale: 0.9 }}
                     onClick={scrollToTop}
-                    sx={{
-                        position: 'fixed',
-                        bottom: 40,
-                        right: 40,
-                        zIndex: 1000,
-                        cursor: 'pointer',
-                        width: 60,
-                        height: 60,
-                        display: 'flex',
-                        alignItems: 'center',
-                        justifyContent: 'center'
-                    }}
+                    sx={styles.scrollContainer}
                 >
                     <svg width="60" height="60" viewBox="0 0 100 100">
                         <circle
@@ -62,20 +78,7 @@ export const ScrollToTop = () => {
                             style={{ pathLength: scrollYProgress, rotate: -90, originX: "50%", originY: "50%" }}
                         />
                     </svg>
-                    <Box
-                        sx={{
-                            position: 'absolute',
-                            width: 45,
-                            height: 45,
-                            bgcolor: 'primary.main',
-                            borderRadius: '50%',
-                            display: 'flex',
-                            alignItems: 'center',
-                            justifyContent: 'center',
-                            color: '#fff',
-                            boxShadow: '0 10px 30px rgba(0,0,0,0.3)'
-                        }}
-                    >
+                    <Box sx={styles.iconBox}>
                         <KeyboardArrowUpIcon />
                     </Box>
                 </Box>

@@ -119,31 +119,31 @@ const styles = {
     gap: 3,
     mb: 8,
   },
-  statCard: {
+  statCard: (theme: Theme) => ({
     height: '100%',
     position: 'relative',
     overflow: 'hidden',
     borderRadius: 2,
     border: '1px solid',
     borderColor: 'divider',
-    bgcolor: (theme: Theme) => theme.palette.mode === 'dark'
+    bgcolor: theme.palette.mode === 'dark'
       ? alpha(theme.palette.background.paper, 0.4)
       : alpha(theme.palette.background.paper, 0.8),
     backdropFilter: 'blur(24px) saturate(160%)',
     transition: 'all 0.5s cubic-bezier(0.16, 1, 0.3, 1)',
-    boxShadow: (theme: Theme) => theme.palette.mode === 'dark'
+    boxShadow: theme.palette.mode === 'dark'
       ? `inset 0 0 20px -10px ${alpha('#fff', 0.05)}, 0 10px 30px -15px ${alpha('#000', 0.5)}`
       : `0 10px 30px -15px ${alpha(theme.palette.common.black, 0.05)}`,
     '&:hover': {
       transform: 'translateY(-10px) scale(1.02)',
-      borderColor: (theme: Theme) => alpha(theme.palette.primary.main, 0.4),
-      boxShadow: (theme: Theme) => `inset 0 0 30px -10px ${alpha(theme.palette.primary.main, 0.1)}, 0 20px 50px -20px ${alpha(theme.palette.primary.main, 0.4)}`,
+      borderColor: alpha(theme.palette.primary.main, 0.4),
+      boxShadow: `inset 0 0 30px -10px ${alpha(theme.palette.primary.main, 0.1)}, 0 20px 50px -20px ${alpha(theme.palette.primary.main, 0.4)}`,
       '& .metric-icon': {
         transform: 'scale(1.1) rotate(-10deg)',
-        color: (theme: Theme) => theme.palette.primary.main
+        color: theme.palette.primary.main
       }
     }
-  },
+  }),
   metricIcon: (color: string) => ({
     p: 2,
     borderRadius: 1.5,
@@ -253,9 +253,10 @@ const styles = {
 };
 
 const StatCard = ({ title, value, icon: Icon, color, size = "small", progress }: { title: string, value: string | number, icon: React.ElementType, color: string, size?: "small" | "large", progress?: number }) => {
+  const theme = useTheme();
   return (
     <motion.div variants={itemVariants} style={{ height: '100%' }}>
-      <Card sx={{ ...styles.statCard, p: 4 }}>
+      <Card sx={{ ...styles.statCard(theme), p: 4 }}>
         <Box display="flex" justifyContent="space-between" alignItems="flex-start">
           <Box sx={styles.metricIcon(color)} className="metric-icon">
             <Icon sx={{ fontSize: '1.5rem' }} />

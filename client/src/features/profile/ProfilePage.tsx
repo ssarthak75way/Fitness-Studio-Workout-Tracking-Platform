@@ -84,7 +84,13 @@ const styles = {
             textShadow: theme.palette.mode === 'dark' ? `0 0 40px ${alpha(theme.palette.primary.main, 0.5)}` : 'none'
         }
     }),
-    sectionLabel: {
+    heroSubtitle: {
+        color: 'text.secondary',
+        maxWidth: 600,
+        fontWeight: 400,
+        lineHeight: 1.6
+    },
+    sectionLabel: () => ({
         color: 'primary.main',
         fontWeight: 900,
         letterSpacing: '5px',
@@ -93,13 +99,16 @@ const styles = {
         textTransform: 'uppercase',
         fontSize: '0.7rem',
         opacity: 0.8
-    },
+    }),
     contentWrapper: {
         px: { xs: 3, md: 6 },
         py: { xs: 4, md: 8 },
         flexGrow: 1,
         position: 'relative',
         zIndex: 1
+    },
+    profileSidebar: {
+        flex: { xs: '1 1 100%', lg: '0 0 380px' }
     },
     userCard: (theme: Theme) => ({
         p: 4,
@@ -118,6 +127,11 @@ const styles = {
             boxShadow: `inset 0 0 30px -10px ${alpha(theme.palette.primary.main, 0.1)}, 0 20px 50px -20px ${alpha(theme.palette.primary.main, 0.4)}`,
         }
     }),
+    avatarWrapper: {
+        position: 'relative',
+        display: 'inline-block',
+        mb: 2
+    },
     avatar: (theme: Theme) => ({
         width: 140,
         height: 140,
@@ -127,8 +141,33 @@ const styles = {
         fontSize: '4rem',
         fontWeight: 950,
         boxShadow: `0 20px 40px -10px ${alpha(theme.palette.primary.main, 0.5)}`,
-        border: `4px solid ${alpha(theme.palette.text.primary, 0.1)}`
+        border: `4px solid ${alpha(theme.palette.text.primary, 0.1)}`,
+        cursor: 'pointer',
+        transition: 'all 0.3s ease',
+        '&:hover': {
+            transform: 'scale(1.05)',
+            boxShadow: `0 30px 60px -10px ${alpha(theme.palette.primary.main, 0.6)}`
+        }
     }),
+    cameraIconWrapper: (theme: Theme) => ({
+        position: 'absolute',
+        bottom: 10,
+        right: 10,
+        bgcolor: 'primary.main',
+        color: theme.palette.primary.contrastText,
+        borderRadius: '50%',
+        p: 1.5,
+        boxShadow: `0 0 20px ${alpha(theme.palette.primary.main, 0.5)}`,
+        cursor: 'pointer',
+        zIndex: 2,
+        transition: 'transform 0.2s',
+        '&:hover': { transform: 'scale(1.1)' }
+    }),
+    nameDisplay: {
+        letterSpacing: '-1.5px',
+        color: 'text.primary',
+        mb: 1
+    },
     roleChip: {
         fontWeight: 900,
         mb: 3,
@@ -137,6 +176,10 @@ const styles = {
         fontSize: '0.7rem',
         height: 28
     },
+    divider: (theme: Theme) => ({
+        my: 4,
+        borderColor: theme.palette.divider
+    }),
     infoBox: {
         display: 'flex',
         alignItems: 'center',
@@ -147,14 +190,72 @@ const styles = {
         fontWeight: 600,
         fontSize: '0.875rem'
     },
-    actionButton: {
+    icon: {
+        fontSize: '1.2rem',
+        color: 'primary.main'
+    },
+    infoText: {
+        letterSpacing: '1px'
+    },
+    editButton: (theme: Theme) => ({
         borderRadius: 0,
         fontWeight: 900,
         letterSpacing: '2px',
         py: 1.5,
         mt: 3,
-        transition: 'all 0.3s ease'
+        transition: 'all 0.3s ease',
+        borderColor: theme.palette.divider,
+        color: 'text.primary'
+    }),
+    cancelButton: (theme: Theme) => ({
+        borderRadius: 0,
+        fontWeight: 900,
+        letterSpacing: '2px',
+        py: 1.5,
+        mt: 3,
+        transition: 'all 0.3s ease',
+        color: 'text.secondary',
+        borderColor: theme.palette.divider
+    }),
+    saveButton: {
+        borderRadius: 0,
+        fontWeight: 900,
+        letterSpacing: '2px',
+        py: 1.5,
+        mt: 3,
+        transition: 'all 0.3s ease',
+        bgcolor: 'primary.main',
+        color: 'primary.contrastText'
     },
+    inputField: (theme: Theme) => ({
+        '& .MuiOutlinedInput-root': {
+            borderRadius: 0,
+            bgcolor: alpha(theme.palette.text.primary, 0.03),
+            '& fieldset': { borderColor: theme.palette.divider },
+            '&:hover fieldset': { borderColor: 'primary.main' },
+        },
+        '& .MuiInputLabel-root': { fontWeight: 700, letterSpacing: '1px' }
+    }),
+    nameInput: (theme: Theme) => ({
+        '& .MuiOutlinedInput-root': {
+            borderRadius: 0,
+            bgcolor: alpha(theme.palette.text.primary, 0.03),
+            '& fieldset': { borderColor: theme.palette.divider },
+            '&:hover fieldset': { borderColor: 'primary.main' },
+        },
+        '& .MuiInputLabel-root': { fontWeight: 700, letterSpacing: '1px' },
+        mb: 3
+    }),
+    bioInput: (theme: Theme) => ({
+        '& .MuiOutlinedInput-root': {
+            borderRadius: 0,
+            bgcolor: alpha(theme.palette.text.primary, 0.03),
+            '& fieldset': { borderColor: theme.palette.divider },
+            '&:hover fieldset': { borderColor: 'primary.main' },
+        },
+        '& .MuiInputLabel-root': { fontWeight: 700, letterSpacing: '1px' },
+        mt: 1
+    }),
     detailsCard: (theme: Theme) => ({
         p: 4,
         borderRadius: 2,
@@ -166,15 +267,49 @@ const styles = {
             ? `0 20px 50px -20px ${alpha('#000', 0.4)}`
             : `0 20px 50px -20px ${alpha(theme.palette.common.black, 0.08)}`
     }),
-    inputField: (theme: Theme) => ({
-        '& .MuiOutlinedInput-root': {
-            borderRadius: 0,
-            bgcolor: alpha(theme.palette.text.primary, 0.03),
-            '& fieldset': { borderColor: theme.palette.divider },
-            '&:hover fieldset': { borderColor: 'primary.main' },
-        },
-        '& .MuiInputLabel-root': { fontWeight: 700, letterSpacing: '1px' }
-    })
+    detailsSection: {
+        flex: 1
+    },
+    detailLabel: {
+        color: 'text.secondary',
+        fontWeight: 900,
+        letterSpacing: 2
+    },
+    detailValue: {
+        fontWeight: 900,
+        color: 'text.primary'
+    },
+    detailValueHighlight: {
+        fontWeight: 900,
+        color: 'primary.main'
+    },
+    verifiedIcon: {
+        color: 'success.main',
+        fontSize: '1.2rem'
+    },
+    bioText: {
+        color: 'text.secondary',
+        fontWeight: 500,
+        mt: 1,
+        opacity: 0.8
+    },
+    sectionDivider: (theme: Theme) => ({
+        mb: 6,
+        borderColor: theme.palette.divider
+    }),
+    securityNoticeBox: (theme: Theme) => ({
+        mt: 6,
+        p: 3,
+        borderLeft: '4px solid',
+        borderColor: 'primary.main',
+        bgcolor: alpha(theme.palette.text.primary, 0.02)
+    }),
+    securityNoticeText: {
+        color: 'text.secondary',
+        fontWeight: 700,
+        letterSpacing: '1px',
+        opacity: 0.5
+    }
 };
 
 export default function ProfilePage() {
@@ -224,7 +359,7 @@ export default function ProfilePage() {
     const handleSaveClick = async () => {
         setLoading(true);
         try {
-            const updateData: any = { fullName: formData.fullName };
+            const updateData: Record<string, string | string[]> = { fullName: formData.fullName };
             if (user?.role === 'INSTRUCTOR') {
                 updateData.bio = formData.bio;
                 updateData.specialties = formData.specialties.split(',').map(s => s.trim()).filter(Boolean);
@@ -258,7 +393,7 @@ export default function ProfilePage() {
                 reader.readAsDataURL(file);
 
                 const response = await authService.uploadProfileImage(file);
-                
+
                 // Update context immediately
                 if (response.data?.user) {
                     updateUser(response.data.user);
@@ -285,7 +420,7 @@ export default function ProfilePage() {
                     <Typography variant="h1" sx={styles.headerTitle(theme)}>
                         ELITE <Box component="span">IDENTITY</Box>
                     </Typography>
-                    <Typography variant="h6" sx={{ color: 'text.secondary', maxWidth: 600, fontWeight: 400, lineHeight: 1.6 }}>
+                    <Typography variant="h6" sx={styles.heroSubtitle}>
                         Manage your verified performance profile. Your identity is your contract with greatness. Stay optimized, stay elite.
                     </Typography>
                 </Box>
@@ -294,7 +429,7 @@ export default function ProfilePage() {
             <Box sx={styles.contentWrapper}>
                 <Box display="flex" flexDirection={{ xs: 'column', lg: 'row' }} gap={4}>
                     {/* Profile Sidebar */}
-                    <Box flex={{ xs: '1 1 100%', lg: '0 0 380px' }}>
+                    <Box sx={styles.profileSidebar}>
                         <motion.div variants={itemVariants}>
                             <Paper sx={styles.userCard(theme)}>
                                 <input
@@ -305,38 +440,17 @@ export default function ProfilePage() {
                                     onChange={handleImageChange}
                                 />
 
-                                <Box position="relative" display="inline-block" mb={2}>
+                                <Box sx={styles.avatarWrapper}>
                                     <Avatar
                                         src={image || user?.profileImage || ""}
-                                        sx={{
-                                            ...styles.avatar(theme),
-                                            cursor: 'pointer',
-                                            transition: 'all 0.3s ease',
-                                            '&:hover': {
-                                                transform: 'scale(1.05)',
-                                                boxShadow: `0 30px 60px -10px ${alpha(theme.palette.primary.main, 0.6)}`
-                                            }
-                                        }}
+                                        sx={styles.avatar(theme)}
                                         onClick={() => fileInputRef.current?.click()}
                                     >
                                         {!image && !user?.profileImage && user?.fullName?.charAt(0)}
                                     </Avatar>
 
                                     <Box
-                                        sx={{
-                                            position: 'absolute',
-                                            bottom: 10,
-                                            right: 10,
-                                            bgcolor: 'primary.main',
-                                            color: theme.palette.primary.contrastText,
-                                            borderRadius: '50%',
-                                            p: 1.5,
-                                            boxShadow: `0 0 20px ${alpha(theme.palette.primary.main, 0.5)}`,
-                                            cursor: 'pointer',
-                                            zIndex: 2,
-                                            transition: 'transform 0.2s',
-                                            '&:hover': { transform: 'scale(1.1)' }
-                                        }}
+                                        sx={styles.cameraIconWrapper(theme)}
                                         onClick={(e) => {
                                             e.stopPropagation();
                                             fileInputRef.current?.click();
@@ -353,10 +467,10 @@ export default function ProfilePage() {
                                         name="fullName"
                                         value={formData.fullName}
                                         onChange={handleInputChange}
-                                        sx={{ ...styles.inputField(theme), mb: 3 }}
+                                        sx={styles.nameInput(theme)}
                                     />
                                 ) : (
-                                    <Typography variant="h4" fontWeight={950} sx={{ letterSpacing: '-1.5px', color: 'text.primary', mb: 1 }}>
+                                    <Typography variant="h4" fontWeight={950} sx={styles.nameDisplay}>
                                         {user.fullName.toUpperCase()}
                                     </Typography>
                                 )}
@@ -367,16 +481,16 @@ export default function ProfilePage() {
                                     sx={styles.roleChip}
                                 />
 
-                                <Divider sx={{ my: 4, borderColor: theme.palette.divider }} />
+                                <Divider sx={styles.divider(theme)} />
 
                                 <Stack spacing={2}>
                                     <Box sx={styles.infoBox}>
-                                        <EmailIcon sx={{ fontSize: '1.2rem', color: 'primary.main' }} />
-                                        <Typography sx={{ letterSpacing: '1px' }}>{user.email.toUpperCase()}</Typography>
+                                        <EmailIcon sx={styles.icon} />
+                                        <Typography sx={styles.infoText}>{user.email.toUpperCase()}</Typography>
                                     </Box>
                                     <Box sx={styles.infoBox}>
-                                        <CalendarTodayIcon sx={{ fontSize: '1.2rem', color: 'primary.main' }} />
-                                        <Typography sx={{ letterSpacing: '1px' }}>
+                                        <CalendarTodayIcon sx={styles.icon} />
+                                        <Typography sx={styles.infoText}>
                                             ENLISTED {new Date(user.createdAt || Date.now()).toLocaleDateString().toUpperCase()}
                                         </Typography>
                                     </Box>
@@ -387,7 +501,7 @@ export default function ProfilePage() {
                                         variant="outlined"
                                         startIcon={<EditIcon />}
                                         fullWidth
-                                        sx={{ ...styles.actionButton, borderColor: theme.palette.divider, color: 'text.primary' }}
+                                        sx={styles.editButton(theme)}
                                         onClick={handleEditClick}
                                     >
                                         RECONFIGURE IDENTITY
@@ -397,7 +511,7 @@ export default function ProfilePage() {
                                         <Button
                                             variant="outlined"
                                             fullWidth
-                                            sx={{ ...styles.actionButton, color: 'text.secondary', borderColor: theme.palette.divider }}
+                                            sx={styles.cancelButton(theme)}
                                             onClick={handleCancelClick}
                                             disabled={loading}
                                         >
@@ -406,7 +520,7 @@ export default function ProfilePage() {
                                         <Button
                                             variant="contained"
                                             fullWidth
-                                            sx={{ ...styles.actionButton, bgcolor: 'primary.main', color: 'primary.contrastText' }}
+                                            sx={styles.saveButton}
                                             onClick={handleSaveClick}
                                             disabled={loading}
                                         >
@@ -419,37 +533,37 @@ export default function ProfilePage() {
                     </Box>
 
                     {/* Account Details & History */}
-                    <Box flex={1}>
+                    <Box sx={styles.detailsSection}>
                         <motion.div variants={itemVariants}>
                             <Paper sx={styles.detailsCard(theme)}>
                                 <Typography sx={styles.sectionLabel} mb={3}>COMMAND DETAILS</Typography>
 
                                 <Grid container spacing={4} mb={6}>
                                     <Grid size={{ xs: 12, sm: 6 }}>
-                                        <Typography variant="overline" color="text.secondary" fontWeight={900} letterSpacing={2}>LEGAL DESIGNATION</Typography>
-                                        <Typography variant="h6" fontWeight={900} color="text.primary">
+                                        <Typography variant="overline" sx={styles.detailLabel}>LEGAL DESIGNATION</Typography>
+                                        <Typography variant="h6" sx={styles.detailValue}>
                                             {isEditing ? formData.fullName.toUpperCase() : user.fullName.toUpperCase()}
                                         </Typography>
                                     </Grid>
                                     <Grid size={{ xs: 12, sm: 6 }}>
-                                        <Typography variant="overline" color="text.secondary" fontWeight={900} letterSpacing={2}>COMM CHANNEL</Typography>
-                                        <Typography variant="h6" fontWeight={900} color="text.primary">{user.email.toUpperCase()}</Typography>
+                                        <Typography variant="overline" sx={styles.detailLabel}>COMM CHANNEL</Typography>
+                                        <Typography variant="h6" sx={styles.detailValue}>{user.email.toUpperCase()}</Typography>
                                     </Grid>
                                     <Grid size={{ xs: 12, sm: 6 }}>
-                                        <Typography variant="overline" color="text.secondary" fontWeight={900} letterSpacing={2}>AUTHORITY LEVEL</Typography>
-                                        <Typography variant="h6" fontWeight={900} color="primary.main">{user.role}</Typography>
+                                        <Typography variant="overline" sx={styles.detailLabel}>AUTHORITY LEVEL</Typography>
+                                        <Typography variant="h6" sx={styles.detailValueHighlight}>{user.role}</Typography>
                                     </Grid>
                                     <Grid size={{ xs: 12, sm: 6 }}>
-                                        <Typography variant="overline" color="text.secondary" fontWeight={900} letterSpacing={2}>CLEARANCE STATUS</Typography>
+                                        <Typography variant="overline" sx={styles.detailLabel}>CLEARANCE STATUS</Typography>
                                         <Stack direction="row" spacing={1} alignItems="center">
-                                            <VerifiedUserIcon sx={{ color: 'success.main', fontSize: '1.2rem' }} />
+                                            <VerifiedUserIcon sx={styles.verifiedIcon} />
                                             <Typography variant="h6" fontWeight={900} color="success.main">VERIFIED ACTIVE</Typography>
                                         </Stack>
                                     </Grid>
 
                                     {user.role === 'INSTRUCTOR' && (
                                         <Grid size={{ xs: 12 }}>
-                                            <Typography variant="overline" color="text.secondary" fontWeight={900} letterSpacing={2}>MISSION OBJECTIVES (BIO)</Typography>
+                                            <Typography variant="overline" sx={styles.detailLabel}>MISSION OBJECTIVES (BIO)</Typography>
                                             {isEditing ? (
                                                 <TextField
                                                     fullWidth
@@ -458,10 +572,10 @@ export default function ProfilePage() {
                                                     name="bio"
                                                     value={formData.bio}
                                                     onChange={handleInputChange}
-                                                    sx={{ ...styles.inputField(theme), mt: 1 }}
+                                                    sx={styles.bioInput(theme)}
                                                 />
                                             ) : (
-                                                <Typography variant="body1" sx={{ color: 'text.secondary', fontWeight: 500, mt: 1, opacity: 0.8 }}>
+                                                <Typography variant="body1" sx={styles.bioText}>
                                                     {user.bio || 'NO MISSION PROFILE LOGGED.'}
                                                 </Typography>
                                             )}
@@ -469,13 +583,13 @@ export default function ProfilePage() {
                                     )}
                                 </Grid>
 
-                                <Divider sx={{ mb: 6, borderColor: theme.palette.divider }} />
+                                <Divider sx={styles.sectionDivider(theme)} />
 
                                 <Typography sx={styles.sectionLabel} mb={3}>TRANSACTION CHRONICLE</Typography>
                                 <PaymentHistory />
 
-                                <Box sx={{ mt: 6, p: 3, borderLeft: '4px solid', borderColor: 'primary.main', bgcolor: alpha(theme.palette.text.primary, 0.02) }}>
-                                    <Typography variant="caption" sx={{ color: 'text.secondary', fontWeight: 700, letterSpacing: '1px', opacity: 0.5 }}>
+                                <Box sx={styles.securityNoticeBox(theme)}>
+                                    <Typography variant="caption" sx={styles.securityNoticeText}>
                                         * SECURITY NOTICE: TO UPDATE CORE CREDENTIALS OR SECURITY PROTOCOLS, ACCESS THE 'SETTINGS' COMMAND MODAL.
                                     </Typography>
                                 </Box>

@@ -223,8 +223,8 @@ export default function UserManagementPage() {
                 user.role !== 'STUDIO_ADMIN'
             );
             setUsers(nonAdminUsers);
-        } catch (err: any) {
-            showToast(err.message || 'Failed to fetch users', 'error');
+        } catch (err: unknown) {
+            showToast((err as Error).message || 'Failed to fetch users', 'error');
         } finally {
             setLoading(false);
         }
@@ -244,8 +244,8 @@ export default function UserManagementPage() {
             const updatedUser = response.data.data.user;
             setUsers(users.map(u => u._id === updatedUser._id ? updatedUser : u));
             showToast(`STATUS PROTOCOL UPDATED`, 'success');
-        } catch (err: any) {
-            showToast(err.message || `Protocol failure`, 'error');
+        } catch (err:unknown) {
+            showToast((err as Error).message || `Protocol failure`, 'error');
         }
     };
 
