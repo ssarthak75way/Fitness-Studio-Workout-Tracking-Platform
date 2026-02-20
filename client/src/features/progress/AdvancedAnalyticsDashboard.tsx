@@ -1,15 +1,15 @@
 import { useState, useEffect } from 'react';
 import {
-    Box, Typography, Card, CardContent, TextField, Button,
+    Box, Typography, Card, TextField, Button,
     Stack, Chip, useTheme, alpha, type Theme, CircularProgress, Grid
 } from '@mui/material';
 
 import {
-    LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip,
+    Line, XAxis, YAxis, CartesianGrid, Tooltip,
     ResponsiveContainer, Area, ComposedChart
 } from 'recharts';
 import {
-    Timeline as TimelineIcon,
+
     TrendingUp as GainIcon,
     PrecisionManufacturing as ModelIcon,
     AdsClick as GoalIcon,
@@ -111,7 +111,7 @@ export default function AdvancedAnalyticsDashboard({ exercise }: AdvancedAnalyti
                     <Box sx={styles.statItem(theme)}>
                         <Box display="flex" alignItems="center" gap={1} mb={1}>
                             <GainIcon color="primary" fontSize="small" />
-                            <Typography variant="overline" fontWeight={900} opacity={0.6}>WEEKLY VELOCITY</Typography>
+                            <Typography variant="overline" fontWeight={900} sx={{ opacity: 0.6 }}>WEEKLY VELOCITY</Typography>
                         </Box>
                         <Typography variant="h4" fontWeight={950}>{analytics.rateOfGain.toFixed(2)}kg <Typography component="span" fontWeight={900} color="text.secondary">/ WK</Typography></Typography>
                         <Chip
@@ -126,7 +126,7 @@ export default function AdvancedAnalyticsDashboard({ exercise }: AdvancedAnalyti
                     <Box sx={styles.statItem(theme)}>
                         <Box display="flex" alignItems="center" gap={1} mb={1}>
                             <ModelIcon color="secondary" fontSize="small" />
-                            <Typography variant="overline" fontWeight={900} opacity={0.6}>MODEL CONFIDENCE</Typography>
+                            <Typography variant="overline" fontWeight={900} sx={{ opacity: 0.6 }}>MODEL CONFIDENCE</Typography>
                         </Box>
                         <Typography variant="h4" fontWeight={950}>{(analytics.rSquared * 100).toFixed(1)}%</Typography>
                         <Typography variant="caption" fontWeight={700} color="text.secondary">R² ACCURACY SCORE</Typography>
@@ -135,7 +135,7 @@ export default function AdvancedAnalyticsDashboard({ exercise }: AdvancedAnalyti
                     <Box sx={styles.statItem(theme)}>
                         <Box display="flex" alignItems="center" gap={1} mb={1}>
                             <GoalIcon color="info" fontSize="small" />
-                            <Typography variant="overline" fontWeight={900} opacity={0.6}>CURRENT CEILING</Typography>
+                            <Typography variant="overline" fontWeight={900} sx={{ opacity: 0.6 }}>CURRENT CEILING</Typography>
                         </Box>
                         <Typography variant="h4" fontWeight={950}>{analytics.current1RM}kg</Typography>
                         <Typography variant="caption" fontWeight={700} color="text.secondary">ESTIMATED 1RM</Typography>
@@ -144,6 +144,7 @@ export default function AdvancedAnalyticsDashboard({ exercise }: AdvancedAnalyti
 
                 <Box p={4}>
                     <Grid container spacing={4}>
+                        {/* @ts-ignore - MUI Grid types issue */}
                         <Grid item xs={12} lg={8}>
                             <Box height={350}>
                                 <ResponsiveContainer width="100%" height="100%">
@@ -188,6 +189,7 @@ export default function AdvancedAnalyticsDashboard({ exercise }: AdvancedAnalyti
                             </Box>
                         </Grid>
 
+                        {/* @ts-ignore - MUI Grid types issue */}
                         <Grid item xs={12} lg={4}>
                             <Box sx={styles.predictionBox(theme)}>
                                 <Typography variant="overline" fontWeight={900} color="primary" letterSpacing={1}>GOAL PROJECTION</Typography>
@@ -205,14 +207,14 @@ export default function AdvancedAnalyticsDashboard({ exercise }: AdvancedAnalyti
                                 {analytics.prediction.predictedDate && (
                                     <Box mt={4}>
                                         <Typography variant="h5" fontWeight={950}>{analytics.prediction.daysToGoal} DAYS</Typography>
-                                        <Typography variant="body2" fontWeight={700} opacity={0.6}>
+                                        <Typography variant="body2" fontWeight={700} sx={{ opacity: 0.6 }}>
                                             Estimated achievement date: {new Date(analytics.prediction.predictedDate).toLocaleDateString()}
                                         </Typography>
                                     </Box>
                                 )}
 
                                 <Box mt={4}>
-                                    <Typography variant="caption" fontWeight={900} opacity={0.5} display="block" mb={2}>PROJECTED REACH</Typography>
+                                    <Typography variant="caption" fontWeight={900} sx={{ opacity: 0.5 }} display="block" mb={2}>PROJECTED REACH</Typography>
                                     <Stack spacing={2}>
                                         <Box display="flex" justifyContent="space-between">
                                             <Typography variant="body2" fontWeight={800}>30 DAYS</Typography>
@@ -233,6 +235,6 @@ export default function AdvancedAnalyticsDashboard({ exercise }: AdvancedAnalyti
                     </Grid>
                 </Box>
             </Card>
-        </motion.div>
+        </motion.div >
     );
 }

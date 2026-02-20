@@ -13,7 +13,9 @@ import SettingsIcon from '@mui/icons-material/Settings';
 import Visibility from '@mui/icons-material/Visibility';
 import VisibilityOff from '@mui/icons-material/VisibilityOff';
 import SaveIcon from '@mui/icons-material/Save';
+import NotificationsIcon from '@mui/icons-material/Notifications';
 import { motion, AnimatePresence, type Variants } from 'framer-motion';
+import { Select, MenuItem, FormControl, InputLabel } from '@mui/material';
 import type { Theme } from '@mui/material/styles';
 
 interface TabPanelProps {
@@ -275,15 +277,30 @@ export default function SettingsPage() {
     publicProfile: false,
   });
 
+  const [notificationSettings, setNotificationSettings] = useState({
+    timezone: user?.timezone || Intl.DateTimeFormat().resolvedOptions().timeZone,
+    preferences: user?.notificationPreferences || [
+      { category: 'CLASS_REMINDER', quietHoursStart: '22:00', quietHoursEnd: '08:00', enabled: false },
+      { category: 'CLASS_CANCELLED', quietHoursStart: '22:00', quietHoursEnd: '08:00', enabled: false },
+      { category: 'WAITLIST_NOTIFICATION', quietHoursStart: '22:00', quietHoursEnd: '08:00', enabled: false },
+      { category: 'PROMOTION', quietHoursStart: '22:00', quietHoursEnd: '08:00', enabled: false },
+      { category: 'BOOKING_CONFIRMATION', quietHoursStart: '22:00', quietHoursEnd: '08:00', enabled: false },
+    ]
+  });
+
+
   const handleTabChange = (_event: React.SyntheticEvent, newValue: number) => {
     setTabValue(newValue);
   };
 
   const handleUpdateProfile = async () => {
     try {
+      const prefs = notificationSettings.preferences;
       const payload = {
         ...profile,
-        certifications: profile.certifications.split(',').map((s: string) => s.trim()).filter(Boolean)
+        certifications: profile.certifications.split(',').map((s: string) => s.trim()).filter(Boolean),
+        timezone: notificationSettings.timezone,
+        notificationPreferences: prefs
       };
       await api.patch('/users/profile', payload);
       showToast('Profile configuration updated', 'success');
@@ -337,8 +354,10 @@ export default function SettingsPage() {
               >
                 <Tab icon={<PersonIcon sx={{ fontSize: '1.2rem' }} />} iconPosition="start" label="Identity" />
                 <Tab icon={<SecurityIcon sx={{ fontSize: '1.2rem' }} />} iconPosition="start" label="Security" />
+                <Tab icon={<NotificationsIcon sx={{ fontSize: '1.2rem' }} />} iconPosition="start" label="Notifications" />
                 <Tab icon={<SettingsIcon sx={{ fontSize: '1.2rem' }} />} iconPosition="start" label="Preferences" />
               </Tabs>
+
             </Box>
 
             <Box sx={{ p: { xs: 3, md: 6 } }}>
@@ -478,6 +497,103 @@ export default function SettingsPage() {
               </CustomTabPanel>
 
               <CustomTabPanel value={tabValue} index={2}>
+                <Typography sx={styles.formTitle}>
+                  COMMUNICATIONS TIMING
+                </Typography>
+                <Stack spacing={4} sx={{ maxWidth: 800, mx: 'auto' }}>
+                  <Paper sx={{ ...styles.preferenceCard(theme), p: 3 }}>
+                    <FormControl fullWidth variant="outlined" sx={styles.inputField(theme)}>
+                      <InputLabel>BASE TIMEZONE</InputLabel>
+                      <Select
+                        value={notificationSettings.timezone}
+                        onChange={(e) => setNotificationSettings(prev => ({ ...prev, timezone: e.target.value as string }))}
+                        label="BASE TIMEZONE"
+                      >
+                        {Intl.supportedValuesOf('timeZone').map(tz => (
+                          <MenuItem key={tz} value={tz}>{tz.replace('_', ' ')}</MenuItem>
+                        ))}
+                      </Select>
+                    </FormControl>
+                    <Typography variant="caption" sx={{ mt: 1, display: 'block', color: 'text.secondary', fontWeight: 600 }}>
+                      * ALL NOTIFICATIONS AND SCHEDULES WILL SYNC TO THIS ZONE
+                    </Typography>
+                  </Paper>
+
+                  <Typography sx={{ ...styles.formTitle, mt: 2 }}>
+                    QUIET HOURS PROTOCOLS
+                  </Typography>
+
+                  {notificationSettings.preferences.map((pref, index) => (
+                    <Paper key={pref.category} sx={{ ...styles.preferenceCard(theme), p: 3 }}>
+                      <Box display="flex" justifyContent="space-between" alignItems="center" flexWrap="wrap" gap={2}>
+                        <Box>
+                          <Typography fontWeight={900} letterSpacing="1px">{pref.category.replace(/_/g, ' ')}</Typography>
+                          <Typography variant="body2" color="text.secondary" fontWeight={600}>
+                            Configure silence window for these alerts.
+                          </Typography>
+                        </Box>
+                        <FormControlLabel
+                          control={
+                            <Switch
+                              checked={pref.enabled}
+                              onChange={(e) => {
+                                const newPrefs = [...notificationSettings.preferences];
+                                newPrefs[index].enabled = e.target.checked;
+                                setNotificationSettings(prev => ({ ...prev, preferences: newPrefs }));
+                              }}
+                              color="primary"
+                            />
+                          }
+                          label={pref.enabled ? "SILENCED" : "ACTIVE"}
+                          sx={{ m: 0 }}
+                        />
+                      </Box>
+
+                      {pref.enabled && (
+                        <Box display="grid" gridTemplateColumns={{ xs: '1fr', sm: '1fr 1fr' }} gap={2} mt={3}>
+                          <TextField
+                            label="SILENCE INITIATE (HH:MM)"
+                            type="time"
+                            value={pref.quietHoursStart}
+                            onChange={(e) => {
+                              const newPrefs = [...notificationSettings.preferences];
+                              newPrefs[index].quietHoursStart = e.target.value;
+                              setNotificationSettings(prev => ({ ...prev, preferences: newPrefs }));
+                            }}
+                            InputLabelProps={{ shrink: true }}
+                            sx={styles.inputField(theme)}
+                          />
+                          <TextField
+                            label="SILENCE TERMINATE (HH:MM)"
+                            type="time"
+                            value={pref.quietHoursEnd}
+                            onChange={(e) => {
+                              const newPrefs = [...notificationSettings.preferences];
+                              newPrefs[index].quietHoursEnd = e.target.value;
+                              setNotificationSettings(prev => ({ ...prev, preferences: newPrefs }));
+                            }}
+                            InputLabelProps={{ shrink: true }}
+                            sx={styles.inputField(theme)}
+                          />
+                        </Box>
+                      )}
+                    </Paper>
+                  ))}
+
+                  <Box display="flex" justifyContent="flex-end" mt={2}>
+                    <Button
+                      variant="contained"
+                      startIcon={<SaveIcon />}
+                      onClick={handleUpdateProfile}
+                      sx={styles.actionButton}
+                    >
+                      COMMIT PROTOCOLS
+                    </Button>
+                  </Box>
+                </Stack>
+              </CustomTabPanel>
+
+              <CustomTabPanel value={tabValue} index={3}>
                 <Typography sx={styles.formTitle}>
                   SYSTEM PREFERENCES
                 </Typography>

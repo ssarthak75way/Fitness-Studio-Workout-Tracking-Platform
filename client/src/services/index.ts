@@ -1,9 +1,12 @@
 import api from './api';
 import type {
-    ApiResponse, AuthResponse, User, ClassSession,
+    ApiResponse, User,
     Booking, DashboardStats, BodyMetric, Membership,
     Notification, Rating, WorkoutTemplate, WorkoutLog,
-    AdvancedAnalytics, PeriodizedProgram
+    AdvancedAnalytics, PeriodizedProgram,
+    PlateauResult,
+    WorkoutAnalytics,
+    PersonalRecord
 } from '../types';
 
 

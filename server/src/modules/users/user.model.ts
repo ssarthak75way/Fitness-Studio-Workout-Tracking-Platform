@@ -37,13 +37,23 @@ export interface IUser extends Document {
 
 
   // Member Specific
-  metrics?: IBodyMetrics[]; 
+  metrics?: IBodyMetrics[];
   unitPreference: 'METRIC' | 'IMPERIAL';
+
+  // Preferences
+  timezone: string;
+  notificationPreferences: {
+    category: 'CLASS_REMINDER' | 'CLASS_CANCELLED' | 'WAITLIST_NOTIFICATION' | 'PROMOTION' | 'BOOKING_CONFIRMATION' | 'IMPERSONATION_STARTED' | 'CERT_EXPIRY';
+    quietHoursStart: string; // "HH:mm"
+    quietHoursEnd: string; // "HH:mm"
+    enabled: boolean;
+  }[];
 
   isActive: boolean;
   createdAt: Date;
   updatedAt: Date;
 }
+
 
 
 // 3. Create the Schema
@@ -93,9 +103,24 @@ const UserSchema: Schema<IUser> = new Schema(
       default: 'METRIC',
     },
 
+    timezone: { type: String, default: 'UTC' },
+    notificationPreferences: [
+      {
+        category: {
+          type: String,
+          enum: ['CLASS_REMINDER', 'CLASS_CANCELLED', 'WAITLIST_NOTIFICATION', 'PROMOTION', 'BOOKING_CONFIRMATION', 'IMPERSONATION_STARTED', 'CERT_EXPIRY'],
+          required: true
+        },
+        quietHoursStart: { type: String, default: '22:00' },
+        quietHoursEnd: { type: String, default: '08:00' },
+        enabled: { type: Boolean, default: false }
+      }
+    ],
+
     isActive: { type: Boolean, default: true },
 
   },
+
   {
     timestamps: true, // Auto-manage createdAt, updatedAt
     versionKey: false

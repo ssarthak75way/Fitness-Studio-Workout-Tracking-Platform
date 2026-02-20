@@ -19,9 +19,17 @@ export interface User {
     averageRating?: number;
     totalRatings?: number;
     unitPreference: 'METRIC' | 'IMPERIAL';
+    timezone?: string;
+    notificationPreferences?: {
+        category: 'CLASS_REMINDER' | 'CLASS_CANCELLED' | 'WAITLIST_NOTIFICATION' | 'PROMOTION' | 'BOOKING_CONFIRMATION' | 'IMPERSONATION_STARTED' | 'CERT_EXPIRY';
+        quietHoursStart: string;
+        quietHoursEnd: string;
+        enabled: boolean;
+    }[];
     isActive?: boolean;
     createdAt: string;
 }
+
 
 
 export interface ApiResponse<T> {

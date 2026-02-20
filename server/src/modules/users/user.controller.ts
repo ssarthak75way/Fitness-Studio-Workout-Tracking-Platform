@@ -20,12 +20,13 @@ export const getProfile = async (req: Request, res: Response, next: NextFunction
 
 export const updateProfile = async (req: Request, res: Response, next: NextFunction) => {
   try {
-    const { fullName, email, bio, certifications } = req.body;
+    const { fullName, email, bio, certifications, timezone, notificationPreferences } = req.body;
     const user = await User.findByIdAndUpdate(
       req.user!._id,
-      { fullName, email, bio, certifications },
+      { fullName, email, bio, certifications, timezone, notificationPreferences },
       { new: true, runValidators: true }
     ).select('-passwordHash');
+
     res.status(200).json({ status: 'success', data: { user } });
   } catch (error) {
     next(error);
