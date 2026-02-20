@@ -9,12 +9,13 @@ import {
     Divider,
     Button,
     Paper,
-    CircularProgress
+    CircularProgress,
+    LinearProgress
 } from '@mui/material';
 import { RateReview as RateReviewIcon } from '@mui/icons-material';
 import { ratingService } from '../../services/index';
 import { useAuth } from '../../context/AuthContext';
-import type { Rating as RatingModel, User } from '../../types';
+import type {   User, RatingResponse } from '../../types';
 import ReviewFormDialog from './ReviewFormDialog';
 import { format } from 'date-fns';
 
@@ -33,14 +34,34 @@ const styles = {
     header: {
         display: 'flex',
         justifyContent: 'space-between',
-        alignItems: 'center',
-        mb: 2
+        alignItems: 'flex-start',
+        mb: 3
+    },
+    overviewContainer: {
+        display: 'flex',
+        gap: 4,
+        flexWrap: 'wrap',
+        flex: 1
     },
     ratingOverview: {
         display: 'flex',
         alignItems: 'center',
         gap: 2
     },
+    histogramContainer: {
+        flex: 1,
+        minWidth: 200,
+        maxWidth: 300
+    },
+    histogramRow: {
+        display: 'flex',
+        alignItems: 'center',
+        gap: 1,
+        mb: 0.5
+    },
+    histogramStarText: { minWidth: 15 },
+    histogramBar: { flex: 1, height: 8, borderRadius: 1 },
+    histogramCountText: { minWidth: 20, textAlign: 'right' },
     list: { p: 0 },
     noReviewsText: {
         p: 4,
@@ -73,7 +94,12 @@ const styles = {
 
 export default function ReviewSection({ targetType, targetId, targetName }: Props) {
     const { user } = useAuth();
-    const [data, setData] = useState<{ ratings: RatingModel[], averageRating: string }>({ ratings: [], averageRating: '0.0' });
+    const [data, setData] = useState<RatingResponse>({
+        ratings: [],
+        trimmedMean: '0.0',
+        distribution: { 1: 0, 2: 0, 3: 0, 4: 0, 5: 0 },
+        canReview: false
+    });
     const [loading, setLoading] = useState(true);
     const [modalOpen, setModalOpen] = useState(false);
 
@@ -81,8 +107,10 @@ export default function ReviewSection({ targetType, targetId, targetName }: Prop
         try {
             setLoading(true);
             const res = await ratingService.getRatings(targetType, targetId);
-            const { ratings, averageRating } = res.data || { ratings: [], averageRating: '0.0' };
-            setData({ ratings, averageRating });
+            const { ratings, trimmedMean, distribution, canReview } = res.data || {
+                ratings: [], trimmedMean: '0.0', distribution: { 1: 0, 2: 0, 3: 0, 4: 0, 5: 0 }, canReview: false
+            };
+            setData({ ratings, trimmedMean, distribution, canReview });
         } catch (error) {
             console.error('Failed to fetch reviews:', error);
         } finally {
@@ -105,17 +133,41 @@ export default function ReviewSection({ targetType, targetId, targetName }: Prop
     return (
         <Box>
             <Box sx={styles.header}>
-                <Box sx={styles.ratingOverview}>
-                    <Typography variant="h5" fontWeight="bold">{data.averageRating}</Typography>
-                    <Box>
-                        <Rating value={parseFloat(data.averageRating)} precision={0.5} readOnly size="small" />
-                        <Typography variant="caption" display="block" color="text.secondary">
-                            Based on {data.ratings.length} reviews
-                        </Typography>
+                <Box sx={styles.overviewContainer}>
+                    <Box sx={styles.ratingOverview}>
+                        <Typography variant="h3" fontWeight="bold">{data.trimmedMean}</Typography>
+                        <Box>
+                            <Rating value={parseFloat(data.trimmedMean)} precision={0.5} readOnly size="large" />
+                            <Typography variant="caption" display="block" color="text.secondary">
+                                Based on {data.ratings.length} reviews (Trimmed Mean)
+                            </Typography>
+                        </Box>
+                    </Box>
+
+                    {/* Distribution Histogram */}
+                    <Box sx={styles.histogramContainer}>
+                        {[5, 4, 3, 2, 1].map((star) => {
+                            const count = data.distribution?.[star] || 0;
+                            const percentage = data.ratings.length > 0 ? (count / data.ratings.length) * 100 : 0;
+                            return (
+                                <Box key={star} sx={styles.histogramRow}>
+                                    <Typography variant="caption" sx={styles.histogramStarText}>{star}</Typography>
+                                    <Rating value={1} max={1} size="small" readOnly />
+                                    <LinearProgress
+                                        variant="determinate"
+                                        value={percentage}
+                                        sx={styles.histogramBar}
+                                    />
+                                    <Typography variant="caption" sx={styles.histogramCountText}>
+                                        {count}
+                                    </Typography>
+                                </Box>
+                            );
+                        })}
                     </Box>
                 </Box>
 
-                {user?.role === 'MEMBER' && (
+                {data.canReview && (
                     <Button
                         variant="outlined"
                         startIcon={<RateReviewIcon />}

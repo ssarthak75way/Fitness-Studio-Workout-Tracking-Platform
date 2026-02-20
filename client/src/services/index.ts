@@ -6,7 +6,8 @@ import type {
     AdvancedAnalytics, PeriodizedProgram,
     PlateauResult,
     WorkoutAnalytics,
-    PersonalRecord
+    PersonalRecord,
+    RatingResponse
 } from '../types';
 
 
@@ -58,7 +59,7 @@ export const ratingService = {
         return response.data;
     },
 
-    getRatings: async (targetType: string, targetId: string): Promise<ApiResponse<{ ratings: Rating[]; averageRating: string }>> => {
+    getRatings: async (targetType: string, targetId: string): Promise<ApiResponse<RatingResponse>> => {
         const response = await api.get('/ratings', { params: { targetType, targetId } });
         return response.data;
     },

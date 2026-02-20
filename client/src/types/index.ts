@@ -164,6 +164,13 @@ export interface Rating {
     createdAt: string;
 }
 
+export interface RatingResponse {
+    ratings: Rating[];
+    trimmedMean: string;
+    distribution: { [key: number]: number };
+    canReview: boolean;
+}
+
 export interface TemplateExercise {
     name: string;
     sets: number;
