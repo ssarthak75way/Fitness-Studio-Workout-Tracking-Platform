@@ -32,12 +32,23 @@ export interface AuthResponse {
     user: User;
 }
 
+export interface Studio {
+    _id: string;
+    name: string;
+    address: string;
+    description?: string;
+    isActive?: boolean;
+}
+
 export interface ClassSession {
     _id: string;
     title: string;
     description?: string;
     type: string;
-    instructor: User | string;
+    instructor?: User | string; // Optional for gaps
+    instructorId?: string; // For updates
+    studio: Studio | string;
+    studioId?: string; // For updates
     startTime: string;
     endTime: string;
     capacity: number;
@@ -45,6 +56,8 @@ export interface ClassSession {
     location: string;
     recurrence?: string;
 }
+
+
 
 export interface Booking {
     _id: string;

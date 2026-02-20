@@ -20,5 +20,24 @@ export const createClassSchema = z.object({
 });
 
 
+// Schema for Updating a Class
+export const updateClassSchema = z.object({
+  params: z.object({
+    id: z.string().regex(/^[0-9a-fA-F]{24}$/, "Invalid Class ID"),
+  }),
+  body: z.object({
+    title: z.string().min(3).optional(),
+    description: z.string().optional(),
+    type: z.nativeEnum(ClassType).optional(),
+    instructorId: z.string().regex(/^[0-9a-fA-F]{24}$/, "Invalid Instructor ID").optional().nullable(),
+    studioId: z.string().regex(/^[0-9a-fA-F]{24}$/, "Invalid Studio ID").optional(),
+    startTime: z.string().datetime().optional(),
+    durationMinutes: z.number().min(15).max(180).optional(),
+    capacity: z.number().min(1).max(100).optional(),
+    location: z.string().optional(),
+  }),
+});
+
 // Type inference for the Controller
 export type CreateClassInput = z.infer<typeof createClassSchema>['body'];
+export type UpdateClassInput = z.infer<typeof updateClassSchema>;

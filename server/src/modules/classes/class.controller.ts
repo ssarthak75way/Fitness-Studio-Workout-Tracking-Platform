@@ -36,9 +36,11 @@ export const getClassesHandler = async (req: Request, res: Response, next: NextF
 
     if (type) filter.type = type as ClassType;
     if (instructor) filter.instructor = new Types.ObjectId(instructor as string);
+    if (req.query.studio) filter.studio = new Types.ObjectId(req.query.studio as string);
 
     const classes = await ClassSessionModel.find(filter)
       .populate('instructor', 'fullName profileImage specialties')
+      .populate('studio', 'name address')
       .sort({ startTime: 1 });
 
     res.status(200).json({
@@ -54,7 +56,8 @@ export const getClassesHandler = async (req: Request, res: Response, next: NextF
 export const getClassByIdHandler = async (req: Request, res: Response, next: NextFunction) => {
   try {
     const classSession = await ClassSessionModel.findById(req.params.id)
-      .populate('instructor', 'fullName profileImage specialties bio');
+      .populate('instructor', 'fullName profileImage specialties bio')
+      .populate('studio', 'name address');
 
     if (!classSession) {
       return next(new AppError('Class not found', 404));

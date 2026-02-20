@@ -18,7 +18,8 @@ import api from '../../services/api';
 import { instructorService } from '../../services';
 import { useAuth } from '../../context/AuthContext';
 import { useToast } from '../../context/ToastContext';
-import type { User } from '../../types';
+import { studioService } from '../../services/studio.service';
+import type { User, Studio } from '../../types';
 
 // Zod Schema matches Backend Validation
 const createClassSchema = z.object({
@@ -29,7 +30,8 @@ const createClassSchema = z.object({
   durationMinutes: z.coerce.number().min(15).max(180),
   capacity: z.coerce.number().min(1),
   location: z.string().optional(),
-  instructorId: z.string().min(1, 'Instructor is required'),
+  studioId: z.string().min(1, 'Studio is required'),
+  instructorId: z.string().optional(),
   isRecurring: z.boolean().optional().default(false),
   recurrenceFrequency: z.enum(['DAILY', 'WEEKLY']).optional(),
   recurrenceCount: z.coerce.number().min(1).max(52).optional(),
@@ -53,6 +55,7 @@ export default function CreateClassModal({ open, onClose, onSuccess }: Props) {
   const { user } = useAuth();
   const { showToast } = useToast();
   const [instructors, setInstructors] = useState<User[]>([]);
+  const [studios, setStudios] = useState<Studio[]>([]);
 
   const { control, handleSubmit, reset, watch, formState: { errors } } = useForm<CreateClassForm>({
     resolver: zodResolver(createClassSchema) as unknown as Resolver<CreateClassForm>,
@@ -63,6 +66,7 @@ export default function CreateClassModal({ open, onClose, onSuccess }: Props) {
       durationMinutes: 60,
       capacity: 20,
       location: 'Main Studio',
+      studioId: '',
       instructorId: user?._id || '',
       isRecurring: false,
       recurrenceFrequency: 'WEEKLY',
@@ -73,15 +77,19 @@ export default function CreateClassModal({ open, onClose, onSuccess }: Props) {
   const isRecurring = watch('isRecurring');
 
   useEffect(() => {
-    const fetchInstructors = async () => {
+    const fetchData = async () => {
       try {
-        const response = await instructorService.getInstructors();
-        setInstructors(response.data.instructors);
+        const [instRes, studioRes] = await Promise.all([
+          instructorService.getInstructors(),
+          studioService.getStudios()
+        ]);
+        setInstructors(instRes.data.instructors);
+        setStudios(studioRes.data.studios);
       } catch (error) {
-        console.error('Failed to fetch instructors', error);
+        console.error('Failed to fetch data', error);
       }
     };
-    if (open) fetchInstructors();
+    if (open) fetchData();
   }, [open]);
 
   const onSubmit = async (data: CreateClassForm) => {
@@ -102,6 +110,8 @@ export default function CreateClassModal({ open, onClose, onSuccess }: Props) {
       showToast('Failed to create class', 'error');
     }
   };
+
+
 
   return (
     <Dialog open={open} onClose={onClose} fullWidth maxWidth="sm">
@@ -184,21 +194,21 @@ export default function CreateClassModal({ open, onClose, onSuccess }: Props) {
             <Box sx={styles.formRow}>
               <Box flex={1}>
                 <Controller
-                  name="instructorId"
+                  name="studioId"
                   control={control}
                   render={({ field }) => (
                     <TextField
                       {...field}
                       select
-                      label="Assign Instructor"
+                      label="Studio Location"
                       fullWidth
-                      error={!!errors.instructorId}
-                      helperText={errors.instructorId?.message}
-                      disabled={user?.role !== 'STUDIO_ADMIN'}
+                      error={!!errors.studioId}
+                      helperText={errors.studioId?.message}
                     >
-                      {instructors.map((inst) => (
-                        <MenuItem key={inst._id} value={inst._id}>{inst.fullName}</MenuItem>
+                      {studios.map((s) => (
+                        <MenuItem key={s._id} value={s._id}>{s.name}</MenuItem>
                       ))}
+                      {studios.length === 0 && <MenuItem disabled>No studios found</MenuItem>}
                     </TextField>
                   )}
                 />
@@ -211,13 +221,37 @@ export default function CreateClassModal({ open, onClose, onSuccess }: Props) {
                   render={({ field }) => (
                     <TextField
                       {...field}
-                      label="Location"
+                      label="Specific Room/Location"
                       fullWidth
                     />
                   )}
                 />
               </Box>
             </Box>
+
+            <Box>
+              <Controller
+                name="instructorId"
+                control={control}
+                render={({ field }) => (
+                  <TextField
+                    {...field}
+                    select
+                    label="Assign Instructor (Optional)"
+                    fullWidth
+                    error={!!errors.instructorId}
+                    helperText={errors.instructorId?.message || "Leave empty to create a 'Gap'"}
+                    disabled={user?.role !== 'STUDIO_ADMIN'}
+                  >
+                    <MenuItem value=""><em>None (Schedule Gap)</em></MenuItem>
+                    {instructors.map((inst) => (
+                      <MenuItem key={inst._id} value={inst._id}>{inst.fullName}</MenuItem>
+                    ))}
+                  </TextField>
+                )}
+              />
+            </Box>
+
 
             <Box>
               <Controller

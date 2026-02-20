@@ -293,18 +293,43 @@ export default function SchedulePage() {
     }
   };
 
-  const renderEventContent = (eventInfo: { timeText: string, event: { title: string } }) => {
+  const handleCoverClass = async () => {
+    if (!selectedClass) return;
+    try {
+      await classService.updateClass(selectedClass._id, { instructorId: user?._id });
+      showToast('You have successfully covered this class!', 'success');
+
+      setOpenDetails(false);
+      fetchClasses();
+    } catch (error: unknown) {
+      showToast((error as Error)?.message || 'Failed to cover class', 'error');
+    }
+  };
+
+
+  const renderEventContent = (eventInfo: { timeText: string, event: { title: string, extendedProps: any } }) => {
+    const cls = eventInfo.event.extendedProps as ClassSession;
+    const isGap = !cls.instructor;
+
     return (
-      <Box sx={styles.eventContent(theme)}>
+      <Box sx={{
+        ...styles.eventContent(theme),
+        bgcolor: isGap ? alpha(theme.palette.warning.main, 0.1) : styles.eventContent(theme).bgcolor,
+        borderLeft: isGap ? `4px solid ${theme.palette.warning.main}` : styles.eventContent(theme).borderLeft,
+      }}>
         <Typography variant="caption" noWrap fontWeight="bold" sx={styles.eventTime}>
           {eventInfo.timeText}
         </Typography>
         <Typography variant="caption" noWrap sx={styles.eventTitle}>
           {eventInfo.event.title}
         </Typography>
+        <Typography variant="caption" noWrap sx={{ opacity: 0.8, fontSize: '0.65rem', fontStyle: isGap ? 'italic' : 'normal' }}>
+          {isGap ? 'SCHEDULE GAP' : (typeof cls.studio === 'object' ? cls.studio.name : 'Studio')}
+        </Typography>
       </Box>
     );
   };
+
 
   return (
     <Box sx={styles.pageContainer}>
@@ -395,8 +420,11 @@ export default function SchedulePage() {
                   <Box display="flex" alignItems="center" gap={1}>
                     <LocationOnIcon color="action" fontSize="small" />
                     <Box>
-                      <Typography variant="caption" display="block" color="text.secondary">Location</Typography>
-                      <Typography variant="body2" fontWeight="600">{selectedClass.location}</Typography>
+                      <Typography variant="caption" display="block" color="text.secondary">Studio / Room</Typography>
+                      <Typography variant="body2" fontWeight="600">
+                        {typeof selectedClass.studio === 'object' ? selectedClass.studio.name : 'Unknown Studio'}
+                        {selectedClass.location ? ` - ${selectedClass.location}` : ''}
+                      </Typography>
                     </Box>
                   </Box>
                   <Box display="flex" alignItems="center" gap={1}>
@@ -410,12 +438,13 @@ export default function SchedulePage() {
                           </Typography>
                         </Link>
                       ) : (
-                        <Typography variant="body2" fontWeight="600">
-                          {typeof selectedClass.instructor === 'string' ? selectedClass.instructor : "TBA"}
+                        <Typography variant="body2" fontWeight="600" sx={{ color: 'warning.main', fontStyle: 'italic' }}>
+                          {typeof selectedClass.instructor === 'string' ? selectedClass.instructor : "UNASSIGNED (GAP)"}
                         </Typography>
                       )}
                     </Box>
                   </Box>
+
                 </Stack>
 
                 <Box>
@@ -438,18 +467,30 @@ export default function SchedulePage() {
             </DialogContent>
             <DialogActions sx={styles.dialogActions}>
               <Button onClick={() => setOpenDetails(false)} color="inherit" sx={styles.closeButton}>Close</Button>
-              {user?.role === 'MEMBER' && (
+              {user?.role === 'MEMBER' && selectedClass.instructor && (
                 <Button
                   variant="contained"
                   onClick={handleBookClass}
                   size="large"
-                  disabled={false} // Always enabled to allow waitlist
+                  disabled={false}
                   color={selectedClass.enrolledCount >= selectedClass.capacity ? "warning" : "primary"}
                   sx={styles.bookButton(theme)}
                 >
                   {selectedClass.enrolledCount >= selectedClass.capacity ? 'Join Waitlist' : 'Book Class'}
                 </Button>
               )}
+              {(user?.role === 'INSTRUCTOR' || user?.role === 'STUDIO_ADMIN') && !selectedClass.instructor && (
+                <Button
+                  variant="contained"
+                  onClick={handleCoverClass}
+                  size="large"
+                  color="secondary"
+                  sx={styles.bookButton(theme)}
+                >
+                  Cover this Gap
+                </Button>
+              )}
+
             </DialogActions>
           </>
         )}

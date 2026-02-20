@@ -23,6 +23,7 @@ import ratingRoutes from './modules/ratings/rating.routes.js';
 import notificationRoutes from './modules/notifications/notification.routes.js';
 import dashboardRoutes from './modules/dashboard/dashboard.routes.js';
 import paymentRoutes from './modules/payment/payment.routes.js';
+import studioRoutes from './modules/studios/studio.routes.js';
 
 const app: Application = express();
 
@@ -64,6 +65,7 @@ app.use('/api/v1/ratings', ratingRoutes);
 app.use('/api/v1/notifications', notificationRoutes);
 app.use('/api/v1/dashboard', dashboardRoutes);
 app.use('/api/v1/payments', paymentRoutes);
+app.use('/api/v1/studios', studioRoutes);
 
 app.get('/', (_req: Request, res: Response) => {
   res.status(200).json({ status: 'success', message: 'Fitness Platform API Running' });

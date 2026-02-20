@@ -23,6 +23,10 @@ interface ClassEventProps {
       _id: string;
       fullName: string;
     };
+    studio?: {
+      _id: string;
+      name: string;
+    };
     instructorName?: string; // Fallback
     description?: string;
     capacity: number;
@@ -30,6 +34,7 @@ interface ClassEventProps {
     location?: string;
   };
 }
+
 
 interface Props {
   event: ClassEventProps | null;
@@ -63,8 +68,8 @@ export default function ClassDetailsModal({ event, open, onClose, onBookingSucce
   const handleBook = async () => {
     setLoading(true);
     try {
-      await api.post('/bookings', { classId: event.id });
-      onBookingSuccess(); // Refresh calendar
+      await api.post('/bookings', { classSessionId: event.id });
+      onBookingSuccess();
       onClose();
       showToast(isFull ? 'You have been added to the waitlist!' : 'Class booked successfully!', 'success');
     } catch (err: unknown) {
@@ -74,20 +79,39 @@ export default function ClassDetailsModal({ event, open, onClose, onBookingSucce
     }
   };
 
+  const handleCover = async () => {
+
+    setLoading(true);
+    try {
+      await api.patch(`/classes/${event.id}`, { instructorId: user?._id });
+      onBookingSuccess(); // Refresh
+      onClose();
+      showToast('You have successfully covered this class!', 'success');
+    } catch (err: unknown) {
+      showToast((err as Error)?.message || 'Failed to cover class', 'error');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const isGap = !instructor;
+  const studioName = event.extendedProps.studio?.name || 'TBA';
+
   return (
     <Dialog open={open} onClose={onClose} fullWidth maxWidth="sm">
       <DialogTitle component="div" sx={styles.header}>
-        {event.title}
+        <Box>
+          <Typography variant="h6">{event.title}</Typography>
+          <Typography variant="caption" color="primary">{studioName}</Typography>
+        </Box>
         <Chip
-          label={isFull ? "WAITLIST OPEN" : `${spotsLeft} spots left`}
-          color={isFull ? "warning" : "success"}
+          label={isFull ? "WAITLIST OPEN" : isGap ? "INSTRUCTOR NEEDED" : `${spotsLeft} spots left`}
+          color={isFull ? "warning" : isGap ? "error" : "success"}
           size="small"
         />
       </DialogTitle>
 
       <DialogContent dividers>
-
-
         <Box sx={styles.infoBox}>
           <AccessTimeIcon color="action" />
           <Typography>
@@ -105,17 +129,17 @@ export default function ClassDetailsModal({ event, open, onClose, onBookingSucce
                 {instructorName}
               </Link>
             ) : (
-              instructorName
+              <Box component="span" sx={{ color: 'error.main', fontWeight: 700 }}>UNASSIGNED GAP</Box>
             )}
           </Typography>
         </Box>
 
-        {event.extendedProps.location && (
-          <Box sx={styles.locationBox}>
-            <LocationOnIcon color="action" />
-            <Typography>{event.extendedProps.location}</Typography>
-          </Box>
-        )}
+        <Box sx={styles.locationBox}>
+          <LocationOnIcon color="action" />
+          <Typography>
+            {studioName} {event.extendedProps.location ? ` - ${event.extendedProps.location}` : ''}
+          </Typography>
+        </Box>
 
         {event.extendedProps.description && (
           <>
@@ -127,7 +151,7 @@ export default function ClassDetailsModal({ event, open, onClose, onBookingSucce
         )}
 
         <Divider sx={styles.largeDivider} />
-        <Typography variant="h6" gutterBottom>Reviews</Typography>
+        <Typography variant="h6" gutterBottom>Reviews & Feedback</Typography>
         <ReviewSection
           targetType="CLASS"
           targetId={event.id}
@@ -137,7 +161,7 @@ export default function ClassDetailsModal({ event, open, onClose, onBookingSucce
 
       <DialogActions>
         <Button onClick={onClose} disabled={loading}>Close</Button>
-        {user?.role === 'MEMBER' && (
+        {user?.role === 'MEMBER' && !isGap && (
           <Button
             variant="contained"
             onClick={handleBook}
@@ -145,6 +169,16 @@ export default function ClassDetailsModal({ event, open, onClose, onBookingSucce
             color={isFull ? "warning" : "primary"}
           >
             {loading ? 'Processing...' : isFull ? 'Join Waitlist' : 'Book Class'}
+          </Button>
+        )}
+        {(user?.role === 'INSTRUCTOR' || user?.role === 'STUDIO_ADMIN') && isGap && (
+          <Button
+            variant="contained"
+            onClick={handleCover}
+            disabled={loading}
+            color="secondary"
+          >
+            {loading ? 'Processing...' : 'Cover this Gap'}
           </Button>
         )}
       </DialogActions>
