@@ -55,9 +55,11 @@ export const cancelBookingHandler = async (req: Request, res: Response, next: Ne
 
 export const checkInHandler = async (req: Request, res: Response, next: NextFunction) => {
   try {
-    const { qrCode } = req.body;
+    const { qrCode, lat, lng, override } = req.body;
+    const staffId = req.user?._id?.toString();
 
-    const booking = await BookingService.checkIn(qrCode);
+    const memberLocation = (lat !== undefined && lng !== undefined) ? { lat, lng } : undefined;
+    const booking = await BookingService.checkIn(qrCode, memberLocation, staffId, !!override);
 
     res.status(200).json({
       status: 'success',
@@ -67,6 +69,7 @@ export const checkInHandler = async (req: Request, res: Response, next: NextFunc
     next(error);
   }
 };
+
 
 export const getClassBookingsHandler = async (req: Request, res: Response, next: NextFunction) => {
   try {
@@ -86,7 +89,8 @@ export const getClassBookingsHandler = async (req: Request, res: Response, next:
 export const manualCheckInHandler = async (req: Request, res: Response, next: NextFunction) => {
   try {
     const { id } = req.params;
-    const booking = await BookingService.checkInById(id);
+    const staffId = req.user?._id?.toString();
+    const booking = await BookingService.checkInById(id, staffId!);
 
     res.status(200).json({
       status: 'success',

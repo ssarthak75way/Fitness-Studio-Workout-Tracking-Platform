@@ -5,6 +5,12 @@ import { ClassSessionModel, IClassSession } from '../classes/class.model.js';
 import { MembershipModel, PlanType } from '../memberships/membership.model.js';
 import { NotificationService } from '../notifications/notification.service.js';
 import { AppError } from '../../utils/AppError.js';
+import { StudioModel, IStudio } from '../studios/studio.model.js';
+import { CheckInLogModel, CheckInStatus } from './checkin-log.model.js';
+import { calculateDistance } from '../../utils/geo.utils.js';
+import { subMinutes, addMinutes, isWithinInterval } from 'date-fns';
+
+
 
 export const BookingService = {
   //Create a booking for a user
@@ -252,8 +258,8 @@ export const BookingService = {
     return bookingsWithQR;
   },
 
-  //Check-in via QR code or Booking ID
-  checkIn: async (input: string) => {
+  //Check-in via QR code or Booking ID with fraud prevention
+  checkIn: async (input: string, memberLocation?: { lat: number; lng: number }, staffId?: string, isOverride: boolean = false) => {
     const query: mongoose.FilterQuery<IBooking> = {
       status: BookingStatus.CONFIRMED,
     };
@@ -264,17 +270,86 @@ export const BookingService = {
       query.qrCode = input;
     }
 
-    const booking = await BookingModel.findOne(query).populate('classSession user');
+    const booking = await BookingModel.findOne(query).populate({
+      path: 'classSession',
+      populate: { path: 'studio' }
+    }).populate('user');
 
     if (!booking) {
+      await CheckInLogModel.create({
+        status: CheckInStatus.NOT_FOUND,
+        errorDetails: `Input scan: ${input}`,
+        timestamp: new Date()
+      });
       throw new AppError('Invalid verification code or booking not found', 404);
     }
 
+    const classSession = booking.classSession as any; // Cast to access populated studio
+    const studio = classSession.studio as IStudio;
+    const now = new Date();
+
+    // 1. Time Window Check (-15m to +30m)
+    const windowStart = subMinutes(new Date(classSession.startTime), 15);
+    const windowEnd = addMinutes(new Date(classSession.endTime), 30);
+
+    if (!isWithinInterval(now, { start: windowStart, end: windowEnd })) {
+      await CheckInLogModel.create({
+        booking: booking._id,
+        user: booking.user._id,
+        classSession: classSession._id,
+        studio: studio._id,
+        status: CheckInStatus.INVALID_WINDOW,
+        errorDetails: `Check-in attempted outside window: ${windowStart} - ${windowEnd}`,
+        timestamp: now
+      });
+      throw new AppError('Check-in mission failed: You are outside the designated time window (-15m/+30m).', 400);
+    }
+
+    // 2. Location Check (500m)
+    let distance: number | undefined;
+    if (memberLocation && studio.location) {
+      distance = calculateDistance(
+        memberLocation.lat,
+        memberLocation.lng,
+        studio.location.lat,
+        studio.location.lng
+      );
+    }
+
+    if (distance !== undefined && distance > 500 && !isOverride) {
+      await CheckInLogModel.create({
+        booking: booking._id,
+        user: booking.user._id,
+        classSession: classSession._id,
+        studio: studio._id,
+        status: CheckInStatus.LOCATION_MISMATCH,
+        memberLocation,
+        distance,
+        timestamp: now
+      });
+      throw new AppError(`Location anomaly detected: You are ${Math.round(distance)}m away. Staff authorization required.`, 403);
+    }
+
+    // 3. Perform Check-in
     booking.status = BookingStatus.CHECKED_IN;
     await booking.save();
 
+    // 4. Log Success (or Override)
+    await CheckInLogModel.create({
+      booking: booking._id,
+      user: booking.user._id,
+      classSession: classSession._id,
+      studio: studio._id,
+      status: isOverride ? CheckInStatus.STAFF_OVERRIDE : CheckInStatus.SUCCESS,
+      memberLocation,
+      distance,
+      staffId: staffId ? new mongoose.Types.ObjectId(staffId) : undefined,
+      timestamp: now
+    });
+
     return booking;
   },
+
 
 
   // Get all bookings for a specific class session (for instructors/admins)
@@ -285,20 +360,9 @@ export const BookingService = {
   },
 
   // Manual check-in by booking ID
-  checkInById: async (bookingId: string) => {
-    const booking = await BookingModel.findById(bookingId).populate('classSession user');
-
-    if (!booking) {
-      throw new AppError('Booking not found', 404);
-    }
-
-    if (booking.status !== BookingStatus.CONFIRMED) {
-      throw new AppError(`Cannot check in. Current status: ${booking.status}`, 400);
-    }
-
-    booking.status = BookingStatus.CHECKED_IN;
-    await booking.save();
-
-    return booking;
+  checkInById: async (bookingId: string, staffId: string) => {
+    // Manual check-ins by instructors are considered "Overrides" by default if outside window/proximity
+    // but for simplicity, we treat them as staff-initiated successes.
+    return await BookingService.checkIn(bookingId, undefined, staffId, true);
   },
 };
