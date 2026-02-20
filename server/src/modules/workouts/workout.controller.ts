@@ -166,3 +166,27 @@ export const getActiveProgram = async (req: Request, res: Response, next: NextFu
     next(error);
   }
 };
+
+export const getAdvancedAnalytics = async (req: Request, res: Response, next: NextFunction) => {
+  try {
+    const { exercise } = req.params;
+    const { targetWeight } = req.query;
+
+    const analytics = await WorkoutService.getAdvancedAnalytics(
+      req.user!._id.toString(),
+      exercise,
+      targetWeight ? parseFloat(targetWeight as string) : undefined
+    );
+
+    if (!analytics) {
+      return res.status(404).json({
+        status: 'fail',
+        message: 'Insufficient data for statistical modeling. Log at least 3 workouts for this exercise.'
+      });
+    }
+
+    res.status(200).json({ status: 'success', data: { analytics } });
+  } catch (error) {
+    next(error);
+  }
+};

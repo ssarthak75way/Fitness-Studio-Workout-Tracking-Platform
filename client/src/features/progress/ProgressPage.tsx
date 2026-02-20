@@ -25,6 +25,8 @@ import { useToast } from '../../context/ToastContext';
 import { useAuth } from '../../context/AuthContext';
 import { UnitConverter } from '../../utils/unit.utils';
 import PeriodizationRoadmap from './PeriodizationRoadmap';
+import AdvancedAnalyticsDashboard from './AdvancedAnalyticsDashboard';
+
 
 
 
@@ -763,6 +765,10 @@ export default function ProgressPage() {
         </Box>
 
         <PeriodizationRoadmap onUpdate={fetchData} />
+
+        {selectedExercise && (
+          <AdvancedAnalyticsDashboard exercise={selectedExercise} />
+        )}
 
         <Card sx={styles.chartCard(theme)}>
           <ResponsiveContainer width="100%" height={350}>

@@ -190,6 +190,25 @@ export interface WorkoutAnalytics {
     monthlyConsistency: Array<{ month: string; count: number }>;
 }
 
+export interface AdvancedAnalytics {
+    exerciseName: string;
+    current1RM: number;
+    rateOfGain: number;
+    rSquared: number;
+    marginOfError: number;
+    isDecelerating: boolean;
+    prediction: {
+        targetWeight?: number;
+        daysToGoal: number | null;
+        predictedDate: string | null;
+        forecast30Days: number;
+        forecast60Days: number;
+        forecast90Days: number;
+    };
+    history: Array<{ date: string; weight: number }>;
+}
+
+
 export interface WorkoutFormValues {
     title: string;
     templateId?: string;

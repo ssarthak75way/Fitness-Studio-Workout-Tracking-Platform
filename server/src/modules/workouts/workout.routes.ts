@@ -18,7 +18,9 @@ router.get('/history', workoutController.getWorkoutHistory);
 router.get('/records', workoutController.getPersonalRecords);
 router.get('/streak', workoutController.getWorkoutStreak);
 router.get('/analytics', workoutController.getAnalytics);
+router.get('/analytics/advanced/:exercise', workoutController.getAdvancedAnalytics);
 router.get('/plateaus', workoutController.getPlateaus);
+
 
 
 

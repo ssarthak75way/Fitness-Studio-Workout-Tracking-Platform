@@ -1,19 +1,9 @@
 import api from './api';
 import type {
-    ApiResponse,
-    User,
-    Booking,
-    DashboardStats,
-    BodyMetric,
-    Membership,
-    WorkoutLog,
-    Notification,
-    Rating,
-    WorkoutTemplate,
-    WorkoutAnalytics,
-    PersonalRecord,
-    PlateauResult,
-    PeriodizedProgram
+    ApiResponse, AuthResponse, User, ClassSession,
+    Booking, DashboardStats, BodyMetric, Membership,
+    Notification, Rating, WorkoutTemplate, WorkoutLog,
+    AdvancedAnalytics, PeriodizedProgram
 } from '../types';
 
 
@@ -109,6 +99,13 @@ export const workoutService = {
     },
     getActiveProgram: async (): Promise<ApiResponse<{ program: PeriodizedProgram }>> => {
         const response = await api.get('/workouts/periodization/active-program');
+        return response.data;
+    },
+
+    getAdvancedAnalytics: async (exercise: string, targetWeight?: number): Promise<ApiResponse<{ analytics: AdvancedAnalytics }>> => {
+        const response = await api.get(`/workouts/analytics/advanced/${exercise}`, {
+            params: { targetWeight }
+        });
         return response.data;
     },
     getSuggestedWeights: async (templateId: string): Promise<ApiResponse<{ suggestions: any }>> => {

@@ -1,4 +1,7 @@
 import { IWorkoutLog, WorkoutLogModel } from './workout.model.js';
+import { LinearRegression } from '../../utils/analytics.utils.js';
+import { differenceInDays } from 'date-fns';
+
 
 export const WorkoutService = {
     /**
@@ -130,5 +133,71 @@ export const WorkoutService = {
             exerciseProgression,
             monthlyConsistency: consistencyData
         };
+    },
+
+    /**
+     * Get advanced predictive analytics for a specific exercise
+     */
+    getAdvancedAnalytics: async (userId: string, exerciseName: string, targetWeight?: number) => {
+        const workouts = await WorkoutLogModel.find({
+            user: userId,
+            'exercises.name': exerciseName
+        }).sort({ date: 1 });
+
+        if (workouts.length < 3) return null;
+
+        const progression = workouts.map(w => {
+            const ex = w.exercises.find(e => e.name === exerciseName);
+            const maxWeight = Math.max(...(ex?.sets.map(s => s.weight) || [0]));
+            return {
+                date: w.date,
+                weight: maxWeight,
+                daysFromStart: differenceInDays(new Date(w.date), new Date(workouts[0].date))
+            };
+        });
+
+        // Overall Regression
+        const overallData = progression.map(p => ({ x: p.daysFromStart, y: p.weight }));
+        const overallRegression = LinearRegression.calculate(overallData);
+        const marginOfError = LinearRegression.getMarginOfError(overallRegression);
+
+        // Deceleration Detection (Last 4 workouts vs Overall)
+        let isDecelerating = false;
+        if (progression.length >= 6) {
+            const recentData = progression.slice(-4).map(p => ({ x: p.daysFromStart, y: p.weight }));
+            const recentRegression = LinearRegression.calculate(recentData);
+            // Deceleration is flagged if recent slope is < 50% of overall slope and overall slope is positive
+            if (overallRegression.slope > 0.01 && recentRegression.slope < overallRegression.slope * 0.5) {
+                isDecelerating = true;
+            }
+        }
+
+        // Predictions
+        const daysToGoal = (targetWeight && overallRegression.slope > 0)
+            ? Math.max(0, Math.ceil((targetWeight - overallRegression.intercept) / overallRegression.slope) - progression[progression.length - 1].daysFromStart)
+            : null;
+
+        const predictedDate = daysToGoal !== null
+            ? new Date(new Date().getTime() + daysToGoal * 24 * 60 * 60 * 1000)
+            : null;
+
+        return {
+            exerciseName,
+            current1RM: progression[progression.length - 1].weight,
+            rateOfGain: overallRegression.slope * 7, // kg per week
+            rSquared: overallRegression.rSquared,
+            marginOfError,
+            isDecelerating,
+            prediction: {
+                targetWeight,
+                daysToGoal,
+                predictedDate,
+                forecast30Days: LinearRegression.predict(overallRegression, progression[progression.length - 1].daysFromStart + 30),
+                forecast60Days: LinearRegression.predict(overallRegression, progression[progression.length - 1].daysFromStart + 60),
+                forecast90Days: LinearRegression.predict(overallRegression, progression[progression.length - 1].daysFromStart + 90)
+            },
+            history: progression.map(p => ({ date: p.date, weight: p.weight }))
+        };
     }
 };
+
