@@ -29,7 +29,7 @@ export interface IMembership extends Document {
 
 const MembershipSchema = new Schema<IMembership>({
   user: { type: Schema.Types.ObjectId, ref: 'User', required: true },
-  homeStudio: { type: Schema.Types.ObjectId, ref: 'Studio', required: true },
+  homeStudio: { type: Schema.Types.ObjectId, ref: 'Studio' },
   type: { type: String, enum: Object.values(PlanType), required: true },
   startDate: { type: Date, default: Date.now },
   endDate: { type: Date },

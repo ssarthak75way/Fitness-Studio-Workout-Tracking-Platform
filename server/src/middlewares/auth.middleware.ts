@@ -55,8 +55,8 @@ export const protect = async (req: Request, res: Response, next: NextFunction) =
     }
 
     next();
-  } catch (error: any) {
-    console.error('JWT VERIFY FAILED. Error:', error.message);
+  } catch (error: unknown) {
+    console.error('JWT VERIFY FAILED. Error:', (error as Error).message);
     console.error('Token causing error:', req.headers.authorization);
     return next(new AppError('Invalid Token', 401));
   }

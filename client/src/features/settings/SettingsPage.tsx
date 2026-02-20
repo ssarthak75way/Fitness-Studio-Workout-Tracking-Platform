@@ -265,6 +265,8 @@ export default function SettingsPage() {
     certifications: user?.certifications?.join(', ') || '',
   });
 
+  
+
   const [passwords, setPasswords] = useState({
     currentPassword: '',
     newPassword: '',
@@ -421,7 +423,7 @@ export default function SettingsPage() {
                         <TextField
                           fullWidth
                           label="VERIFIED CREDENTIALS"
-                          value={profile.certifications}
+                          value={profile?.certifications}
                           onChange={(e) => setProfile({ ...profile, certifications: e.target.value })}
                           placeholder="e.g., NASM, CROSSFIT LEVEL 2..."
                           helperText="USE COMMAS FOR MULTIPLE ENTRIES"

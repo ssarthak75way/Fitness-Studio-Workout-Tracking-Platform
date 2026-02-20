@@ -158,6 +158,10 @@ const router = createBrowserRouter([
             path: 'admin/users',
             lazy: async () => ({ Component: (await import('../features/admin/UserManagementPage')).default }),
           },
+          {
+            path: 'admin/reconciliation',
+            lazy: async () => ({ Component: (await import('../features/admin/FinancialReconciliationPage')).default }),
+          },
         ],
       },
     ],

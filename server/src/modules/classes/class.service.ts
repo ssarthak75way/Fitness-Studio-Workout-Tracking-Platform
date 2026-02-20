@@ -15,7 +15,7 @@ export const ClassService = {
       const { UserModel } = await import('../users/user.model.js');
       const instructor = await UserModel.findById(input.instructorId);
       if (instructor && instructor.certifications) {
-        const hasValidCert = instructor.certifications.some((c: any) => c.expiryDate >= startTime);
+        const hasValidCert = instructor.certifications.some((c: { name: string; expiryDate: Date }) => c.expiryDate >= startTime);
         if (!hasValidCert && instructor.certifications.length > 0) {
           throw new AppError('Instructor certifications have expired. They cannot be scheduled until renewed.', 403);
         }
@@ -33,11 +33,11 @@ export const ClassService = {
       }).populate('studio', 'name');
 
       if (conflict) {
-        const conflictStudio = (conflict.studio as any)?.name || 'another location';
-        const isCrossStudio = conflict.studio.toString() !== input.studioId;
+        const conflictStudio = conflict.studio as unknown as { _id: unknown; name?: string; toString(): string };
+        const isCrossStudio = conflictStudio.toString() !== input.studioId;
 
         throw new AppError(
-          `Instructor is already booked for "${conflict.title}" from ${conflict.startTime.toLocaleTimeString()} to ${conflict.endTime.toLocaleTimeString()}${isCrossStudio ? ` at ${conflictStudio}` : ''}`,
+          `Instructor is already booked for "${conflict.title}" from ${conflict.startTime.toLocaleTimeString()} to ${conflict.endTime.toLocaleTimeString()}${isCrossStudio ? ` at ${conflictStudio.name ?? ''}` : ''}`,
           409
         );
       }

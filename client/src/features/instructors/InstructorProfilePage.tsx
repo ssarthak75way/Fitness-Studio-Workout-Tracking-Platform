@@ -4,6 +4,7 @@ import { Box, Typography, Avatar, Paper, Chip, Button, List, ListItem, ListItemT
 import api from '../../services/api';
 import CalendarMonthIcon from '@mui/icons-material/CalendarMonth';
 import ReviewSection from '../../components/reviews/ReviewSection';
+import { useAuth } from '../../context/AuthContext';
 import type { User, ClassSession } from '../../types';
 
 const styles = {
@@ -18,6 +19,7 @@ const styles = {
 export default function InstructorProfilePage() {
   const { id } = useParams();
   const navigate = useNavigate();
+  const { user } = useAuth();
   const [data, setData] = useState<{ instructor: User; upcomingClasses: ClassSession[] } | null>(null);
 
   useEffect(() => {
@@ -77,11 +79,39 @@ export default function InstructorProfilePage() {
               <Box mt={2}>
                 <Typography variant="subtitle2" gutterBottom>Certifications</Typography>
                 <Box sx={styles.certificationsContainer}>
-                  {instructor.certifications.map((cert: { name: string; expiryDate: string }) => (
-                    <Chip key={cert.name} label={`${cert.name}${cert.expiryDate ? ` (Exp: ${new Date(cert.expiryDate).toLocaleDateString()})` : ''}`} size="small" variant="filled" sx={styles.certificationChip} />
-                  ))}
-
+                  {instructor.certifications.map((cert: { name: string; expiryDate: string }) => {
+                    const isExpired = cert.expiryDate && new Date(cert.expiryDate) < new Date();
+                    return (
+                      <Chip
+                        key={cert.name}
+                        label={`${cert.name}${cert.expiryDate ? ` (Exp: ${new Date(cert.expiryDate).toLocaleDateString()})` : ''}${isExpired ? ' - EXPIRED' : ''}`}
+                        size="small"
+                        variant="filled"
+                        sx={{
+                          ...styles.certificationChip,
+                          ...(isExpired && { bgcolor: '#fee2e2', color: '#991b1b', border: '1px solid #ef4444' })
+                        }}
+                      />
+                    );
+                  })}
                 </Box>
+                {instructor.certifications.some((c: { name: string; expiryDate: string }) => c.expiryDate && new Date(c.expiryDate) < new Date()) && (
+                  <Box mt={2} p={2} sx={{ bgcolor: '#fff5f5', border: '1px dashed #feb2b2', borderRadius: 1 }}>
+                    <Typography variant="caption" color="error" fontWeight={700} display="block" mb={1}>
+                      CRITICAL: EXPIRED CERTIFICATIONS DETECTED. PERSONNEL REQUIRES IMMEDIATE COMPLIANCE REVIEW.
+                    </Typography>
+                    {user?.role === 'STUDIO_ADMIN' && (
+                      <Button
+                        size="small"
+                        variant="contained"
+                        color="error"
+                        onClick={() => navigate('/schedule')}
+                      >
+                        SUGGEST REPLACEMENT FROM THIS STUDIO
+                      </Button>
+                    )}
+                  </Box>
+                )}
               </Box>
             )}
           </Box>

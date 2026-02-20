@@ -13,7 +13,7 @@ import { AuditLogModel } from '../modules/audit/auditLog.model.js';
 import { NotificationModel } from '../modules/notifications/notification.model.js';
 
 const api = axios.create({ baseURL: 'http://localhost:5000/api/v1' });
-
+ 
 async function runTest1() {
     await mongoose.connect(process.env.MONGODB_URI!);
     try {

@@ -267,5 +267,13 @@ export const styles = {
             bgcolor: popular ? 'secondary.dark' : 'primary.main',
             boxShadow: `0 10px 30px ${alpha(popular ? theme.palette.secondary.main : theme.palette.primary.main, 0.4)}`
         }
+    }),
+    card: (theme: Theme) => ({
+        borderRadius: 2,
+        border: '1px solid',
+        borderColor: theme.palette.divider,
+        bgcolor: alpha(theme.palette.background.paper, 0.4),
+        backdropFilter: 'blur(24px)',
+        height: '100%'
     })
 };

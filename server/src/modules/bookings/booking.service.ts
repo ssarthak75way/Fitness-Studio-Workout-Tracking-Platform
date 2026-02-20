@@ -283,8 +283,8 @@ export const BookingService = {
       throw new AppError('Invalid verification code or booking not found', 404);
     }
 
-    const classSession = booking.classSession as any; // Cast to access populated studio
-    const studio = classSession.studio as IStudio;
+    const classSession = booking.classSession as unknown as IClassSession & { studio: IStudio };
+    const studio = classSession.studio;
     const now = new Date();
 
     // 1. Time Window Check (-15m to +30m)

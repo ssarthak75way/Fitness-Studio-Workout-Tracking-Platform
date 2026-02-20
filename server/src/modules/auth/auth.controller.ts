@@ -38,7 +38,7 @@ export const loginHandler = async (req: Request, res: Response, next: NextFuncti
 
 export const impersonateHandler = async (req: Request, res: Response, next: NextFunction) => {
   try {
-    const adminId = (req.user?._id as any)?.toString() || '';
+    const adminId = (req.user?._id)?.toString() || '';
     const targetUserId = req.params.userId;
 
     const { user, token } = await AuthService.impersonateUser(adminId, targetUserId);

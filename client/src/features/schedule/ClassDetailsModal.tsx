@@ -3,10 +3,11 @@ import {
   Dialog, DialogTitle, DialogContent, DialogActions,
   Button, Typography, Box, Chip, Divider
 } from '@mui/material';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import api from '../../services/api';
 import { useAuth } from '../../context/AuthContext';
+import type { Booking } from '../../types';
 import { useToast } from '../../context/ToastContext';
 import AccessTimeIcon from '@mui/icons-material/AccessTime';
 import PersonIcon from '@mui/icons-material/Person';
@@ -58,6 +59,26 @@ export default function ClassDetailsModal({ event, open, onClose, onBookingSucce
   const { user } = useAuth();
   const { showToast } = useToast();
   const [loading, setLoading] = useState(false);
+  const [userBooking, setUserBooking] = useState<Booking | null>(null);
+
+  const fetchUserBooking = async () => {
+    if (!event || user?.role !== 'MEMBER') return;
+    try {
+      const res = await api.get('/bookings');
+      const booking = res.data.data.bookings.find((b: Booking) => (b.classSession as { _id: string })._id === event.id && b.status !== 'CANCELLED');
+      setUserBooking(booking);
+    } catch (err) {
+      console.error('Failed to fetch user booking status', err);
+    }
+  };
+
+  useEffect(() => {
+    if (open && event) {
+      fetchUserBooking();
+    } else {
+      setUserBooking(null);
+    }
+  }, [open, event, user]);
 
   if (!event) return null;
 
@@ -90,6 +111,34 @@ export default function ClassDetailsModal({ event, open, onClose, onBookingSucce
       showToast('You have successfully covered this class!', 'success');
     } catch (err: unknown) {
       showToast((err as Error)?.message || 'Failed to cover class', 'error');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleCancelBooking = async () => {
+    if (!userBooking) return;
+
+    // Check for late cancellation (less than 2 hours)
+    const startTime = new Date(event.start);
+    const now = new Date();
+    const diffHours = (startTime.getTime() - now.getTime()) / (1000 * 60 * 60);
+
+    let confirmMsg = 'Are you sure you want to cancel your booking?';
+    if (diffHours < 2) {
+      confirmMsg = 'WARNING: This session starts in less than 2 hours. A credit penalty will be deducted unless the spot is immediately filled. Proceed?';
+    }
+
+    if (!window.confirm(confirmMsg)) return;
+
+    setLoading(true);
+    try {
+      await api.patch(`/bookings/${userBooking._id}/cancel`);
+      showToast('Booking cancelled. Any applicable penalties have been processed.', 'success');
+      setUserBooking(null);
+      onBookingSuccess();
+    } catch (err: unknown) {
+      showToast((err as Error)?.message || 'Failed to cancel booking', 'error');
     } finally {
       setLoading(false);
     }
@@ -181,7 +230,7 @@ export default function ClassDetailsModal({ event, open, onClose, onBookingSucce
 
       <DialogActions>
         <Button onClick={onClose} disabled={loading}>Close</Button>
-        {user?.role === 'MEMBER' && !isGap && (
+        {user?.role === 'MEMBER' && !isGap && !userBooking && (
           <Button
             variant="contained"
             onClick={handleBook}
@@ -189,6 +238,16 @@ export default function ClassDetailsModal({ event, open, onClose, onBookingSucce
             color={isFull ? "warning" : "primary"}
           >
             {loading ? 'Processing...' : isFull ? 'Join Waitlist' : 'Book Class'}
+          </Button>
+        )}
+        {user?.role === 'MEMBER' && userBooking && (
+          <Button
+            variant="outlined"
+            onClick={handleCancelBooking}
+            disabled={loading}
+            color="error"
+          >
+            {loading ? 'Processing...' : 'Cancel Booking'}
           </Button>
         )}
         {(user?.role === 'INSTRUCTOR' || user?.role === 'STUDIO_ADMIN') && isGap && (

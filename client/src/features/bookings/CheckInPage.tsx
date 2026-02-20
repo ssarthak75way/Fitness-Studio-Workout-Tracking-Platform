@@ -313,10 +313,10 @@ export default function CheckInPage() {
                 message: `WELCOME, ${userName}! ACCESS GRANTED FOR ${className}.`
             });
             setQrData('');
-        } catch (error: any) {
+        } catch (error: unknown) {
             setResult({
                 success: false,
-                message: error.message || 'ACCESS DENIED. INVALID CREDENTIALS OR BOOKING STATUS.'
+                message: (error as Error).message || 'ACCESS DENIED. INVALID CREDENTIALS OR BOOKING STATUS.'
             });
         } finally {
             setLoading(false);

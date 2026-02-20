@@ -13,6 +13,7 @@ import AddCircleOutlineIcon from '@mui/icons-material/AddCircleOutline';
 import api from '../../services/api';
 import { workoutService } from '../../services';
 import { useToast } from '../../context/ToastContext';
+import type { PlateauResult } from '../../types';
 
 import SetsFieldArray from './SetsFieldArray';
 
@@ -119,8 +120,20 @@ export default function LogWorkoutModal({ open, onClose, onSuccess, initialValue
     }
   });
 
-  const [suggestions, setSuggestions] = useState<any>(null);
-  const [plateaus, setPlateaus] = useState<any[]>([]);
+  interface SuggestionExercise {
+    name: string;
+    oneRM?: number;
+    prescribedWeight?: number;
+  }
+
+  interface SuggestionData {
+    phase?: string;
+    week?: number;
+    exercises: SuggestionExercise[];
+  }
+
+  const [suggestions, setSuggestions] = useState<SuggestionData | null>(null);
+  const [plateaus, setPlateaus] = useState<PlateauResult[]>([]);
 
   // Fetch suggested weights if templateId is provided
   useEffect(() => {
@@ -289,7 +302,7 @@ export default function LogWorkoutModal({ open, onClose, onSuccess, initialValue
                             variant="outlined"
                           />
                         )}
-                        {suggestions.exercises.find((s: { name: string; oneRM?: number; prescribedWeight?: number }) => s.name === exerciseFields[index].name)?.prescribedWeight > 0 && (
+                        {(suggestions.exercises.find((s: SuggestionExercise) => s.name === exerciseFields[index].name)?.prescribedWeight ?? 0) > 0 && (
                           <Chip
                             label={`PRESCRIBED: ${suggestions.exercises.find((s: { name: string; oneRM?: number; prescribedWeight?: number }) => s.name === exerciseFields[index].name)?.prescribedWeight}kg`}
                             size="small"

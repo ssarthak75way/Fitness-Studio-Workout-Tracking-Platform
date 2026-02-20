@@ -13,6 +13,7 @@ import AccountCircleIcon from '@mui/icons-material/AccountCircle';
 import NoteAddIcon from '@mui/icons-material/NoteAdd';
 import TrendingUpIcon from '@mui/icons-material/TrendingUp';
 import BookmarkIcon from '@mui/icons-material/Bookmark';
+import AccountBalanceIcon from '@mui/icons-material/AccountBalance';
 import { useAuth } from '../../context/AuthContext';
 import { motion } from 'framer-motion';
 import { Logo } from '../common/Logo';
@@ -43,6 +44,7 @@ const menuItems: MenuItem[] = [
   { text: 'My Profile', icon: <AccountCircleIcon />, path: '/profile' },
   { text: 'Settings', icon: <SettingsIcon />, path: '/settings' },
   { text: 'User Management', icon: <PeopleIcon />, path: '/admin/users', roles: ['STUDIO_ADMIN'] },
+  { text: 'Financial Reports', icon: <AccountBalanceIcon />, path: '/admin/reconciliation', roles: ['STUDIO_ADMIN'] },
   { text: 'Check-In', icon: <QrCodeScannerIcon />, path: '/check-in', roles: ['STUDIO_ADMIN', 'INSTRUCTOR'] },
 ];
 

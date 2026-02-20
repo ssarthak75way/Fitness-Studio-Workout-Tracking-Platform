@@ -4,7 +4,7 @@ import { differenceInDays, endOfDay, startOfDay } from 'date-fns';
 export const PRICING = {
     [PlanType.MONTHLY]: 99,
     [PlanType.ANNUAL]: 999,
-    [PlanType.CLASS_PACK_10]: 50,
+    [PlanType.CLASS_PACK_10]: 150,
     [PlanType.CORPORATE]: 0, // Paid externally
 };
 

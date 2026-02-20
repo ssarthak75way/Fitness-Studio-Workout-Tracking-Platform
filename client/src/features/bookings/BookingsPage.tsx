@@ -392,13 +392,43 @@ export default function BookingsPage() {
         if (!cancelId) return;
         try {
             await bookingService.cancelBooking(cancelId);
-            showToast('Booking cancelled successfully', 'success');
+            showToast('Booking cancelled. Any applicable penalties have been processed.', 'success');
             fetchBookings();
             setCancelId(null);
         } catch (error) {
             console.error('Failed to cancel booking:', error);
             showToast((error as Error).message || 'Failed to cancel booking', 'error');
         }
+    };
+
+    const getCancelWarning = (bookingId: string): { message: string; hasWaiver: boolean } => {
+        const booking = bookings.find(b => b._id === bookingId);
+        if (!booking) return { message: '', hasWaiver: false };
+        const startTime = new Date(booking.classSession.startTime);
+        const now = new Date();
+        const diffHours = (startTime.getTime() - now.getTime()) / (1000 * 60 * 60);
+
+        // Check if any other classes have waitlisted bookings (proxy for this session's waitlist activity)
+        const hasWaitlistedSiblings = bookings.some(
+            b => b._id !== bookingId && b.status === 'WAITLISTED' && b.classSession._id === booking.classSession._id
+        );
+
+        if (diffHours < 2) {
+            if (hasWaitlistedSiblings) {
+                return {
+                    message: "This session starts in less than 2 hours. WAITLIST WAIVER DETECTED — A member is queued to take your spot immediately, so no penalty will be applied.",
+                    hasWaiver: true
+                };
+            }
+            return {
+                message: "WARNING: This session starts in less than 2 hours. A credit penalty will be deducted unless the spot is immediately filled from the waitlist.",
+                hasWaiver: false
+            };
+        }
+        return {
+            message: "Are you sure you want to terminate this high-performance session? This action is permanent.",
+            hasWaiver: false
+        };
     };
 
     const handleTabChange = (_event: React.SyntheticEvent, newValue: number) => {
@@ -651,9 +681,28 @@ export default function BookingsPage() {
                     <Typography variant="h5" fontWeight={950} sx={styles.dialogTitle}>ABORT MISSION?</Typography>
                 </DialogTitle>
                 <DialogContent sx={styles.dialogContentBox}>
-                    <Typography sx={styles.dialogContentText}>
-                        Are you sure you want to terminate this high-performance session? This action is permanent and cannot be reversed.
-                    </Typography>
+                    {(() => {
+                        const warning = getCancelWarning(cancelId || '');
+                        return (
+                            <>
+                                {warning.hasWaiver && (
+                                    <Box sx={{
+                                        mb: 2, px: 2, py: 1,
+                                        bgcolor: alpha(theme.palette.success.main, 0.1),
+                                        border: `1px solid ${alpha(theme.palette.success.main, 0.4)}`,
+                                        borderRadius: 1
+                                    }}>
+                                        <Typography variant="caption" fontWeight={900} color="success.main" sx={{ letterSpacing: '1px' }}>
+                                            ✓ WAITLIST WAIVER ACTIVE — NO PENALTY
+                                        </Typography>
+                                    </Box>
+                                )}
+                                <Typography sx={styles.dialogContentText}>
+                                    {warning.message}
+                                </Typography>
+                            </>
+                        );
+                    })()}
                 </DialogContent>
                 <DialogActions sx={styles.dialogActionsBox}>
                     <Button onClick={() => setCancelId(null)} color="inherit" sx={styles.stayAthleteButton}>STAY ATHLETE</Button>
