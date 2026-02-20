@@ -36,8 +36,18 @@ export const metricsService = {
 };
 
 export const membershipService = {
-    createMembership: async (type: string): Promise<ApiResponse<{ membership: Membership }>> => {
-        const response = await api.post('/memberships', { type });
+    createOrder: async (type: string): Promise<ApiResponse<{ order: any; key: string }>> => {
+        const response = await api.post('/memberships/create-order', { type });
+        return response.data;
+    },
+
+    verifyPayment: async (data: any): Promise<ApiResponse<{ membership: Membership }>> => {
+        const response = await api.post('/memberships/verify-payment', data);
+        return response.data;
+    },
+
+    changePlan: async (type: string): Promise<ApiResponse<{ order?: any; key?: string; membership?: Membership; amount?: number }>> => {
+        const response = await api.post('/memberships/change-plan', { type });
         return response.data;
     },
 
@@ -46,6 +56,7 @@ export const membershipService = {
         return response.data;
     },
 };
+
 
 export const ratingService = {
     submitRating: async (data: { targetType: string; targetId: string; rating: number; review?: string }): Promise<ApiResponse<{ rating: Rating }>> => {

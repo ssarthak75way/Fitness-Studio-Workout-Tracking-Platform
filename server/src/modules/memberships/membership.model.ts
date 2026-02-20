@@ -15,7 +15,13 @@ export interface IMembership extends Document {
   isActive: boolean;
   paymentId?: string;
   paymentOrderId?: string;
+  lastPlanChange?: Date;
+  scheduledChange?: {
+    type: PlanType;
+    effectiveDate: Date;
+  };
 }
+
 
 const MembershipSchema = new Schema<IMembership>({
   user: { type: Schema.Types.ObjectId, ref: 'User', required: true },
@@ -26,6 +32,12 @@ const MembershipSchema = new Schema<IMembership>({
   isActive: { type: Boolean, default: true },
   paymentId: { type: String },
   paymentOrderId: { type: String },
+  lastPlanChange: { type: Date, default: Date.now },
+  scheduledChange: {
+    type: { type: String, enum: Object.values(PlanType) },
+    effectiveDate: { type: Date },
+  },
 });
+
 
 export const MembershipModel = mongoose.model<IMembership>('Membership', MembershipSchema);

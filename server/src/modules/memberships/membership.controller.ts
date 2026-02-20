@@ -2,6 +2,7 @@ import { Request, Response, NextFunction } from 'express';
 import { MembershipModel } from './membership.model.js';
 import { PaymentModel, PaymentStatus } from '../payment/payment.model.js';
 import { AppError } from '../../utils/AppError.js';
+import { ProrationService } from './proration.service.js';
 
 import { RazorpayService } from '../payment/razorpay.service.js';
 
@@ -115,3 +116,57 @@ export const getMembershipHandler = async (req: Request, res: Response, next: Ne
         next(error);
     }
 };
+
+export const requestPlanChangeHandler = async (req: Request, res: Response, next: NextFunction) => {
+    try {
+        const { type } = req.body;
+        const userId = req.user?._id;
+
+        const currentMembership = await MembershipModel.findOne({ user: userId, isActive: true });
+        if (!currentMembership) {
+            throw new AppError('No active membership to change', 404);
+        }
+
+        // Check cooling period
+        if (!ProrationService.checkCoolingPeriod(currentMembership.lastPlanChange)) {
+            throw new AppError('Plan change restricted: Cooling period active (30 days)', 403);
+        }
+
+        const amount = ProrationService.calculateProration(currentMembership, type);
+
+        if (amount <= 0) {
+            // Instant switch if cost is 0
+            currentMembership.isActive = false;
+            await currentMembership.save();
+
+            let endDate = new Date();
+            if (type === 'MONTHLY') endDate.setMonth(endDate.getMonth() + 1);
+            else if (type === 'ANNUAL') endDate.setFullYear(endDate.getFullYear() + 1);
+
+            const newMembership = await MembershipModel.create({
+                user: userId,
+                type,
+                endDate,
+                creditsRemaining: type === 'CLASS_PACK_10' ? 10 : undefined,
+                isActive: true,
+                lastPlanChange: new Date(),
+            });
+
+            return res.status(200).json({
+                status: 'success',
+                message: 'Plan changed successfully (Credits applied)',
+                data: { membership: newMembership }
+            });
+        }
+
+        const order = await RazorpayService.createOrder(amount);
+
+        res.status(200).json({
+            status: 'success',
+            data: { order, key: process.env.RAZORPAY_KEY_ID, amount },
+        });
+    } catch (error) {
+        next(error);
+    }
+};
+

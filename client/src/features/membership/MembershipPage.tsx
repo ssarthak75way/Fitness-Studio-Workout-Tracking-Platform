@@ -10,8 +10,8 @@ import ScheduleIcon from '@mui/icons-material/Schedule';
 import FitnessCenterIcon from '@mui/icons-material/FitnessCenter';
 import WorkspacePremiumIcon from '@mui/icons-material/WorkspacePremium';
 import { motion, type Variants } from 'framer-motion';
-import api from '../../services/api';
 import { useAuth } from '../../context/AuthContext';
+
 import { useToast } from '../../context/ToastContext';
 import ConfirmationDialog from '../../components/common/ConfirmationDialog';
 import type { Membership } from '../../types';
@@ -108,24 +108,45 @@ export default function MembershipPage() {
 
         try {
             if (!window.Razorpay) {
-                showToast('Razorpay SDK failed to load. Please check your connection.', 'error');
+                showToast('Razorpay SDK failed to load.', 'error');
                 setLoading(false);
                 return;
             }
 
-            const orderRes = await api.post('/memberships/create-order', { type });
-            const { order, key } = orderRes.data.data;
+            // Decide between fresh purchase or plan change
+            let response;
+            if (membership?.isActive) {
+                response = await membershipService.changePlan(type);
+            } else {
+                response = await membershipService.createOrder(type);
+            }
+
+            const data = response.data as any; // Cast to access potential properties in union
+            const { order, key, membership: updatedMembership, amount } = data;
+
+
+            // If amount is 0 or updatingMembership is returned, it was an instant switch (credit/zero cost)
+            if (updatedMembership || (amount !== undefined && amount === 0)) {
+                showToast('PLAN UPDATED SUCCESSFULLY', 'success');
+                fetchMembership();
+                return;
+            }
+
+            if (!order) {
+                showToast('Failed to initialize payment gateway', 'error');
+                return;
+            }
 
             const options = {
                 key: import.meta.env.VITE_RAZORPAY_KEY_ID || key,
                 amount: order.amount,
                 currency: order.currency,
                 name: "FITNESS STUDIO",
-                description: `ELITE ACCESS: ${type.replace('_', ' ')}`,
+                description: `TIER TRANSITION: ${type.replace('_', ' ')}`,
                 order_id: order.id,
                 handler: async (response: RazorpayResponse) => {
                     try {
-                        await api.post('/memberships/verify-payment', {
+                        await membershipService.verifyPayment({
                             razorpay_order_id: response.razorpay_order_id,
                             razorpay_payment_id: response.razorpay_payment_id,
                             razorpay_signature: response.razorpay_signature,
@@ -146,12 +167,14 @@ export default function MembershipPage() {
 
             const rzp = new window.Razorpay(options);
             rzp.open();
-        } catch (error: unknown) {
-            showToast((error as Error).message || 'Payment initiation failed', 'error');
+        } catch (error: any) {
+            const message = error.response?.data?.message || error.message || 'Mission failed';
+            showToast(message.toUpperCase(), 'error');
         } finally {
             setLoading(false);
         }
     };
+
 
     const isExpiringSoon = membership?.endDate &&
         (new Date(membership.endDate).getTime() - new Date().getTime()) < (7 * 24 * 60 * 60 * 1000);
