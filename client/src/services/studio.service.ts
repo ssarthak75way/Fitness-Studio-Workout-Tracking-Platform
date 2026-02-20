@@ -18,6 +18,11 @@ export interface ReconciliationReport {
         sessions: number;
         payment: number;
     }>;
+    crossLocation?: {
+        totalPayable: number;
+        totalReceivable: number;
+        netBalance: number;
+    };
 }
 
 export const studioService = {

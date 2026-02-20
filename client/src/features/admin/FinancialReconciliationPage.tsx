@@ -208,7 +208,19 @@ export default function FinancialReconciliationPage() {
                 : '0%',
             icon: <TrendingUpIcon />,
             color: theme.palette.info.main
-        }
+        },
+        {
+            label: 'CROSS-LOC. PAYABLE',
+            value: `₹${(report.crossLocation?.totalPayable || 0).toLocaleString()}`,
+            icon: <AccountBalanceIcon />,
+            color: theme.palette.error.main
+        },
+        {
+            label: 'CROSS-LOC. RECEIVABLE',
+            value: `₹${(report.crossLocation?.totalReceivable || 0).toLocaleString()}`,
+            icon: <AccountBalanceIcon />,
+            color: theme.palette.success.dark
+        },
     ] : [];
 
     return (
@@ -288,7 +300,7 @@ export default function FinancialReconciliationPage() {
                         <Box
                             sx={{
                                 display: 'grid',
-                                gridTemplateColumns: { xs: '1fr 1fr', md: 'repeat(4, 1fr)' },
+                                gridTemplateColumns: { xs: '1fr 1fr', md: 'repeat(3, 1fr)' },
                                 gap: 3,
                                 mb: 4
                             }}

@@ -174,55 +174,72 @@ export const BookingService = {
         }).sort({ bookedAt: 1 });
 
         if (waitlistedBooking) {
-          // Check if waitlisted user has an active membership and credits if needed
+          // Deduct credit for the promoted user (their credit was NOT taken at waitlist-creation time)
           const waitlistUserMembership = await MembershipModel.findOne({
             user: waitlistedBooking.user,
             isActive: true,
           });
 
-          // We promote even if credits are low for now, but deduct if they have them
-          // In a stricter system, we might skip users without credits
           if (waitlistUserMembership) {
-            if (waitlistUserMembership.type === PlanType.CLASS_PACK_10) {
+            if (
+              waitlistUserMembership.type === PlanType.CLASS_PACK_10 ||
+              waitlistUserMembership.type === PlanType.CORPORATE
+            ) {
               if ((waitlistUserMembership.creditsRemaining || 0) > 0) {
-                waitlistUserMembership.creditsRemaining = (waitlistUserMembership.creditsRemaining || 0) - 1;
+                waitlistUserMembership.creditsRemaining =
+                  (waitlistUserMembership.creditsRemaining || 0) - 1;
                 await waitlistUserMembership.save();
               } else {
-                // If they ran out of credits while waiting, we might need a different policy.
-                // For now, we'll allow it but they might go negative or we skip.
-                // Let's be lenient but log it.
-                console.warn(`[Waitlist] User ${waitlistedBooking.user} promoted with 0 credits.`);
+                console.warn(
+                  `[Waitlist] User ${waitlistedBooking.user} promoted with 0 credits.`
+                );
               }
             }
-
-            waitlistedBooking.status = BookingStatus.CONFIRMED;
-            await waitlistedBooking.save();
-
-            await ClassSessionModel.findByIdAndUpdate(classSession._id, {
-              $inc: { enrolledCount: 1 },
-            });
-
-            wasSlotFilled = true;
-            promotedBooking = waitlistedBooking;
           }
+
+          // ── PROMOTION: always confirm the waitlisted user ─────────────────────
+          waitlistedBooking.status = BookingStatus.CONFIRMED;
+          await waitlistedBooking.save();
+
+          await ClassSessionModel.findByIdAndUpdate(classSession._id, {
+            $inc: { enrolledCount: 1 },
+          });
+
+          // Notify the promoted user
+          await NotificationService.createNotification(
+            String(waitlistedBooking.user),
+            'BOOKING_CONFIRMATION',
+            `Great news! A spot opened up — your waitlisted booking for ${classSession.title} has been confirmed!`,
+            String(classSession._id)
+          );
+
+          wasSlotFilled = true;
+          promotedBooking = waitlistedBooking;
         }
 
-        // 4. CREDIT REFUND LOGIC (Penalty check)
+        // 4. CREDIT REFUND LOGIC (Penalty check) for the cancelling user
         const cancellingUserMembership = await MembershipModel.findOne({
           user: userId,
           isActive: true,
         });
 
-        if (cancellingUserMembership && cancellingUserMembership.type === PlanType.CLASS_PACK_10) {
+        if (
+          cancellingUserMembership &&
+          (cancellingUserMembership.type === PlanType.CLASS_PACK_10 ||
+            cancellingUserMembership.type === PlanType.CORPORATE)
+        ) {
           // Refund if:
-          // 1. Not late (> 2 hours)
-          // 2. OR Late but slot was filled (Waiver)
+          // 1. Not late (> 2 hours before class)
+          // 2. OR late but slot was immediately filled (penalty waived)
           if (!isLate || wasSlotFilled) {
-            cancellingUserMembership.creditsRemaining = (cancellingUserMembership.creditsRemaining || 0) + 1;
+            cancellingUserMembership.creditsRemaining =
+              (cancellingUserMembership.creditsRemaining || 0) + 1;
             await cancellingUserMembership.save();
           } else {
-            // Penalty applies: No refund
-            console.log(`[Penalty] Late cancellation for user ${userId}. Credit not refunded.`);
+            // Penalty applies: credit already deducted at booking time — no refund
+            console.log(
+              `[Penalty] Late cancellation for user ${userId}. Credit not refunded.`
+            );
           }
         }
       }
