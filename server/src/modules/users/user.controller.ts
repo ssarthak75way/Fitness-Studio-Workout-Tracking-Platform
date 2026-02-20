@@ -4,6 +4,8 @@ import { ClassSessionModel } from '../classes/class.model';
 import { RatingModel as Rating } from '../ratings/rating.model';
 import { AuthService } from '../auth/auth.service';
 import { updatePasswordSchema } from '../auth/auth.schema';
+import { CertificationService } from './certification.service.js';
+
 
 import { AppError } from '../../utils/AppError';
 
@@ -188,6 +190,18 @@ export const updateUnitPreference = async (req: Request, res: Response, next: Ne
     ).select('-passwordHash');
 
     res.status(200).json({ status: 'success', data: { user } });
+  } catch (error) {
+    next(error);
+  }
+};
+
+export const enforceCertificationsHandler = async (req: Request, res: Response, next: NextFunction) => {
+  try {
+    const results = await CertificationService.enforceCertifications();
+    res.status(200).json({
+      status: 'success',
+      data: results
+    });
   } catch (error) {
     next(error);
   }

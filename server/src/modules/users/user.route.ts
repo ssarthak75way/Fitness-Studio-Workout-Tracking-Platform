@@ -26,5 +26,6 @@ router.patch('/unit-preference', userController.updateUnitPreference);
 
 
 router.patch('/:id/toggle-status', restrictTo('STUDIO_ADMIN'), userController.toggleUserStatus);
+router.post('/admin/enforce-certifications', restrictTo('STUDIO_ADMIN'), userController.enforceCertificationsHandler);
 
 export default router;

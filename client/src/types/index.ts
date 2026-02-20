@@ -14,7 +14,8 @@ export interface User {
     profileImage?: string;
     bio?: string;
     specialties?: string[];
-    certifications?: string[];
+    certifications?: Array<{ name: string; expiryDate: string }>;
+
     averageRating?: number;
     totalRatings?: number;
     unitPreference: 'METRIC' | 'IMPERIAL';

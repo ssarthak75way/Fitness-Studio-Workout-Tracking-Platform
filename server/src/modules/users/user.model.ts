@@ -33,10 +33,11 @@ export interface IUser extends Document {
   // Instructor Specific
   bio?: string;
   specialties?: string[];
-  certifications?: string[];
+  certifications?: Array<{ name: string; expiryDate: Date }>;
+
 
   // Member Specific
-  metrics?: IBodyMetrics[]; // Array to track progress over time
+  metrics?: IBodyMetrics[]; 
   unitPreference: 'METRIC' | 'IMPERIAL';
 
   isActive: boolean;
@@ -61,7 +62,13 @@ const UserSchema: Schema<IUser> = new Schema(
     // Instructor Fields
     bio: { type: String },
     specialties: [{ type: String }],
-    certifications: [{ type: String }],
+    certifications: [
+      {
+        name: { type: String, required: true },
+        expiryDate: { type: Date, required: true },
+      }
+    ],
+
 
     // Member Fields (Embedded array for history)
     metrics: [

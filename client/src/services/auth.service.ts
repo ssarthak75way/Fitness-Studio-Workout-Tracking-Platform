@@ -43,6 +43,11 @@ export const authService = {
         const response = await api.patch('/users/unit-preference', { unitPreference });
         return response.data;
     },
+    enforceCertifications: async (): Promise<ApiResponse<any>> => {
+        const response = await api.post('/users/admin/enforce-certifications');
+        return response.data;
+    },
 };
+
 
 
