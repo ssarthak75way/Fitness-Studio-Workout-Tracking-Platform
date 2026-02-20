@@ -77,9 +77,10 @@ export default function InstructorProfilePage() {
               <Box mt={2}>
                 <Typography variant="subtitle2" gutterBottom>Certifications</Typography>
                 <Box sx={styles.certificationsContainer}>
-                  {instructor.certifications.map((cert: string) => (
-                    <Chip key={cert} label={cert} size="small" variant="filled" sx={styles.certificationChip} />
+                  {instructor.certifications.map((cert: { name: string; expiryDate: string }) => (
+                    <Chip key={cert.name} label={`${cert.name}${cert.expiryDate ? ` (Exp: ${new Date(cert.expiryDate).toLocaleDateString()})` : ''}`} size="small" variant="filled" sx={styles.certificationChip} />
                   ))}
+
                 </Box>
               </Box>
             )}

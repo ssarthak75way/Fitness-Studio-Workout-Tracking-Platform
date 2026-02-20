@@ -1,10 +1,9 @@
 import { useState, useEffect } from 'react';
 import {
-  Box, Typography, Card, CardContent, TextField, Button,
-  Dialog, DialogTitle, DialogContent, DialogActions,
-  Select, MenuItem, FormControl, useTheme, alpha, Stack
+  Box, Typography, Card, CardContent, Button, Stack,
+  useTheme, alpha, type Theme, FormControl, Select, MenuItem,
+  Dialog, DialogTitle, DialogContent, DialogActions, TextField
 } from '@mui/material';
-import type { Theme } from '@mui/material';
 import {
   LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend,
   ResponsiveContainer, BarChart, Bar
@@ -25,6 +24,8 @@ import type { BodyMetric, WorkoutAnalytics, PersonalRecord, PlateauResult } from
 import { useToast } from '../../context/ToastContext';
 import { useAuth } from '../../context/AuthContext';
 import { UnitConverter } from '../../utils/unit.utils';
+import PeriodizationRoadmap from './PeriodizationRoadmap';
+
 
 
 
@@ -760,6 +761,9 @@ export default function ProgressPage() {
             </Select>
           </FormControl>
         </Box>
+
+        <PeriodizationRoadmap onUpdate={fetchData} />
+
         <Card sx={styles.chartCard(theme)}>
           <ResponsiveContainer width="100%" height={350}>
             <LineChart data={analytics?.exerciseProgression[selectedExercise] || []}>

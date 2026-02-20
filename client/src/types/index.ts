@@ -192,8 +192,10 @@ export interface WorkoutAnalytics {
 
 export interface WorkoutFormValues {
     title: string;
+    templateId?: string;
     durationMinutes?: number;
     exercises: {
+
         name: string;
         sets: {
             reps: number;
@@ -216,7 +218,30 @@ export interface Payment {
     updatedAt: string;
 }
 
+export type PhaseType = 'HYPERTROPHY' | 'STRENGTH' | 'PEAKING';
+
+export const PhaseType = {
+    HYPERTROPHY: 'HYPERTROPHY' as PhaseType,
+    STRENGTH: 'STRENGTH' as PhaseType,
+    PEAKING: 'PEAKING' as PhaseType,
+} as const;
+
+
+export interface PeriodizedProgram {
+    _id: string;
+    user: string;
+    startDate: string;
+    currentWeek: number;
+    phases: {
+        type: PhaseType;
+        startWeek: number;
+        endWeek: number;
+    }[];
+    isActive: boolean;
+}
+
 export interface PlateauResult {
+
     groupName: string;
     status: 'PLATEAU' | 'INCONSISTENT' | 'PROGRESSING';
     lastExercises: string[];

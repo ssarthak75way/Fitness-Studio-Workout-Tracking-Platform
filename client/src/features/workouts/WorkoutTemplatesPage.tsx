@@ -364,7 +364,9 @@ export default function WorkoutTemplatesPage() {
     const handleUseTemplate = (template: WorkoutTemplate) => {
         setSelectedTemplate({
             title: template.name,
+            templateId: template._id,
             exercises: template.exercises.map((ex) => ({
+
                 name: ex.name,
                 sets: Array(ex.sets).fill(0).map(() => ({ reps: ex.reps, weight: ex.weight || 0 })),
                 notes: ex.notes
@@ -563,7 +565,7 @@ export default function WorkoutTemplatesPage() {
                         </DialogTitle>
 
                         <DialogContent sx={{ p: 4 }}>
-                            <Typography sx={{...styles.sequenceTitle}}>
+                            <Typography sx={{ ...styles.sequenceTitle }}>
                                 SEQUENCE ({viewTemplate.exercises.length})
                             </Typography>
 

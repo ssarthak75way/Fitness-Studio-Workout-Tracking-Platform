@@ -2,6 +2,10 @@ import { Request, Response, NextFunction } from 'express';
 import { WorkoutService } from './workout.service.js';
 import WorkoutTemplate from './workout-template.model.js';
 import { PlateauService } from './plateau.service.js';
+import { PeriodizationService } from './periodization.service.js';
+import PeriodizedProgram from './periodized-program.model.js';
+
+
 
 export const logWorkout = async (req: Request, res: Response, next: NextFunction) => {
   try {
@@ -119,6 +123,45 @@ export const getPlateaus = async (req: Request, res: Response, next: NextFunctio
   try {
     const plateaus = await PlateauService.detectPlateaus(req.user!._id.toString());
     res.status(200).json({ status: 'success', data: { plateaus } });
+  } catch (error) {
+    next(error);
+  }
+};
+
+export const initiateProgram = async (req: Request, res: Response, next: NextFunction) => {
+  try {
+    console.log('Initiating periodization program for user:', req.user?._id);
+    const program = await PeriodizationService.generateProgram(req.user!._id.toString());
+    console.log('Program generated successfully:', program._id);
+    res.status(201).json({ status: 'success', data: { program } });
+
+  } catch (error) {
+    next(error);
+  }
+};
+
+export const getSuggestedWeights = async (req: Request, res: Response, next: NextFunction) => {
+  try {
+    const { templateId } = req.params;
+    const suggestions = await PeriodizationService.getPrescribedWeights(req.user!._id.toString(), templateId);
+
+    if (!suggestions) {
+      return res.status(404).json({
+        status: 'error',
+        message: 'No active periodized program found or template invalid'
+      });
+    }
+
+    res.status(200).json({ status: 'success', data: { suggestions } });
+  } catch (error) {
+    next(error);
+  }
+};
+
+export const getActiveProgram = async (req: Request, res: Response, next: NextFunction) => {
+  try {
+    const program = await PeriodizedProgram.findOne({ user: req.user!._id.toString(), isActive: true });
+    res.status(200).json({ status: 'success', data: { program } });
   } catch (error) {
     next(error);
   }

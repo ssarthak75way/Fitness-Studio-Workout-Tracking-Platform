@@ -12,7 +12,8 @@ import type {
     WorkoutTemplate,
     WorkoutAnalytics,
     PersonalRecord,
-    PlateauResult
+    PlateauResult,
+    PeriodizedProgram
 } from '../types';
 
 
@@ -102,7 +103,21 @@ export const workoutService = {
         const response = await api.get('/workouts/plateaus');
         return response.data;
     },
+    initiateProgram: async (): Promise<ApiResponse<{ program: any }>> => {
+        const response = await api.post('/workouts/periodization/initiate');
+        return response.data;
+    },
+    getActiveProgram: async (): Promise<ApiResponse<{ program: PeriodizedProgram }>> => {
+        const response = await api.get('/workouts/periodization/active-program');
+        return response.data;
+    },
+    getSuggestedWeights: async (templateId: string): Promise<ApiResponse<{ suggestions: any }>> => {
+
+        const response = await api.get(`/workouts/periodization/suggested-weights/${templateId}`);
+        return response.data;
+    },
 };
+
 
 
 export const notificationService = {

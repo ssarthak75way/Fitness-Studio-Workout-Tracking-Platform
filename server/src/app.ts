@@ -68,8 +68,13 @@ app.use('/api/v1/payments', paymentRoutes);
 app.use('/api/v1/studios', studioRoutes);
 
 app.get('/', (_req: Request, res: Response) => {
-  res.status(200).json({ status: 'success', message: 'Fitness Platform API Running' });
+  res.status(200).json({ status: 'success', message: 'Fitness Studio & Workout Tracking Platform API Running' });
 });
+
+app.get('/api/v1/test', (_req: Request, res: Response) => {
+  res.status(200).json({ status: 'success', message: 'Test route is working' });
+});
+
 
 app.all('*', (req: Request, _res: Response, next: NextFunction) => {
   next(new AppError(`Can't find ${req.originalUrl} on this server!`, 404));

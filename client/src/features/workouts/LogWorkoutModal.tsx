@@ -1,15 +1,19 @@
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { useForm, useFieldArray, type Resolver } from 'react-hook-form';
 import { z } from 'zod';
 import { zodResolver } from '@hookform/resolvers/zod';
 import {
   Dialog, DialogTitle, DialogContent, DialogActions, Button,
-  TextField, Box, IconButton, Typography, useTheme, alpha, type Theme
+  TextField, Box, IconButton, Typography, useTheme, alpha, type Theme,
+  Chip
 } from '@mui/material';
+
 import DeleteIcon from '@mui/icons-material/Delete';
 import AddCircleOutlineIcon from '@mui/icons-material/AddCircleOutline';
 import api from '../../services/api';
+import { workoutService } from '../../services';
 import { useToast } from '../../context/ToastContext';
+
 import SetsFieldArray from './SetsFieldArray';
 
 // Validation Schema
@@ -115,6 +119,49 @@ export default function LogWorkoutModal({ open, onClose, onSuccess, initialValue
     }
   });
 
+  const [suggestions, setSuggestions] = useState<any>(null);
+
+  // Fetch suggested weights if templateId is provided
+  useEffect(() => {
+    const fetchSuggestions = async () => {
+      if (open && initialValues?.templateId) {
+        try {
+          const response = await workoutService.getSuggestedWeights(initialValues.templateId);
+          if (response.status === 'success') {
+            setSuggestions(response.data.suggestions);
+
+            // Auto-update weights in the form if we have suggestions
+            const updatedExercises = initialValues.exercises?.map(ex => {
+              const suggestion = response.data.suggestions.exercises.find((s: any) => s.name === ex.name);
+              if (suggestion && suggestion.prescribedWeight > 0) {
+                return {
+                  ...ex,
+                  sets: ex.sets.map(s => ({ ...s, weight: suggestion.prescribedWeight }))
+                };
+              }
+              return ex;
+            });
+
+            if (updatedExercises) {
+              reset({
+                ...initialValues,
+                title: initialValues.title || '',
+                exercises: updatedExercises
+              });
+            }
+          }
+        } catch (err) {
+          console.error('Failed to fetch suggested weights:', err);
+        }
+      } else {
+        setSuggestions(null);
+      }
+    };
+
+    fetchSuggestions();
+  }, [open, initialValues, reset]);
+
+
   // Re-sync form if initialValues change (needed for templates)
   useEffect(() => {
     if (open && initialValues) {
@@ -158,7 +205,16 @@ export default function LogWorkoutModal({ open, onClose, onSuccess, initialValue
         <Typography variant="h4" fontWeight={950} sx={{ letterSpacing: '-1.5px', color: 'text.primary' }}>
           INITIALIZE <Box component="span" sx={{ color: 'primary.main' }}>SESSION</Box>
         </Typography>
+        {suggestions && (
+          <Chip
+            label={`${suggestions.phase} PHASE • WEEK ${suggestions.week}`}
+            color="primary"
+            size="small"
+            sx={{ mt: 1, fontWeight: 900, borderRadius: 1, letterSpacing: '1px' }}
+          />
+        )}
       </DialogTitle>
+
       <form onSubmit={handleSubmit(onSubmit)} style={{ display: 'contents' }}>
         <DialogContent dividers>
           <Box sx={styles.formContainer}>
@@ -198,18 +254,41 @@ export default function LogWorkoutModal({ open, onClose, onSuccess, initialValue
             {exerciseFields.map((field, index) => (
               <Box key={field.id} sx={styles.exerciseContainer(theme)}>
                 <Box sx={styles.exerciseHeader}>
-                  <TextField
-                    {...register(`exercises.${index}.name` as const)}
-                    label={`TARGET DRILL ${index + 1}`}
-                    size="small"
-                    fullWidth
-                    sx={styles.exerciseName(theme)}
-                    error={!!errors.exercises?.[index]?.name}
-                  />
+                  <Box sx={{ flex: 1 }}>
+                    <TextField
+                      {...register(`exercises.${index}.name` as const)}
+                      label={`TARGET DRILL ${index + 1}`}
+                      size="small"
+                      fullWidth
+                      sx={styles.exerciseName(theme)}
+                      error={!!errors.exercises?.[index]?.name}
+                    />
+                    {suggestions && (
+                      <Box sx={{ display: 'flex', gap: 1, mt: 1 }}>
+                        {suggestions.exercises.find((s: any) => s.name === exerciseFields[index].name)?.oneRM && (
+                          <Chip
+                            label={`EST. 1RM: ${suggestions.exercises.find((s: any) => s.name === exerciseFields[index].name).oneRM}kg`}
+                            size="small"
+                            variant="outlined"
+                            sx={{ fontSize: '0.6rem', fontWeight: 800 }}
+                          />
+                        )}
+                        {suggestions.exercises.find((s: any) => s.name === exerciseFields[index].name)?.prescribedWeight > 0 && (
+                          <Chip
+                            label="PRESCRIBED"
+                            size="small"
+                            color="primary"
+                            sx={{ fontSize: '0.6rem', fontWeight: 900, borderRadius: 0.5 }}
+                          />
+                        )}
+                      </Box>
+                    )}
+                  </Box>
                   <IconButton color="error" onClick={() => removeExercise(index)}>
                     <DeleteIcon />
                   </IconButton>
                 </Box>
+
 
                 <SetsFieldArray nestIndex={index} control={control} register={register} />
 

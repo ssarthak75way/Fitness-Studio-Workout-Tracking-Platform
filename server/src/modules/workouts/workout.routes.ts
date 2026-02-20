@@ -7,6 +7,11 @@ const router = Router();
 // All routes require authentication
 router.use(protect);
 
+// Periodization
+router.post('/periodization/initiate', workoutController.initiateProgram);
+router.get('/periodization/active-program', workoutController.getActiveProgram);
+router.get('/periodization/suggested-weights/:templateId', workoutController.getSuggestedWeights);
+
 // Workout logging
 router.post('/', workoutController.logWorkout);
 router.get('/history', workoutController.getWorkoutHistory);
@@ -15,7 +20,10 @@ router.get('/streak', workoutController.getWorkoutStreak);
 router.get('/analytics', workoutController.getAnalytics);
 router.get('/plateaus', workoutController.getPlateaus);
 
+
+
 // Workout templates
+
 router.get('/templates', workoutController.getTemplates);
 router.post('/templates', restrictTo('INSTRUCTOR', 'STUDIO_ADMIN'), workoutController.createTemplate);
 router.get('/templates/:id', workoutController.getTemplateById);
