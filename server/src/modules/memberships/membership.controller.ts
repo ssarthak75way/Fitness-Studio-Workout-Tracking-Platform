@@ -10,9 +10,9 @@ export const createMembershipOrderHandler = async (req: Request, res: Response, 
         const { type } = req.body;
 
         let amount = 0;
-        if (type === 'MONTHLY') amount = 99;
-        else if (type === 'ANNUAL') amount = 999;
-        else if (type === 'CLASS_PACK_10') amount = 150;
+        if (type === 'MONTHLY') amount = 9;
+        else if (type === 'ANNUAL') amount = 99;
+        else if (type === 'CLASS_PACK_10') amount = 50;
         else throw new AppError('Invalid plan type', 400);
 
         const order = await RazorpayService.createOrder(amount);
@@ -63,9 +63,9 @@ export const verifyMembershipPaymentHandler = async (req: Request, res: Response
 
         // 5. Create Payment Record
         let amount = 0;
-        if (type === 'MONTHLY') amount = 99;
-        else if (type === 'ANNUAL') amount = 999;
-        else if (type === 'CLASS_PACK_10') amount = 150;
+        if (type === 'MONTHLY') amount = 9;
+        else if (type === 'ANNUAL') amount = 99;
+        else if (type === 'CLASS_PACK_10') amount = 50;
 
         await PaymentModel.create({
             user: userId,

@@ -12,8 +12,10 @@ import BlockIcon from '@mui/icons-material/Block';
 import { motion, AnimatePresence, type Variants } from 'framer-motion';
 import api from '../../services/api';
 import { useToast } from '../../context/ToastContext';
+import { useAuth } from '../../context/AuthContext';
 import ConfirmationDialog from '../../components/common/ConfirmationDialog';
 import type { User } from '../../types';
+
 import type { Theme } from '@mui/material/styles';
 
 const containerVariants: Variants = {
@@ -202,6 +204,7 @@ export default function UserManagementPage() {
     const [users, setUsers] = useState<User[]>([]);
     const [loading, setLoading] = useState(true);
     const { showToast } = useToast();
+    const { impersonate } = useAuth();
     const [searchTerm, setSearchTerm] = useState('');
     const [page, setPage] = useState(0);
     const [rowsPerPage, setRowsPerPage] = useState(10);
@@ -214,6 +217,15 @@ export default function UserManagementPage() {
     useEffect(() => {
         fetchUsers();
     }, []);
+
+    const handleImpersonate = async (userId: string) => {
+        try {
+            await impersonate(userId);
+            showToast('IMPERSONATION PROTOCOL STARTED', 'success');
+        } catch (err: any) {
+            showToast(err.response?.data?.message || 'Failed to start impersonation', 'error');
+        }
+    };
 
     const fetchUsers = async () => {
         try {
@@ -244,7 +256,7 @@ export default function UserManagementPage() {
             const updatedUser = response.data.data.user;
             setUsers(users.map(u => u._id === updatedUser._id ? updatedUser : u));
             showToast(`STATUS PROTOCOL UPDATED`, 'success');
-        } catch (err:unknown) {
+        } catch (err: unknown) {
             showToast((err as Error).message || `Protocol failure`, 'error');
         }
     };
@@ -339,7 +351,7 @@ export default function UserManagementPage() {
                                                     <TableCell>
                                                         <Box display="flex" alignItems="center" gap={2}>
                                                             <Avatar sx={styles.avatar(theme)}
-                                                            src={user?.profileImage || ""}
+                                                                src={user?.profileImage || ""}
                                                             >
                                                                 {user.fullName.charAt(0).toUpperCase()}
                                                             </Avatar>
@@ -377,16 +389,29 @@ export default function UserManagementPage() {
                                                         {new Date(user.createdAt).toLocaleDateString(undefined, { dateStyle: 'medium' }).toUpperCase()}
                                                     </TableCell>
                                                     <TableCell align="right">
-                                                        <Button
-                                                            variant={user.isActive ? "outlined" : "contained"}
-                                                            color={user.isActive ? "error" : "success"}
-                                                            size="small"
-                                                            onClick={() => handleToggleStatusClick(user)}
-                                                            startIcon={user.isActive ? <BlockIcon /> : <CheckCircleIcon />}
-                                                            sx={styles.actionButton}
-                                                        >
-                                                            {user.isActive ? "DEACTIVATE" : "RECOVER"}
-                                                        </Button>
+                                                        <Box display="flex" gap={1} justifyContent="flex-end">
+                                                            {user.role === 'MEMBER' && (
+                                                                <Button
+                                                                    variant="outlined"
+                                                                    color="primary"
+                                                                    size="small"
+                                                                    onClick={() => handleImpersonate(user._id)}
+                                                                    sx={styles.actionButton}
+                                                                >
+                                                                    IMPERSONATE
+                                                                </Button>
+                                                            )}
+                                                            <Button
+                                                                variant={user.isActive ? "outlined" : "contained"}
+                                                                color={user.isActive ? "error" : "success"}
+                                                                size="small"
+                                                                onClick={() => handleToggleStatusClick(user)}
+                                                                startIcon={user.isActive ? <BlockIcon /> : <CheckCircleIcon />}
+                                                                sx={styles.actionButton}
+                                                            >
+                                                                {user.isActive ? "DEACTIVATE" : "RECOVER"}
+                                                            </Button>
+                                                        </Box>
                                                     </TableCell>
                                                 </TableRow>
                                             ))}

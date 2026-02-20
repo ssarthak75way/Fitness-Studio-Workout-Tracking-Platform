@@ -3,6 +3,7 @@ import { Box, AppBar, Toolbar, Typography, Button, IconButton, Tooltip, Avatar, 
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { useThemeContext } from '../context/ThemeContext';
+import { useTheme } from '@mui/material/styles';
 import MenuIcon from '@mui/icons-material/Menu';
 import LogoutIcon from '@mui/icons-material/Logout';
 import DarkModeIcon from '@mui/icons-material/DarkMode';
@@ -42,11 +43,30 @@ const styles = {
         display: 'flex',
         flexDirection: 'column',
     },
+    impersonationBanner: (theme: Theme) => ({
+        bgcolor: theme.palette.error.main,
+        color: '#fff',
+        py: 1,
+        px: 3,
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'space-between',
+        position: 'fixed',
+        top: 0,
+        left: 0,
+        right: 0,
+        zIndex: theme.zIndex.drawer + 2,
+        fontWeight: 900,
+        letterSpacing: '1px',
+        fontSize: '0.75rem',
+        textTransform: 'uppercase',
+    })
 };
 
 export default function ProtectedLayout({ children }: { children: ReactNode }) {
     const navigate = useNavigate();
-    const { user, logout } = useAuth();
+    const theme = useTheme();
+    const { user, logout, isImpersonating, stopImpersonation } = useAuth();
     const { mode, toggleTheme } = useThemeContext();
     const [mobileOpen, setMobileOpen] = useState(false);
 
@@ -59,9 +79,35 @@ export default function ProtectedLayout({ children }: { children: ReactNode }) {
         navigate('/login');
     };
 
+    const handleStopImpersonation = async () => {
+        await stopImpersonation();
+    };
+
     return (
         <Box sx={styles.root}>
-            <AppBar position="fixed" sx={styles.appBar} elevation={0}>
+            {isImpersonating && (
+                <Box sx={styles.impersonationBanner(theme)}>
+                    <Typography variant="caption" sx={{ fontWeight: 900 }}>
+                        SYSTEM ALERT: ACTIVE IMPERSONATION PROTOCOL. ACTING AS MEMBER: {user?.fullName?.toUpperCase()}
+                    </Typography>
+                    <Button
+                        size="small"
+                        variant="contained"
+                        color="inherit"
+                        onClick={handleStopImpersonation}
+                        sx={{
+                            color: 'error.main',
+                            fontWeight: 950,
+                            borderRadius: 0,
+                            px: 3,
+                            fontSize: '0.65rem'
+                        }}
+                    >
+                        STOP PROTOCOL
+                    </Button>
+                </Box>
+            )}
+            <AppBar position="fixed" sx={{ ...styles.appBar(theme), top: isImpersonating ? 40 : 0 }} elevation={0}>
                 <Toolbar>
                     <IconButton
                         color="inherit"

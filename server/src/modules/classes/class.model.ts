@@ -12,13 +12,14 @@ export interface IClassSession extends Document {
   title: string;
   description?: string;
   type: ClassType;
-  instructor: Types.ObjectId; // Reference to User
+  instructor?: Types.ObjectId; // Optional for "gaps"
+  studio: Types.ObjectId; // Reference to Studio
   startTime: Date;
   endTime: Date;
   capacity: number;
-  enrolledCount: number; // Optimization: Denormalized count
+  enrolledCount: number;
   location?: string; // Room A, Virtual, etc.
-  recurrenceRule?: string; // Optional: RRule string for repeating classes
+  recurrenceRule?: string;
   isCancelled: boolean;
 }
 
@@ -27,8 +28,9 @@ const ClassSessionSchema = new Schema<IClassSession>(
     title: { type: String, required: true },
     description: { type: String },
     type: { type: String, enum: Object.values(ClassType), required: true },
-    instructor: { type: Schema.Types.ObjectId, ref: 'User', required: true },
-    startTime: { type: Date, required: true, index: true }, // Indexed for calendar queries
+    instructor: { type: Schema.Types.ObjectId, ref: 'User' },
+    studio: { type: Schema.Types.ObjectId, ref: 'Studio', required: true },
+    startTime: { type: Date, required: true, index: true },
     endTime: { type: Date, required: true },
     capacity: { type: Number, required: true, min: 1 },
     enrolledCount: { type: Number, default: 0 },
@@ -39,7 +41,16 @@ const ClassSessionSchema = new Schema<IClassSession>(
   { timestamps: true }
 );
 
-// Middleware to prevent double booking an instructor
-ClassSessionSchema.index({ instructor: 1, startTime: 1 }, { unique: true });
+// Middleware to prevent double booking an instructor (sparse to allow null instructors/gaps)
+ClassSessionSchema.index(
+  { instructor: 1, startTime: 1 },
+  { unique: true, partialFilterExpression: { instructor: { $exists: true }, isCancelled: false } }
+);
+
+// Index to prevent double booking a studio location (Room A, etc) within a studio
+ClassSessionSchema.index(
+  { studio: 1, location: 1, startTime: 1 },
+  { unique: true, partialFilterExpression: { location: { $exists: true, $ne: "" }, isCancelled: false } }
+);
 
 export const ClassSessionModel = mongoose.model<IClassSession>('ClassSession', ClassSessionSchema);

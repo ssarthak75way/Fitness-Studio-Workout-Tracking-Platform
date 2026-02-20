@@ -31,4 +31,13 @@ export const authService = {
         });
         return response.data;
     },
+    impersonate: async (userId: string): Promise<ApiResponse<{ user: AuthResponse['user']; token: string }>> => {
+        const response = await api.post(`/auth/impersonate/${userId}`);
+        return response.data;
+    },
+    stopImpersonation: async (): Promise<ApiResponse<{ user: AuthResponse['user']; token: string }>> => {
+        const response = await api.post('/auth/stop-impersonation');
+        return response.data;
+    },
 };
+

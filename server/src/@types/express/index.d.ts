@@ -3,7 +3,8 @@ import { IUser } from '../../modules/users/user.model';
 declare global {
   namespace Express {
     interface Request {
-      user?: IUser; 
+      user?: IUser;
+      realUser?: IUser;
     }
   }
 }

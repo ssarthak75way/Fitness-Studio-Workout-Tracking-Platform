@@ -11,25 +11,29 @@ export const ClassService = {
     const endTime = addMinutes(startTime, input.durationMinutes);
 
     // 1. CONFLICT CHECK: Look for overlapping classes for this instructor
-    const conflict = await ClassSessionModel.findOne({
-      instructor: input.instructorId,
-      $or: [
-        // Case A: New class starts during an existing class
-        { startTime: { $lt: endTime }, endTime: { $gt: startTime } },
-      ],
-    });
+    if (input.instructorId) {
+      const conflict = await ClassSessionModel.findOne({
+        instructor: input.instructorId,
+        isCancelled: false,
+        $or: [
+          { startTime: { $lt: endTime }, endTime: { $gt: startTime } },
+        ],
+      });
 
-    if (conflict) {
-      throw new AppError(
-        `Instructor is already booked from ${conflict.startTime.toLocaleTimeString()} to ${conflict.endTime.toLocaleTimeString()}`,
-        409
-      );
+      if (conflict) {
+        throw new AppError(
+          `Instructor is already booked from ${conflict.startTime.toLocaleTimeString()} to ${conflict.endTime.toLocaleTimeString()}`,
+          409
+        );
+      }
     }
 
-    // 2. LOCATION CONFLICT CHECK
+    // 2. LOCATION & STUDIO CONFLICT CHECK
     if (input.location) {
       const locationConflict = await ClassSessionModel.findOne({
+        studio: input.studioId,
         location: input.location,
+        isCancelled: false,
         $or: [
           { startTime: { $lt: endTime }, endTime: { $gt: startTime } },
         ],
@@ -37,7 +41,7 @@ export const ClassService = {
 
       if (locationConflict) {
         throw new AppError(
-          `Location ${input.location} is already booked for ${locationConflict.title}`,
+          `Location ${input.location} in this studio is already booked for "${locationConflict.title}"`,
           409
         );
       }
@@ -48,7 +52,8 @@ export const ClassService = {
       title: input.title,
       description: input.description,
       type: input.type,
-      instructor: new mongoose.Types.ObjectId(input.instructorId),
+      instructor: input.instructorId ? new mongoose.Types.ObjectId(input.instructorId) : undefined,
+      studio: new mongoose.Types.ObjectId(input.studioId),
       startTime: startTime,
       endTime: endTime,
       capacity: input.capacity,
@@ -101,6 +106,8 @@ export const ClassService = {
         throw new AppError('Class is already cancelled', 400);
       }
 
+      const originalInstructor = classSession.instructor;
+
       // 1. Mark as cancelled
       classSession.isCancelled = true;
       await classSession.save({ session });
@@ -126,6 +133,31 @@ export const ClassService = {
         );
       }
 
+      // 4. AUTO-COVER LOGIC
+      if (originalInstructor) {
+        // Find "Gaps" (instructor: null) that this instructor could now cover
+        const gap = await ClassSessionModel.findOne({
+          instructor: { $exists: false },
+          isCancelled: false,
+          startTime: { $gte: classSession.startTime },
+          endTime: { $lte: classSession.endTime },
+        }).session(session);
+
+        if (gap) {
+          // Found a gap! Suggest or auto-assign?
+          // The prompt says "check whether they can auto-cover a gap at another"
+          // We will assign them and notify them.
+          gap.instructor = originalInstructor;
+          await gap.save({ session });
+
+          await NotificationService.createNotification(
+            originalInstructor.toString(),
+            'PROMOTION', // Using existing type for now or could add a new one
+            `Auto-Cover Alert: Since your class "${classSession.title}" was cancelled, you have been automatically assigned to cover "${gap.title}" at a different studio.`
+          );
+        }
+      }
+
       await session.commitTransaction();
       return classSession;
     } catch (error) {
@@ -141,7 +173,8 @@ export const ClassService = {
     return ClassSessionModel.find({
       startTime: { $gte: start, $lte: end },
     })
-      .populate('instructor', 'fullName profileImage') // Join user data
+      .populate('instructor', 'fullName profileImage')
+      .populate('studio', 'name address')
       .sort({ startTime: 1 });
   },
 };

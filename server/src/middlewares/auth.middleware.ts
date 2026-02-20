@@ -1,13 +1,15 @@
 import { Request, Response, NextFunction } from 'express';
 import jwt from 'jsonwebtoken';
-import { UserModel } from '../modules/users/user.model';
+import { UserModel, IUser } from '../modules/users/user.model';
 import { AppError } from '../utils/AppError';
+import { AuditLogModel } from '../modules/audit/auditLog.model';
 
 const JWT_SECRET = process.env.JWT_SECRET || 'supersecretkey';
 
 interface JwtPayload {
   id: string;
   role: string;
+  adminId?: string;
 }
 
 export const protect = async (req: Request, res: Response, next: NextFunction) => {
@@ -23,7 +25,6 @@ export const protect = async (req: Request, res: Response, next: NextFunction) =
     }
 
     // 2. Verify token
-    // @ts-ignore: jsonwebtoken types can be finicky with promisify, doing it directly
     const decoded = jwt.verify(token, JWT_SECRET) as JwtPayload;
 
     // 3. Check if user still exists
@@ -34,6 +35,25 @@ export const protect = async (req: Request, res: Response, next: NextFunction) =
 
     // 4. Grant Access & Attach User to Request
     req.user = currentUser;
+
+    // 5. Check if it's an impersonation token
+    if (decoded.adminId) {
+      const adminUser = await UserModel.findById(decoded.adminId);
+      if (adminUser) {
+        req.realUser = adminUser;
+
+        // Automatically log impersonated actions
+        await AuditLogModel.create({
+          adminId: adminUser._id,
+          impersonatedUserId: currentUser._id,
+          action: `${req.method} ${req.path}`,
+          method: req.method,
+          path: req.path,
+          payload: req.method !== 'GET' ? req.body : undefined,
+        });
+      }
+    }
+
     next();
   } catch (error) {
     return next(new AppError('Invalid Token', 401));
@@ -50,3 +70,5 @@ export const restrictTo = (...roles: string[]) => {
     next();
   };
 };
+
+// Removed separate auditLog middleware as it's now integrated into protect

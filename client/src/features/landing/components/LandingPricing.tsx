@@ -82,7 +82,7 @@ export const LandingPricing = ({ isAuthenticated }: LandingPricingProps) => {
     const pricing = [
         {
             title: 'Monthly Unlimited',
-            price: '₹99',
+            price: '₹9',
             period: '/month',
             features: ['Unlimited classes', 'Access to all locations', 'Free towel service', '1 Guest pass/month'],
             button: isAuthenticated ? 'Choose Plan' : 'Start Now',
@@ -91,7 +91,7 @@ export const LandingPricing = ({ isAuthenticated }: LandingPricingProps) => {
         },
         {
             title: 'Annual Unlimited',
-            price: '₹999',
+            price: '₹99',
             period: '/year',
             features: ['All Monthly benefits', 'Save ₹189/year', 'Exclusive workshops', 'Priority booking'],
             button: isAuthenticated ? 'Choose Plan' : 'Go Pro',
@@ -100,7 +100,7 @@ export const LandingPricing = ({ isAuthenticated }: LandingPricingProps) => {
         },
         {
             title: '10 Class Pack',
-            price: '₹150',
+            price: '₹50',
             period: '',
             features: ['10 class credits', 'Never expires', 'Shareable with 1 friend', 'Valid at home location'],
             button: isAuthenticated ? 'Choose Plan' : 'Get Pack',

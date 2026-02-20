@@ -4,13 +4,11 @@ import { AppError } from '../../utils/AppError.js';
 
 // Initialize Razorpay
 const razorpay = new Razorpay({
-    key_id: process.env.RAZORPAY_KEY_ID || 'rzp_test_SCR2hy9mIA0vFE',
-    key_secret: process.env.RAZORPAY_KEY_SECRET || 'L8qF80ZT5IzdxCZN0bfWC0ye',
+    key_id: process.env.RAZORPAY_KEY_ID,
+    key_secret: process.env.RAZORPAY_KEY_SECRET,
 });
 
 export const RazorpayService = {
-     // @param amount Amount in smallest currency unit (e.g., paise for INR)
-     // @param currency Currency code (default: INR)
     createOrder: async (amount: number, currency: string = 'INR') => {
         try {
             const options = {

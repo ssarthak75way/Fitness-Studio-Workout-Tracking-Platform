@@ -77,4 +77,28 @@ export const AuthService = {
     user.passwordHash = await bcrypt.hash(input.newPassword, salt);
     await user.save();
   },
+
+  impersonateUser: async (adminId: string, targetUserId: string): Promise<{ user: IUser; token: string }> => {
+    const admin = await UserModel.findById(adminId);
+    if (!admin || admin.role !== UserRole.ADMIN) {
+      throw new AppError('Only admins can impersonate users', 403);
+    }
+
+    const targetUser = await UserModel.findById(targetUserId);
+    if (!targetUser) {
+      throw new AppError('Target user not found', 404);
+    }
+
+    if (targetUser.role === UserRole.ADMIN) {
+      throw new AppError('Admins cannot impersonate other admins', 403);
+    }
+
+    const token = jwt.sign(
+      { id: targetUser._id, role: targetUser.role, adminId: admin._id },
+      JWT_SECRET,
+      { expiresIn: JWT_EXPIRES_IN }
+    );
+
+    return { user: targetUser, token };
+  },
 };

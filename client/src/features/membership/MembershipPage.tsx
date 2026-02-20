@@ -26,7 +26,7 @@ const PLANS = [
     {
         type: 'MONTHLY',
         name: 'Monthly Unlimited',
-        price: '₹99',
+        price: '₹9',
         period: '/month',
         description: 'Perfect for consistent training.',
         features: ['Unlimited classes', 'Access to all locations', 'Free towel service', '1 Guest pass/month'],
@@ -36,7 +36,7 @@ const PLANS = [
     {
         type: 'ANNUAL',
         name: 'Annual Unlimited',
-        price: '₹999',
+        price: '₹99',
         period: '/year',
         description: 'Best value for committed athletes.',
         features: ['All Monthly benefits', 'Save $189/year', 'Exlusive workshops', 'Priority booking', 'Free merchandise pack'],
@@ -46,7 +46,7 @@ const PLANS = [
     {
         type: 'CLASS_PACK_10',
         name: '10 Class Pack',
-        price: '₹150',
+        price: '₹50',
         period: '',
         description: 'Flexible option for busy schedules.',
         features: ['10 class credits', 'Never expires', 'Shareable with 1 friend', 'Valid at home location'],
