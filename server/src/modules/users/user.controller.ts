@@ -173,3 +173,22 @@ export const uploadProfileImage = async (req: Request, res: Response, next: Next
     next(error);
   }
 };
+
+export const updateUnitPreference = async (req: Request, res: Response, next: NextFunction) => {
+  try {
+    const { unitPreference } = req.body;
+    if (!['METRIC', 'IMPERIAL'].includes(unitPreference)) {
+      return res.status(400).json({ status: 'error', message: 'Invalid unit preference' });
+    }
+
+    const user = await User.findByIdAndUpdate(
+      req.user!._id,
+      { unitPreference },
+      { new: true }
+    ).select('-passwordHash');
+
+    res.status(200).json({ status: 'success', data: { user } });
+  } catch (error) {
+    next(error);
+  }
+};

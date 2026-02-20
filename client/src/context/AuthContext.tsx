@@ -17,7 +17,9 @@ interface AuthContextType {
   impersonate: (userId: string) => Promise<void>;
   stopImpersonation: () => Promise<void>;
   isImpersonating: boolean;
+  toggleUnitPreference: () => Promise<void>;
 }
+
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
@@ -115,6 +117,18 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     }
   };
 
+  const toggleUnitPreference = async () => {
+    if (!user) return;
+    const newPref = user.unitPreference === 'METRIC' ? 'IMPERIAL' : 'METRIC';
+    try {
+      const response = await authService.updateUnitPreference(newPref);
+      setUser(response.data.user);
+    } catch (error) {
+      console.error('Failed to update unit preference:', error);
+    }
+  };
+
+
   return (
     <AuthContext.Provider value={{
       user,
@@ -127,8 +141,10 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       isLoading: loading,
       impersonate,
       stopImpersonation,
-      isImpersonating
+      isImpersonating,
+      toggleUnitPreference
     }}>
+
       {children}
     </AuthContext.Provider>
   );

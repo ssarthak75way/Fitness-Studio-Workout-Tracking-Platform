@@ -22,6 +22,9 @@ router.patch('/password', userController.updatePassword);
 router.get('/instructors', userController.getInstructors);
 router.get('/instructors/:id', userController.getInstructorProfile);
 
+router.patch('/unit-preference', userController.updateUnitPreference);
+
+
 router.patch('/:id/toggle-status', restrictTo('STUDIO_ADMIN'), userController.toggleUserStatus);
 
 export default router;

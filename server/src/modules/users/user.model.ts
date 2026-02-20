@@ -37,11 +37,13 @@ export interface IUser extends Document {
 
   // Member Specific
   metrics?: IBodyMetrics[]; // Array to track progress over time
+  unitPreference: 'METRIC' | 'IMPERIAL';
 
   isActive: boolean;
   createdAt: Date;
   updatedAt: Date;
 }
+
 
 // 3. Create the Schema
 const UserSchema: Schema<IUser> = new Schema(
@@ -78,8 +80,14 @@ const UserSchema: Schema<IUser> = new Schema(
         updatedAt: { type: Date, default: Date.now },
       },
     ],
+    unitPreference: {
+      type: String,
+      enum: ['METRIC', 'IMPERIAL'],
+      default: 'METRIC',
+    },
 
     isActive: { type: Boolean, default: true },
+
   },
   {
     timestamps: true, // Auto-manage createdAt, updatedAt

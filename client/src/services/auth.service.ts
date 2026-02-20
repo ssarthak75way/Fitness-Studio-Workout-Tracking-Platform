@@ -39,5 +39,10 @@ export const authService = {
         const response = await api.post('/auth/stop-impersonation');
         return response.data;
     },
+    updateUnitPreference: async (unitPreference: 'METRIC' | 'IMPERIAL'): Promise<ApiResponse<{ user: AuthResponse['user'] }>> => {
+        const response = await api.patch('/users/unit-preference', { unitPreference });
+        return response.data;
+    },
 };
+
 

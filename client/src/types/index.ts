@@ -17,9 +17,11 @@ export interface User {
     certifications?: string[];
     averageRating?: number;
     totalRatings?: number;
+    unitPreference: 'METRIC' | 'IMPERIAL';
     isActive?: boolean;
     createdAt: string;
 }
+
 
 export interface ApiResponse<T> {
     status: 'success' | 'fail' | 'error';

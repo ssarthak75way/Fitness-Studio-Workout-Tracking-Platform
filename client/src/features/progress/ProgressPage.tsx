@@ -23,6 +23,9 @@ import { metricsService, workoutService } from '../../services/index';
 import { motion, type Variants } from 'framer-motion';
 import type { BodyMetric, WorkoutAnalytics, PersonalRecord, PlateauResult } from '../../types';
 import { useToast } from '../../context/ToastContext';
+import { useAuth } from '../../context/AuthContext';
+import { UnitConverter } from '../../utils/unit.utils';
+
 
 
 const containerVariants: Variants = {
@@ -415,6 +418,9 @@ const CustomTooltip = ({ active, payload, label }: TooltipProps) => {
 export default function ProgressPage() {
   const theme = useTheme();
   const { showToast } = useToast();
+  const { user, toggleUnitPreference } = useAuth();
+  const unitPref = user?.unitPreference || 'METRIC';
+
   const [metrics, setMetrics] = useState<BodyMetric[]>([]);
   const [records, setRecords] = useState<Record<string, PersonalRecord>>({});
   const [streak, setStreak] = useState(0);
@@ -466,17 +472,22 @@ export default function ProgressPage() {
 
   const handleAddMetric = async () => {
     try {
+      // Convert inputs to Metric if system is Imperial
+      const weightInKg = UnitConverter.toMetric(parseFloat(newMetric.weight), 'WEIGHT', unitPref);
+
+      const measurementsInCm = {
+        neck: newMetric.measurements.neck ? UnitConverter.toMetric(parseFloat(newMetric.measurements.neck), 'MEASUREMENT', unitPref) : undefined,
+        chest: newMetric.measurements.chest ? UnitConverter.toMetric(parseFloat(newMetric.measurements.chest), 'MEASUREMENT', unitPref) : undefined,
+        waist: newMetric.measurements.waist ? UnitConverter.toMetric(parseFloat(newMetric.measurements.waist), 'MEASUREMENT', unitPref) : undefined,
+        hips: newMetric.measurements.hips ? UnitConverter.toMetric(parseFloat(newMetric.measurements.hips), 'MEASUREMENT', unitPref) : undefined,
+        biceps: newMetric.measurements.biceps ? UnitConverter.toMetric(parseFloat(newMetric.measurements.biceps), 'MEASUREMENT', unitPref) : undefined,
+        thighs: newMetric.measurements.thighs ? UnitConverter.toMetric(parseFloat(newMetric.measurements.thighs), 'MEASUREMENT', unitPref) : undefined,
+      };
+
       await metricsService.addBodyMetrics({
-        weight: parseFloat(newMetric.weight),
+        weight: weightInKg,
         bodyFatPercentage: parseFloat(newMetric.bodyFatPercentage),
-        measurements: {
-          neck: parseFloat(newMetric.measurements.neck) || undefined,
-          chest: parseFloat(newMetric.measurements.chest) || undefined,
-          waist: parseFloat(newMetric.measurements.waist) || undefined,
-          hips: parseFloat(newMetric.measurements.hips) || undefined,
-          biceps: parseFloat(newMetric.measurements.biceps) || undefined,
-          thighs: parseFloat(newMetric.measurements.thighs) || undefined,
-        }
+        measurements: measurementsInCm
       });
       setOpenAddMetric(false);
       fetchData();
@@ -489,11 +500,13 @@ export default function ProgressPage() {
   };
 
 
+
   const chartData = metrics.map((m) => ({
     date: new Date(m.updatedAt || m.date).toLocaleDateString(),
-    weight: m.weight,
+    weight: UnitConverter.convertValue(m.weight || 0, 'WEIGHT', unitPref),
     bodyFat: m.bodyFatPercentage,
   })).reverse();
+
 
   return (
     <Box component={motion.div} variants={containerVariants} initial="hidden" animate="visible" sx={styles.pageContainer}>
@@ -508,15 +521,25 @@ export default function ProgressPage() {
             Quantify your greatness. Every metric is a testament to your discipline, verified by the elite FITNESS STUDIO performance engine.
           </Typography>
         </Box>
-        <Button
-          variant="contained"
-          startIcon={<AddIcon />}
-          onClick={() => setOpenAddMetric(true)}
-          sx={styles.logEvolutionButton}
-        >
-          LOG EVOLUTION
-        </Button>
+        <Stack direction="row" spacing={2}>
+          <Button
+            variant="outlined"
+            onClick={() => toggleUnitPreference()}
+            sx={{ ...styles.logEvolutionButton, bgcolor: 'transparent', border: '1px solid', borderColor: 'primary.main' }}
+          >
+            SWITCH TO {unitPref === 'METRIC' ? 'IMPERIAL' : 'METRIC'}
+          </Button>
+          <Button
+            variant="contained"
+            startIcon={<AddIcon />}
+            onClick={() => setOpenAddMetric(true)}
+            sx={styles.logEvolutionButton}
+          >
+            LOG EVOLUTION
+          </Button>
+        </Stack>
       </Box>
+
 
       {/* Main Content Area */}
       <Box sx={styles.contentWrapper}>
@@ -535,12 +558,13 @@ export default function ProgressPage() {
           <motion.div variants={itemVariants}>
             <StatCard
               title="Core Mass"
-              value={metrics[0]?.weight?.toFixed(1) || 'N/A'}
-              unit={metrics[0]?.weight ? 'lbs' : ''}
+              value={metrics[0]?.weight ? UnitConverter.formatDisplay(UnitConverter.convertValue(metrics[0].weight, 'WEIGHT', unitPref)) : 'N/A'}
+              unit={metrics[0]?.weight ? (unitPref === 'METRIC' ? 'kg' : 'lbs') : ''}
               icon={FitnessIcon}
               color={theme.palette.primary.main}
             />
           </motion.div>
+
           <motion.div variants={itemVariants}>
             <StatCard
               title="Density Index"
@@ -764,11 +788,12 @@ export default function ProgressPage() {
                 strokeWidth={4}
                 dot={{ r: 6, fill: theme.palette.warning.main, strokeWidth: 0 }}
                 activeDot={{ r: 10, fill: '#fff', strokeWidth: 4, stroke: theme.palette.warning.main }}
-                name="Max Payload (lbs)"
+                name={`Max Payload (${unitPref === 'METRIC' ? 'kg' : 'lbs'})`}
               />
             </LineChart>
           </ResponsiveContainer>
         </Card>
+
 
         {/* PR Cards */}
         <Typography sx={styles.sectionLabel}>ARCHIVED BREAKTHROUGHS</Typography>
@@ -784,9 +809,10 @@ export default function ProgressPage() {
                     </Typography>
                   </Box>
                   <Typography sx={{ ...styles.prTitle }}>
-                    {record.weight} <Typography sx={{ ...styles.prUnit }}>LBS</Typography>
+                    {UnitConverter.convertValue(record.weight, 'WEIGHT', unitPref)} <Typography sx={{ ...styles.prUnit }}>{unitPref === 'METRIC' ? 'KG' : 'LBS'}</Typography>
                   </Typography>
                   <Typography sx={{ ...styles.prVolume }}>
+
                     {record.reps} REPS VOLUME
                   </Typography>
                   <Typography sx={{ ...styles.prDate }}>
@@ -818,7 +844,7 @@ export default function ProgressPage() {
             <Box display="flex" gap={3}>
               <TextField
                 fullWidth
-                label="CURRENT MASS (LBS)"
+                label={`CURRENT MASS (${unitPref === 'METRIC' ? 'KG' : 'LBS'})`}
                 variant="outlined"
                 type="number"
                 value={newMetric.weight}
@@ -838,8 +864,9 @@ export default function ProgressPage() {
 
             <Box>
               <Typography sx={{ ...styles.anatomyLabel }}>
-                ANATOMICAL MEASUREMENTS (IN)
+                ANATOMICAL MEASUREMENTS ({unitPref === 'METRIC' ? 'CM' : 'IN'})
               </Typography>
+
               <Box sx={styles.anatomyGrid}>
                 {['neck', 'chest', 'waist', 'hips', 'biceps', 'thighs'].map((field) => (
                   <Box key={field}>
