@@ -13,6 +13,7 @@ router.get('/history', workoutController.getWorkoutHistory);
 router.get('/records', workoutController.getPersonalRecords);
 router.get('/streak', workoutController.getWorkoutStreak);
 router.get('/analytics', workoutController.getAnalytics);
+router.get('/plateaus', workoutController.getPlateaus);
 
 // Workout templates
 router.get('/templates', workoutController.getTemplates);

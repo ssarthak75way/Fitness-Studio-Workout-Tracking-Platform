@@ -212,3 +212,12 @@ export interface Payment {
     createdAt: string;
     updatedAt: string;
 }
+
+export interface PlateauResult {
+    groupName: string;
+    status: 'PLATEAU' | 'INCONSISTENT' | 'PROGRESSING';
+    lastExercises: string[];
+    maxWeightTrend: number[];
+    suggestion?: string;
+}
+

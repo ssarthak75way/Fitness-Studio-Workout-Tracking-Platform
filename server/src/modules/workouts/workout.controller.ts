@@ -1,6 +1,7 @@
 import { Request, Response, NextFunction } from 'express';
-import { WorkoutService } from './workout.service';
-import WorkoutTemplate from './workout-template.model';
+import { WorkoutService } from './workout.service.js';
+import WorkoutTemplate from './workout-template.model.js';
+import { PlateauService } from './plateau.service.js';
 
 export const logWorkout = async (req: Request, res: Response, next: NextFunction) => {
   try {
@@ -109,6 +110,15 @@ export const getAnalytics = async (req: Request, res: Response, next: NextFuncti
   try {
     const analytics = await WorkoutService.getWorkoutAnalytics(req.user!._id.toString());
     res.status(200).json({ status: 'success', data: { analytics } });
+  } catch (error) {
+    next(error);
+  }
+};
+
+export const getPlateaus = async (req: Request, res: Response, next: NextFunction) => {
+  try {
+    const plateaus = await PlateauService.detectPlateaus(req.user!._id.toString());
+    res.status(200).json({ status: 'success', data: { plateaus } });
   } catch (error) {
     next(error);
   }

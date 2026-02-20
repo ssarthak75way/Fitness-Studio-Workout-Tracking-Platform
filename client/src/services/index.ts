@@ -11,8 +11,10 @@ import type {
     Rating,
     WorkoutTemplate,
     WorkoutAnalytics,
-    PersonalRecord
+    PersonalRecord,
+    PlateauResult
 } from '../types';
+
 
 export const dashboardService = {
     getDashboardStats: async (): Promise<ApiResponse<{ stats: DashboardStats }>> => {
@@ -85,7 +87,12 @@ export const workoutService = {
         const response = await api.get('/workouts/analytics');
         return response.data;
     },
+    getPlateaus: async (): Promise<ApiResponse<{ plateaus: PlateauResult[] }>> => {
+        const response = await api.get('/workouts/plateaus');
+        return response.data;
+    },
 };
+
 
 export const notificationService = {
     getNotifications: (): Promise<ApiResponse<{ notifications: Notification[] }>> => api.get('/notifications').then(res => res.data),

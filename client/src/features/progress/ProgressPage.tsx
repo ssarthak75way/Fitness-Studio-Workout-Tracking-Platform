@@ -14,12 +14,16 @@ import {
   EmojiEvents as TrophyIcon,
   Straighten as RulerIcon,
   Add as AddIcon,
-  FitnessCenter as FitnessIcon
+  FitnessCenter as FitnessIcon,
+  Warning as WarningIcon,
+  ErrorOutline as InconsistentIcon
 } from '@mui/icons-material';
+
 import { metricsService, workoutService } from '../../services/index';
 import { motion, type Variants } from 'framer-motion';
-import type { BodyMetric, WorkoutAnalytics, PersonalRecord } from '../../types';
+import type { BodyMetric, WorkoutAnalytics, PersonalRecord, PlateauResult } from '../../types';
 import { useToast } from '../../context/ToastContext';
+
 
 const containerVariants: Variants = {
   hidden: { opacity: 0 },
@@ -415,6 +419,7 @@ export default function ProgressPage() {
   const [records, setRecords] = useState<Record<string, PersonalRecord>>({});
   const [streak, setStreak] = useState(0);
   const [analytics, setAnalytics] = useState<WorkoutAnalytics | null>(null);
+  const [plateaus, setPlateaus] = useState<PlateauResult[]>([]);
   const [selectedExercise, setSelectedExercise] = useState('');
   const [openAddMetric, setOpenAddMetric] = useState(false);
   const [newMetric, setNewMetric] = useState({
@@ -437,16 +442,18 @@ export default function ProgressPage() {
 
   const fetchData = async () => {
     try {
-      const [metricsRes, recordsRes, streakRes, analyticsRes] = await Promise.all([
+      const [metricsRes, recordsRes, streakRes, analyticsRes, plateausRes] = await Promise.all([
         metricsService.getBodyMetrics(),
         workoutService.getPersonalRecords(),
         workoutService.getWorkoutStreak(),
         workoutService.getWorkoutAnalytics(),
+        workoutService.getPlateaus(),
       ]);
       setMetrics(metricsRes.data.metrics || []);
       setRecords(recordsRes.data.records);
       setStreak(streakRes.data.streak);
       setAnalytics(analyticsRes.data.analytics);
+      setPlateaus(plateausRes.data.plateaus || []);
 
       const exercises = Object.keys(analyticsRes.data.analytics.exerciseProgression);
       if (exercises.length > 0 && !selectedExercise) {
@@ -553,6 +560,62 @@ export default function ProgressPage() {
             />
           </motion.div>
         </Box>
+
+        {/* Plateau Detection Alerts */}
+        {plateaus.some(p => p.status !== 'PROGRESSING') && (
+          <Box sx={{ mb: 8 }}>
+            <Typography sx={styles.sectionLabel}>PLATEAU INTEL</Typography>
+            <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', md: '1fr 1fr' }, gap: 3 }}>
+              {plateaus.filter(p => p.status !== 'PROGRESSING').map((p, idx) => (
+                <motion.div key={idx} variants={itemVariants}>
+                  <Card sx={{
+                    ...styles.statCard(theme),
+                    borderColor: p.status === 'PLATEAU' ? alpha(theme.palette.error.main, 0.4) : alpha(theme.palette.warning.main, 0.4),
+                    bgcolor: p.status === 'PLATEAU' ? alpha(theme.palette.error.main, 0.02) : alpha(theme.palette.warning.main, 0.02),
+                  }}>
+                    <CardContent sx={{ p: 4, position: 'relative' }}>
+                      <Box sx={{ position: 'absolute', top: 20, right: 20, opacity: 0.1 }}>
+                        {p.status === 'PLATEAU' ?
+                          <WarningIcon sx={{ fontSize: '4rem', color: 'error.main' }} /> :
+                          <InconsistentIcon sx={{ fontSize: '4rem', color: 'warning.main' }} />
+                        }
+                      </Box>
+
+                      <Box display="flex" alignItems="center" gap={2} mb={2}>
+                        <Box sx={{
+                          p: 1,
+                          borderRadius: 1,
+                          bgcolor: p.status === 'PLATEAU' ? alpha(theme.palette.error.main, 0.1) : alpha(theme.palette.warning.main, 0.1),
+                          color: p.status === 'PLATEAU' ? 'error.main' : 'warning.main'
+                        }}>
+                          {p.status === 'PLATEAU' ? <WarningIcon /> : <InconsistentIcon />}
+                        </Box>
+                        <Typography variant="overline" fontWeight={900} letterSpacing={2}>
+                          {p.status === 'PLATEAU' ? 'STAGNATION DETECTED' : 'INCONSISTENCY ALERT'}
+                        </Typography>
+                      </Box>
+
+                      <Typography variant="h4" fontWeight={950} letterSpacing="-1px" mb={1}>
+                        {p.groupName.toUpperCase()}
+                      </Typography>
+
+                      <Typography variant="body2" color="text.secondary" mb={3} sx={{ lineHeight: 1.6 }}>
+                        {p.suggestion}
+                      </Typography>
+
+                      <Box sx={{ borderTop: `1px solid ${theme.palette.divider}`, pt: 2 }}>
+                        <Typography variant="caption" sx={{ opacity: 0.5, fontWeight: 800, letterSpacing: 1 }}>
+                          AFFECTED: {p.lastExercises.join(', ').toUpperCase()}
+                        </Typography>
+                      </Box>
+                    </CardContent>
+                  </Card>
+                </motion.div>
+              ))}
+            </Box>
+          </Box>
+        )}
+
 
         {/* Main Progression Chart */}
         <Typography sx={styles.sectionLabel}>MASS EVOLUTION</Typography>
