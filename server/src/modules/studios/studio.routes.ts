@@ -13,4 +13,7 @@ router.post('/', protect, restrictTo('STUDIO_ADMIN'), studioController.createStu
 router.patch('/:id', protect, restrictTo('STUDIO_ADMIN'), studioController.updateStudioHandler);
 router.delete('/:id', protect, restrictTo('STUDIO_ADMIN'), studioController.deleteStudioHandler);
 
+// Financial Reconciliation Routes
+router.get('/:id/reconciliation', protect, restrictTo('STUDIO_ADMIN'), studioController.getReconciliationReportHandler);
+
 export default router;

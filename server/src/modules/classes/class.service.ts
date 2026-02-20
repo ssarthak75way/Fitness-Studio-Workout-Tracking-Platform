@@ -10,7 +10,19 @@ export const ClassService = {
     const startTime = parseISO(input.startTime);
     const endTime = addMinutes(startTime, input.durationMinutes);
 
-    // 1. CONFLICT CHECK: Look for overlapping classes for this instructor
+    // 1. INSTRUCTOR CERTIFICATION CHECK
+    if (input.instructorId) {
+      const { UserModel } = await import('../users/user.model.js');
+      const instructor = await UserModel.findById(input.instructorId);
+      if (instructor && instructor.certifications) {
+        const hasValidCert = instructor.certifications.some((c: any) => c.expiryDate >= startTime);
+        if (!hasValidCert && instructor.certifications.length > 0) {
+          throw new AppError('Instructor certifications have expired. They cannot be scheduled until renewed.', 403);
+        }
+      }
+    }
+
+    // 2. CONFLICT CHECK: Look for overlapping classes for this instructor
     if (input.instructorId) {
       const conflict = await ClassSessionModel.findOne({
         instructor: input.instructorId,
@@ -18,11 +30,14 @@ export const ClassService = {
         $or: [
           { startTime: { $lt: endTime }, endTime: { $gt: startTime } },
         ],
-      });
+      }).populate('studio', 'name');
 
       if (conflict) {
+        const conflictStudio = (conflict.studio as any)?.name || 'another location';
+        const isCrossStudio = conflict.studio.toString() !== input.studioId;
+
         throw new AppError(
-          `Instructor is already booked from ${conflict.startTime.toLocaleTimeString()} to ${conflict.endTime.toLocaleTimeString()}`,
+          `Instructor is already booked for "${conflict.title}" from ${conflict.startTime.toLocaleTimeString()} to ${conflict.endTime.toLocaleTimeString()}${isCrossStudio ? ` at ${conflictStudio}` : ''}`,
           409
         );
       }
@@ -91,13 +106,12 @@ export const ClassService = {
     return newClass;
   },
 
-  //Cancel a class and notify participants
-  cancelClass: async (classId: string): Promise<IClassSession> => {
-    const session = await mongoose.startSession();
-    session.startTransaction();
+  // Cancel a class or allow instructor to withdraw
+  cancelClass: async (classId: string, instructorId?: string): Promise<IClassSession> => {
+
 
     try {
-      const classSession = await ClassSessionModel.findById(classId).session(session);
+      const classSession = await ClassSessionModel.findById(classId);
       if (!classSession) {
         throw new AppError('Class not found', 404);
       }
@@ -106,65 +120,69 @@ export const ClassService = {
         throw new AppError('Class is already cancelled', 400);
       }
 
-      const originalInstructor = classSession.instructor;
-
-      // 1. Mark as cancelled
-      classSession.isCancelled = true;
-      await classSession.save({ session });
-
-      // 2. Find all bookings (Confirmed/Waitlisted)
       const { BookingModel, BookingStatus } = await import('../bookings/booking.model.js');
       const { NotificationService } = await import('../notifications/notification.service.js');
+      const { UserModel, UserRole } = await import('../users/user.model.js');
 
-      const bookings = await BookingModel.find({
-        classSession: classId,
-        status: { $in: [BookingStatus.CONFIRMED, BookingStatus.WAITLISTED] }
-      }).session(session);
+      // MODE A: INSTRUCTOR WITHDRAWAL (Relinquish but session stays active as a Gap)
+      if (instructorId && classSession.instructor?.toString() === instructorId.toString()) {
+        classSession.instructor = undefined;
+        await classSession.save();
 
-      const userIds = bookings.map(b => b.user.toString());
+        // Notify potential covers: Find all instructors NOT booked during this time
+        const availableInstructors = await UserModel.find({
+          role: UserRole.INSTRUCTOR,
+          isActive: true
+        });
 
-      if (userIds.length > 0) {
-        // 3. Notify Users
-        await NotificationService.sendBulkNotification(
-          userIds,
-          'CLASS_CANCELLED',
-          `Attention: Your class "${classSession.title}" on ${classSession.startTime.toLocaleDateString()} has been cancelled.`,
-          classId
-        );
+        const freeInstructorIds: string[] = [];
+        for (const inst of availableInstructors) {
+          const conflict = await ClassSessionModel.findOne({
+            instructor: inst._id,
+            isCancelled: false,
+            $or: [
+              { startTime: { $lt: classSession.endTime }, endTime: { $gt: classSession.startTime } }
+            ]
+          });
+
+          if (!conflict) freeInstructorIds.push(inst._id.toString());
+        }
+
+        if (freeInstructorIds.length > 0) {
+          await NotificationService.sendBulkNotification(
+            freeInstructorIds,
+            'WAITLIST_NOTIFICATION', // Use appropriate type or generic
+            `URGENT: An instructor has withdrawn from "${classSession.title}". The session at ${classSession.startTime.toLocaleTimeString()} is now an open GAP needing coverage.`,
+            classId
+          );
+        }
       }
+      // MODE B: FULL CANCELLATION (Admin action)
+      else {
+        classSession.isCancelled = true;
+        await classSession.save();
 
-      // 4. AUTO-COVER LOGIC
-      if (originalInstructor) {
-        // Find "Gaps" (instructor: null) that this instructor could now cover
-        const gap = await ClassSessionModel.findOne({
-          instructor: { $exists: false },
-          isCancelled: false,
-          startTime: { $gte: classSession.startTime },
-          endTime: { $lte: classSession.endTime },
-        }).session(session);
+        // Notify participants
+        const bookings = await BookingModel.find({
+          classSession: classId,
+          status: { $in: [BookingStatus.CONFIRMED, BookingStatus.WAITLISTED] }
+        });
 
-        if (gap) {
-          // Found a gap! Suggest or auto-assign?
-          // The prompt says "check whether they can auto-cover a gap at another"
-          // We will assign them and notify them.
-          gap.instructor = originalInstructor;
-          await gap.save({ session });
-
-          await NotificationService.createNotification(
-            originalInstructor.toString(),
-            'PROMOTION', // Using existing type for now or could add a new one
-            `Auto-Cover Alert: Since your class "${classSession.title}" was cancelled, you have been automatically assigned to cover "${gap.title}" at a different studio.`
+        const userIds = bookings.map(b => b.user.toString());
+        if (userIds.length > 0) {
+          await NotificationService.sendBulkNotification(
+            userIds,
+            'CLASS_CANCELLED',
+            `Attention: Your class "${classSession.title}" on ${classSession.startTime.toLocaleDateString()} has been cancelled.`,
+            classId
           );
         }
       }
 
-      await session.commitTransaction();
+
       return classSession;
     } catch (error) {
-      await session.abortTransaction();
       throw error;
-    } finally {
-      session.endSession();
     }
   },
 

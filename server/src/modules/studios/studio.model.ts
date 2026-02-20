@@ -9,6 +9,7 @@ export interface IStudio extends Document {
     };
     description?: string;
     isActive: boolean;
+    dropInRate: number; // For inter-studio financial reconciliation
     createdAt: Date;
     updatedAt: Date;
 }
@@ -25,6 +26,7 @@ const StudioSchema = new Schema<IStudio>(
         },
         description: { type: String },
         isActive: { type: Boolean, default: true },
+        dropInRate: { type: Number, required: true, default: 25 }, // Default $25 per cross-visit
     },
 
     { timestamps: true, versionKey: false }

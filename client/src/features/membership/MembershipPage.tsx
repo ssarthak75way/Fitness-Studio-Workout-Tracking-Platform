@@ -167,9 +167,8 @@ export default function MembershipPage() {
 
             const rzp = new window.Razorpay(options);
             rzp.open();
-        } catch (error: any) {
-            const message = error.response?.data?.message || error.message || 'Mission failed';
-            showToast(message.toUpperCase(), 'error');
+        } catch (error: unknown) {
+            showToast((error as { response?: { data?: { message?: string } } }).response?.data?.message || 'Failed to process upgrade.', 'error');
         } finally {
             setLoading(false);
         }

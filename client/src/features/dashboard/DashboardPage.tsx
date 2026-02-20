@@ -1,8 +1,8 @@
 import { useEffect, useState } from 'react';
-import { Box, Card, CardContent, Typography, useTheme, alpha, Skeleton, Button, CircularProgress } from '@mui/material';
+import { Box, Card, CardContent, Typography, useTheme, alpha, Skeleton, Button, CircularProgress, Paper, Chip } from '@mui/material';
 import { motion, type Variants } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
-import { dashboardService } from '../../services/index';
+import { dashboardService, membershipService } from '../../services/index';
 import { useAuth } from '../../context/AuthContext';
 import { useToast } from '../../context/ToastContext';
 import {
@@ -16,7 +16,7 @@ import {
   Settings as SettingsIcon,
   CalendarMonth as CalendarIcon
 } from '@mui/icons-material';
-import type { DashboardStats, Booking, WorkoutLog, ClassSession, User } from '../../types';
+import type { DashboardStats, Booking, WorkoutLog, ClassSession, User, Membership } from '../../types';
 import type { Theme } from '@mui/material';
 
 const containerVariants: Variants = {
@@ -324,13 +324,20 @@ export default function DashboardPage() {
   const theme = useTheme();
   const navigate = useNavigate();
   const [stats, setStats] = useState<DashboardStats | null>(null);
+  const [membership, setMembership] = useState<Membership | null>(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     const fetchStats = async () => {
       try {
-        const response = await dashboardService.getDashboardStats();
-        setStats(response.data.stats);
+        const [statsRes, membershipRes] = await Promise.all([
+          dashboardService.getDashboardStats(),
+          user?.role === 'MEMBER' ? membershipService.getMyMembership() : Promise.resolve({ data: { membership: null } })
+        ]);
+        setStats(statsRes.data.stats);
+        if (membershipRes.data.membership) {
+          setMembership(membershipRes.data.membership);
+        }
       } catch (error) {
         console.error('Failed to fetch dashboard stats:', error);
         showToast('Failed to load dashboard data', 'error');
@@ -398,6 +405,56 @@ export default function DashboardPage() {
         </Box>
       </Box>
 
+      {/* Certification Expiry Warning for Instructors */}
+      {user?.role === 'INSTRUCTOR' && user.certifications?.some(cert => {
+        const daysToExpiry = (new Date(cert.expiryDate).getTime() - Date.now()) / (1000 * 60 * 60 * 24);
+        return daysToExpiry > 0 && daysToExpiry <= 30;
+      }) && (
+          <Box sx={{ px: { xs: 3, md: 6 }, mt: 4 }}>
+            <Paper sx={{
+              p: 3,
+              bgcolor: alpha(theme.palette.error.main, 0.1),
+              borderLeft: `5px solid ${theme.palette.error.main}`,
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'space-between',
+              flexWrap: 'wrap',
+              gap: 2
+            }}>
+              <Box>
+                <Typography variant="h6" fontWeight={900} color="error.main" sx={{ letterSpacing: '1px' }}>
+                  CRITICAL ALERT: CREDENTIAL EXPIRY IMMINENT
+                </Typography>
+                <Typography variant="body2" sx={{ color: 'text.secondary', fontWeight: 600 }}>
+                  One or more of your verified certifications will expire within 30 days.
+                  Platform access and role designation will be automatically restricted upon expiry.
+                </Typography>
+                <Box mt={1} display="flex" gap={1} flexWrap="wrap">
+                  {user.certifications.filter(cert => {
+                    const days = (new Date(cert.expiryDate).getTime() - Date.now()) / (1000 * 60 * 60 * 24);
+                    return days > 0 && days <= 30;
+                  }).map(cert => (
+                    <Chip
+                      key={cert.name}
+                      label={`${cert.name.toUpperCase()} EXPIRES: ${new Date(cert.expiryDate).toLocaleDateString()}`}
+                      size="small"
+                      sx={{ bgcolor: alpha(theme.palette.error.main, 0.2), color: 'error.main', fontWeight: 900, borderRadius: 0 }}
+                    />
+                  ))}
+                </Box>
+              </Box>
+              <Button
+                variant="contained"
+                color="error"
+                onClick={() => navigate('/settings')}
+                sx={{ borderRadius: 0, fontWeight: 900, letterSpacing: '1px' }}
+              >
+                RENEW CREDENTIALS
+              </Button>
+            </Paper>
+          </Box>
+        )}
+
       {/* Main Content Area */}
       <Box sx={styles.contentWrapper}>
 
@@ -424,7 +481,7 @@ export default function DashboardPage() {
                   color={theme.palette.secondary.main}
                 />
               </Box>
-              <Box sx={{ gridColumn: { md: 'span 5' } }}>
+              <Box sx={{ gridColumn: { md: 'span 4' } }}>
                 <StatCard
                   title="Current Velocity"
                   value={`${stats?.workoutStreak || 0}D`}
@@ -432,6 +489,17 @@ export default function DashboardPage() {
                   color="#facc15"
                 />
               </Box>
+
+              {membership && (
+                <Box sx={{ gridColumn: { md: 'span 4' } }}>
+                  <StatCard
+                    title="Available Credits"
+                    value={membership.creditsRemaining ?? 'UNLIMITED'}
+                    icon={TrendingUpIcon}
+                    color={theme.palette.success.main}
+                  />
+                </Box>
+              )}
             </>
           )}
 
@@ -698,6 +766,6 @@ export default function DashboardPage() {
         </Box>
 
       </Box>
-    </Box>
+    </Box >
   );
 }

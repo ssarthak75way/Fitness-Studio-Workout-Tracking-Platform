@@ -275,6 +275,7 @@ export default function SettingsPage() {
     emailNotifications: true,
     darkMode: true,
     publicProfile: false,
+    unitPreference: user?.unitPreference || 'METRIC',
   });
 
   const [notificationSettings, setNotificationSettings] = useState({
@@ -300,7 +301,8 @@ export default function SettingsPage() {
         ...profile,
         certifications: profile.certifications.split(',').map((s: string) => s.trim()).filter(Boolean),
         timezone: notificationSettings.timezone,
-        notificationPreferences: prefs
+        notificationPreferences: prefs,
+        unitPreference: preferences.unitPreference
       };
       await api.patch('/users/profile', payload);
       showToast('Profile configuration updated', 'success');
@@ -613,6 +615,12 @@ export default function SettingsPage() {
                       key: 'publicProfile',
                       label: 'SQUAD VISIBILITY',
                       desc: 'ALLOW EXTERNAL AGENTS TO VIEW YOUR IDENTITY DATA.'
+                    },
+                    {
+                      key: 'unitPreference',
+                      label: 'UNIT SYSTEM PROTOCOL',
+                      desc: `CURRENT: ${preferences.unitPreference === 'METRIC' ? 'METRIC (KG/CM)' : 'IMPERIAL (LBS/IN)'}. SWITCH TO TOGGLE GLOBAL CALCULATIONS.`,
+                      isUnit: true
                     }
                   ].map((pref) => (
                     <Box key={pref.key}>
@@ -620,8 +628,14 @@ export default function SettingsPage() {
                         <FormControlLabel
                           control={
                             <Switch
-                              checked={preferences[pref.key as keyof typeof preferences]}
-                              onChange={(e) => setPreferences({ ...preferences, [pref.key]: e.target.checked })}
+                              checked={pref.isUnit ? preferences.unitPreference === 'IMPERIAL' : (preferences[pref.key as keyof typeof preferences] as boolean)}
+                              onChange={(e) => {
+                                if (pref.isUnit) {
+                                  setPreferences({ ...preferences, unitPreference: e.target.checked ? 'IMPERIAL' : 'METRIC' });
+                                } else {
+                                  setPreferences({ ...preferences, [pref.key]: e.target.checked });
+                                }
+                              }}
                               color="primary"
                             />
                           }

@@ -12,183 +12,238 @@ import { BookingModel, BookingStatus } from '../modules/bookings/booking.model.j
 import WorkoutTemplate from '../modules/workouts/workout-template.model.js';
 import { WorkoutLogModel } from '../modules/workouts/workout.model.js';
 import { RatingModel } from '../modules/ratings/rating.model.js';
+import { StudioModel } from '../modules/studios/studio.model.js';
+import { CorporateAccountModel } from '../modules/memberships/corporate-account.model.js';
+import { ReconciliationLogModel } from '../modules/studios/reconciliation-log.model.js';
+import { ExerciseGroupModel } from '../modules/workouts/exercise-group.model.js';
+import { PeriodizedProgramModel, PhaseType } from '../modules/workouts/periodized-program.model.js';
+import { NotificationModel } from '../modules/notifications/notification.model.js';
+import { AuditLogModel } from '../modules/audit/auditLog.model.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
 dotenv.config({ path: path.join(__dirname, '../../.env') });
 
-const hashPassword = async (password: string) => {
-    return await bcrypt.hash(password, 12);
-};
-
-const getRandomItem = <T>(array: T[]): T => {
-    return array[Math.floor(Math.random() * array.length)];
-};
+const hashPassword = async (password: string) => bcrypt.hash(password, 12);
+const getRandomItem = <T>(array: T[]): T => array[Math.floor(Math.random() * array.length)];
 
 const seed = async () => {
     try {
         console.log('Connecting to MongoDB...');
         await mongoose.connect(process.env.MONGODB_URI!);
-        console.log('Connected!');
+        console.log('Connected! Initiating full wipe...');
 
-        // Clear existing data (optional, but good for a fresh start)
-        console.log('Cleaning existing data...');
+        // 0. Wipe Database
         await Promise.all([
-            UserModel.deleteMany({ email: { $ne: 'admin@studio.com' } }), // Keep a main admin if you want, or clear all
+            UserModel.deleteMany({ email: { $ne: 'admin@studio.com' } }),
             ClassSessionModel.deleteMany({}),
             MembershipModel.deleteMany({}),
             BookingModel.deleteMany({}),
             WorkoutTemplate.deleteMany({}),
             WorkoutLogModel.deleteMany({}),
-            RatingModel.deleteMany({})
+            RatingModel.deleteMany({}),
+            StudioModel.deleteMany({}),
+            CorporateAccountModel.deleteMany({}),
+            ReconciliationLogModel.deleteMany({}),
+            ExerciseGroupModel.deleteMany({}),
+            PeriodizedProgramModel.deleteMany({}),
+            NotificationModel.deleteMany({}),
+            AuditLogModel.deleteMany({})
         ]);
 
         const passwordHash = await hashPassword('password123');
+        const admin = await UserModel.findOne({ role: UserRole.ADMIN }) || await UserModel.create({ fullName: 'Studio Admin', email: 'admin@studio.com', role: UserRole.ADMIN, passwordHash });
 
-        // 1. Seed Users
+        // 1. Seed Studios (Feature: Cross-Location)
+        console.log('Seeding Studios...');
+        const studios = await StudioModel.insertMany([
+            { name: 'Studio East', location: { type: 'Point', lat: 40.73, lng: -73.98 }, address: '123 East St', dropInRate: 25, isActive: true },
+            { name: 'Studio West', location: { type: 'Point', lat: 40.71, lng: -74.01 }, address: '456 West Blvd', dropInRate: 30, isActive: true }
+        ]);
+
+        // 2. Seed Corporate Accounts (Feature: Corporate Wellness)
+        console.log('Seeding Corporate Accounts...');
+        const corpAccounts = await CorporateAccountModel.insertMany([
+            { name: 'Acme Corp', billingContactEmail: 'hr@acmecorp.com', monthlyCapPerEmployee: 5, pricePerEmployee: 100, billingCycleDay: 1, isActive: true }
+        ]);
+
+        // 3. Seed Users
         console.log('Seeding Users...');
         const instructorsData = [
-            { fullName: 'Alex Rivers', email: 'alex@studio.com', role: UserRole.INSTRUCTOR, bio: 'Yoga and mindfulness expert with 10 years experience.', specialties: ['Yoga', 'Meditation'], certifications: ['RYT 500'] },
-            { fullName: 'Sarah Chen', email: 'sarah@studio.com', role: UserRole.INSTRUCTOR, bio: 'HIIT and high-energy cardio specialist.', specialties: ['HIIT', 'Cardio'], certifications: ['NASM CPT'] },
-            { fullName: 'Marcus Thorne', email: 'marcus@studio.com', role: UserRole.INSTRUCTOR, bio: 'Strength coach focused on powerlifting and hypertrophy.', specialties: ['Strength', 'Powerlifting'], certifications: ['NSCA CSCS'] },
-            { fullName: 'Elena Rodriguez', email: 'elena@studio.com', role: UserRole.INSTRUCTOR, bio: 'Pilates instructor specializing in core stability.', specialties: ['Pilates', 'Core'], certifications: ['PMA Certified'] },
-            { fullName: 'David Wu', email: 'david@studio.com', role: UserRole.INSTRUCTOR, bio: 'Functional training and mobility specialist.', specialties: ['Functional', 'Mobility'] }
+            { fullName: 'Alex Rivers', email: 'alex@studio.com', role: UserRole.INSTRUCTOR, certifications: [{ name: 'RYT 500', expiryDate: new Date(Date.now() + 15 * 24 * 60 * 60 * 1000) }] }, // Expiry testing
+            { fullName: 'Sarah Chen', email: 'sarah@studio.com', role: UserRole.INSTRUCTOR, certifications: [{ name: 'NASM CPT', expiryDate: new Date(Date.now() + 365 * 24 * 60 * 60 * 1000) }] }
         ];
 
-        const membersData = Array.from({ length: 15 }).map((_, i) => ({
+        let membersData = Array.from({ length: 8 }).map((_, i) => ({
             fullName: `Member ${i + 1}`,
             email: `member${i + 1}@example.com`,
             role: UserRole.MEMBER,
             passwordHash,
-            metrics: [
-                { weight: 70 + Math.random() * 20, height: 160 + Math.random() * 30, bodyFatPercentage: 15 + Math.random() * 15 }
-            ]
+            preferredUnit: i % 2 === 0 ? 'METRIC' : 'IMPERIAL' // Unit Conversion testing
         }));
-
-        const adminsData = [
-            { fullName: 'Studio Owner', email: 'admin@studio.com', role: UserRole.ADMIN, passwordHash }
-        ];
 
         const instructors = await UserModel.insertMany(instructorsData.map(u => ({ ...u, passwordHash })));
         const members = await UserModel.insertMany(membersData);
-        const admin = await UserModel.findOne({ role: UserRole.ADMIN }) || await UserModel.create(adminsData[0]);
 
-        console.log(`Seeded ${instructors.length} instructors, ${members.length} members, and 1 admin.`);
-
-        // 2. Seed Memberships
+        // 4. Seed Memberships (Cross-Location & Corporate)
         console.log('Seeding Memberships...');
-        const memberships = await MembershipModel.insertMany(members.slice(0, 12).map((member, i) => ({
-            user: member._id,
-            type: getRandomItem(Object.values(PlanType)),
-            startDate: new Date(),
-            endDate: i % 2 === 0 ? new Date(Date.now() + 30 * 24 * 60 * 60 * 1000 * 12) : undefined,
-            isActive: true
-        })));
-        console.log(`Seeded ${memberships.length} memberships.`);
-
-        // 3. Seed Class Sessions
-        console.log('Seeding Classes...');
-        const classTitles = ['Sunrise Yoga', 'Power Pilates', 'HIIT Blast', 'Iron Strength', 'Cardio Burn', 'Evening Flow', 'Core Crusher', 'Mobility Workshop'];
-        const locations = ['Studio A', 'Studio B', 'Virtual Room', 'Outdoor Park'];
-
-        const classes = [];
-        for (let i = 0; i < 20; i++) {
-            const instructor = getRandomItem(instructors);
-            const startTime = new Date();
-            startTime.setDate(startTime.getDate() + (i % 7)); // Spread over next 7 days
-            startTime.setHours(8 + (i % 10), 0, 0, 0);
-
-            const endTime = new Date(startTime);
-            endTime.setHours(startTime.getHours() + 1);
-
-            classes.push({
-                title: `${getRandomItem(classTitles)} with ${instructor.fullName.split(' ')[0]}`,
-                description: 'Join us for an amazing workout experience!',
-                type: getRandomItem(Object.values(ClassType)),
-                instructor: instructor._id,
-                startTime,
-                endTime,
-                capacity: 15 + Math.floor(Math.random() * 15),
-                location: getRandomItem(locations),
-                enrolledCount: 0
-            });
-        }
-        const seededClasses = await ClassSessionModel.insertMany(classes);
-        console.log(`Seeded ${seededClasses.length} class sessions.`);
-
-        // 4. Seed Bookings
-        console.log('Seeding Bookings...');
-        const bookings = [];
-        for (const cls of seededClasses) {
-            const maxBookings = Math.min(cls.capacity - 2, members.length);
-            const numBookings = Math.floor(Math.random() * (maxBookings - 3)) + 3;
-            cls.enrolledCount = numBookings;
-            await cls.save();
-
-            const shuffledMembers = [...members].sort(() => 0.5 - Math.random());
-            for (let i = 0; i < numBookings; i++) {
-                bookings.push({
-                    user: shuffledMembers[i]._id,
-                    classSession: cls._id,
-                    status: i < 2 ? BookingStatus.CHECKED_IN : BookingStatus.CONFIRMED,
-                    bookedAt: new Date(cls.startTime.getTime() - (24 * 60 * 60 * 1000 * Math.random())),
-                    qrCode: `QR-${Math.random().toString(36).substr(2, 9).toUpperCase()}`
-                });
+        const parsedMemberships = members.map((member, i) => {
+            if (i === 0) { // Corporate Member
+                return { user: member._id, type: PlanType.CORPORATE, homeStudio: studios[0]._id, corporateAccountId: corpAccounts[0]._id, creditsRemaining: 5, billingCycleRenewalDate: new Date(Date.now() - 24 * 60 * 60 * 1000), isActive: true }; // Trigger Lazy Reset
+            } else if (i === 1) { // Cross-loc Member
+                return { user: member._id, type: PlanType.MONTHLY, homeStudio: studios[0]._id, isActive: true };
+            } else {
+                return { user: member._id, type: PlanType.CLASS_PACK_10, homeStudio: studios[i % 2 === 0 ? 0 : 1]._id, creditsRemaining: 10, isActive: true };
             }
-        }
-        await BookingModel.insertMany(bookings);
-        console.log(`Seeded ${bookings.length} bookings.`);
+        });
+        await MembershipModel.insertMany(parsedMemberships);
 
-        // 5. Seed Workout Templates
-        console.log('Seeding Workout Templates...');
-        const templates = [
-            { name: 'Push Day Alpha', description: 'Focus on chest, shoulders, and triceps with compound movements.', category: 'STRENGTH', difficulty: 'INTERMEDIATE', exercises: [{ name: 'Bench Press', sets: 4, reps: 10, weight: 60 }, { name: 'Shoulder Press', sets: 3, reps: 12, weight: 40 }] },
-            { name: 'Pull Day Beta', description: 'Targeting back and biceps for a balanced upper body pull session.', category: 'STRENGTH', difficulty: 'INTERMEDIATE', exercises: [{ name: 'Deadlift', sets: 3, reps: 5, weight: 100 }, { name: 'Lat Pulldown', sets: 4, reps: 10, weight: 50 }] },
-            { name: 'Leg Destroyer', description: 'A high-volume lower body workout for serious strength gains.', category: 'STRENGTH', difficulty: 'ADVANCED', exercises: [{ name: 'Squats', sets: 5, reps: 8, weight: 80 }, { name: 'Leg Press', sets: 3, reps: 15, weight: 120 }] },
-            { name: 'Beginner HIIT', description: 'Quick intervals to get your heart rate up and burn calories fast.', category: 'HIIT', difficulty: 'BEGINNER', exercises: [{ name: 'Jumping Jacks', sets: 4, reps: 0, duration: 45 }, { name: 'Burpees', sets: 4, reps: 0, duration: 30 }] },
-            { name: 'Recovery Flow', description: 'Gentle movements to improve mobility and speed up recovery.', category: 'FLEXIBILITY', difficulty: 'BEGINNER', exercises: [{ name: 'Cat Cow', sets: 3, reps: 0, duration: 60 }, { name: 'Childs Pose', sets: 1, reps: 0, duration: 180 }] }
-        ];
+        // 5. Seed Class Sessions (Double-Booking Prevention)
+        console.log('Seeding Classes...');
+        const tomorrow = new Date(); tomorrow.setDate(tomorrow.getDate() + 1); tomorrow.setHours(10, 0, 0, 0);
+        const classes = await ClassSessionModel.insertMany([
+            { title: 'Morning HIIT', type: ClassType.HIIT, instructor: instructors[0]._id, studio: studios[0]._id, startTime: tomorrow, endTime: new Date(tomorrow.getTime() + 3600000), capacity: 5, enrolledCount: 2 },
+            { title: 'Evening Yoga', type: ClassType.YOGA, instructor: instructors[1]._id, studio: studios[1]._id, startTime: tomorrow, endTime: new Date(tomorrow.getTime() + 3600000), capacity: 1, enrolledCount: 1 }
+        ]);
 
-        const seededTemplates = await WorkoutTemplate.insertMany(templates.map(t => ({ ...t, createdBy: admin._id, isPublic: true })));
-        console.log(`Seeded ${seededTemplates.length} workout templates.`);
+        // 6. Seed Bookings & Reconciliation Logs (Cross-Location Check-In)
+        console.log('Seeding Bookings & Cross-Location Financial Tracking...');
+        const memberTwo = members[1]; // Home Studio: East
+        const classWest = classes[1]; // Host Studio: West
 
-        // 6. Seed Workout Logs
-        console.log('Seeding Workout Logs...');
-        const logs = members.slice(0, 5).map(member => ({
-            user: member._id,
-            title: 'Logged Workout',
-            date: new Date(),
-            durationMinutes: 45 + Math.floor(Math.random() * 45),
-            exercises: [
-                { name: 'Bench Press', sets: [{ reps: 10, weight: 50 }, { reps: 8, weight: 55 }] }
-            ]
-        }));
-        await WorkoutLogModel.insertMany(logs);
-        console.log(`Seeded ${logs.length} workout logs.`);
+        const booking = await BookingModel.create({
+            user: memberTwo._id,
+            classSession: classWest._id,
+            status: BookingStatus.CHECKED_IN, // Checked In triggers reconciliation
+            qrCode: 'TEST-QR'
+        });
 
-        // 7. Seed Ratings
-        console.log('Seeding Ratings...');
-        const ratings = [];
-        for (let i = 0; i < 15; i++) {
-            const member = getRandomItem(members);
-            const isInstructorRating = Math.random() > 0.5;
-            const target = isInstructorRating ? getRandomItem(instructors) : getRandomItem(seededClasses);
+        await ReconciliationLogModel.create({
+            booking: booking._id,
+            user: memberTwo._id,
+            homeStudio: studios[0]._id,
+            hostStudio: classWest.studio, // West
+            amount: studios[1].dropInRate, // 30
+            description: `Cross-location attendance seeded test.`
+        });
 
-            ratings.push({
-                user: member._id,
-                targetType: isInstructorRating ? 'INSTRUCTOR' : 'CLASS',
-                targetId: target._id,
-                rating: 4 + Math.floor(Math.random() * 2),
-                review: 'Absolutely loved the session! Very professional and helpful.'
+        // 7. Seed Waitlist (Penalty Waiver logic testing)
+        await BookingModel.insertMany([
+            { user: members[2]._id, classSession: classWest._id, status: BookingStatus.CONFIRMED },
+            { user: members[3]._id, classSession: classWest._id, status: BookingStatus.WAITLISTED } // Should atomically promote if #2 cancels
+        ]);
+
+        // 8. Seed Exercise Groups (Plateau Detection)
+        console.log('Seeding Plateau Tracking & Periodization...');
+        const groups = await ExerciseGroupModel.insertMany([
+            { name: 'Horizontal Push', exerciseNames: ['Bench Press', 'Dumbbell Press', 'Chest Press'], suggestions: 'Try Incline Press or a deload week' },
+            { name: 'Vertical Pull', exerciseNames: ['Pull-up', 'Lat Pulldown'], suggestions: 'Focus on Chin-ups or Single Arm Rows' },
+            { name: 'Squat Pattern', exerciseNames: ['Barbell Squat', 'Goblet Squat'], suggestions: 'Substitute with Front Squat or Leg Press' }
+        ]);
+
+        // Seed 4 consecutive identical logs to trigger Plateau
+        const plateauMember = members[4];
+        for (let i = 0; i < 4; i++) {
+            await WorkoutLogModel.create({
+                user: plateauMember._id,
+                title: `Plateau Test Day ${i + 1}`,
+                date: new Date(Date.now() - (4 - i) * 86400000),
+                durationMinutes: 60,
+                exercises: [{ name: 'Bench Press', sets: [{ weight: 100, reps: 5 }] }]
             });
         }
-        // Filter out duplicates based on index
-        const uniqueRatings = ratings.filter((v, i, a) => a.findIndex(t => t.user.toString() === v.user.toString() && t.targetId.toString() === v.targetId.toString()) === i);
-        await RatingModel.insertMany(uniqueRatings);
-        console.log(`Seeded ${uniqueRatings.length} ratings.`);
 
-        console.log('\n--- SEEDING COMPLETE ---');
+        // 9. Seed Ratings (Tamper-Resistant)
+        console.log('Seeding Tamper-Resistant Ratings...');
+        await RatingModel.insertMany([
+            { user: members[0]._id, targetType: 'CLASS', targetId: classes[0]._id, rating: 5, review: 'Perfect' },
+            { user: members[1]._id, targetType: 'CLASS', targetId: classes[0]._id, rating: 4, review: 'Good' },
+            { user: members[2]._id, targetType: 'CLASS', targetId: classes[0]._id, rating: 1, review: 'Terrible! Outlier!' } // Will be trimmed
+        ]);
+
+        // 10. Seed Workout Templates
+        console.log('Seeding Workout Templates...');
+        const templates = await WorkoutTemplate.insertMany([
+            {
+                name: 'Hypertrophy Mastery: Push Day',
+                description: 'High volume push workout optimized for muscle growth.',
+                category: 'STRENGTH',
+                difficulty: 'INTERMEDIATE',
+                exercises: [
+                    { name: 'Bench Press', sets: 4, reps: 10, weight: 60, notes: 'Focus on full range of motion' },
+                    { name: 'Overhead Press', sets: 3, reps: 12, weight: 40 },
+                    { name: 'Triceps Pushdown', sets: 3, reps: 15, weight: 20 }
+                ],
+                createdBy: instructors[0]._id,
+                isPublic: true
+            },
+            {
+                name: 'Full Body HIIT Blast',
+                description: 'Explosive workout to maximize calorie burn.',
+                category: 'HIIT',
+                difficulty: 'ADVANCED',
+                exercises: [
+                    { name: 'Burpees', sets: 5, reps: 20, notes: 'Maximum intensity' },
+                    { name: 'Mountain Climbers', sets: 5, reps: 40 },
+                    { name: 'Jump Squats', sets: 5, reps: 15 }
+                ],
+                createdBy: instructors[1]._id,
+                isPublic: true
+            }
+        ]);
+
+        // 11. Seed Periodized Program
+        console.log('Seeding Periodization Roadmap...');
+        await PeriodizedProgramModel.create({
+            user: plateauMember._id,
+            startDate: new Date(Date.now() - 14 * 86400000), // Started 2 weeks ago
+            currentWeek: 3,
+            phases: [
+                { type: PhaseType.HYPERTROPHY, startWeek: 1, endWeek: 4 },
+                { type: PhaseType.STRENGTH, startWeek: 5, endWeek: 8 },
+                { type: PhaseType.PEAKING, startWeek: 9, endWeek: 12 }
+            ],
+            isActive: true
+        });
+
+        // 12. Seed Body Metrics (Unit Conversion Testing)
+        console.log('Seeding Body Metrics...');
+        const metricMember = members[0];
+        await UserModel.findByIdAndUpdate(metricMember._id, {
+            metrics: [
+                { weight: 80, height: 180, bodyFatPercentage: 15, updatedAt: new Date(Date.now() - 30 * 86400000) },
+                { weight: 78, height: 180, bodyFatPercentage: 14, updatedAt: new Date() }
+            ]
+        });
+
+        // 13. Seed Historical Notifications
+        console.log('Seeding Notifications...');
+        await NotificationModel.insertMany([
+            { user: members[0]._id, type: 'CLASS_REMINDER', message: 'Reminder: Morning HIIT tomorrow at 10 AM', isRead: false },
+            { user: instructors[0]._id, type: 'CERT_EXPIRY', message: 'Warning: Your RYT 500 certification expires in 15 days', isRead: false }
+        ]);
+
+        // 14. Seed Audit Logs for Admin
+        console.log('Seeding Admin Audit Logs...');
+        await AuditLogModel.create({
+            adminId: admin._id,
+            impersonatedUserId: members[0]._id,
+            action: 'IMPERSONATION_START',
+            method: 'POST',
+            path: `/auth/impersonate/${members[0]._id}`,
+            timestamp: new Date()
+        });
+
+        console.log('--- MASTER FIXTURES SEEDING COMPLETE ---');
+        console.log('Login mapping:');
+        console.log('Admin: admin@studio.com');
+        console.log('Instructor (Near Expiry): alex@studio.com');
+        console.log('Member (Corporate needs reset): member1@example.com');
+        console.log('Member (Cross-location check-in): member2@example.com');
+        console.log('Member (Plateaued Bench Press): member5@example.com');
+        console.log('Password for all users: password123');
+
         process.exit(0);
     } catch (error) {
         console.error('Error during seeding:', error);

@@ -5,7 +5,7 @@ import { RegisterInput, LoginInput } from './auth.schema'; // We need to define 
 import { AppError } from '../../utils/AppError'; // Assume a simple error class wrapper
 import logger from '../../utils/logger';
 
-const JWT_SECRET = process.env.JWT_SECRET || 'supersecretkey';
+const getJwtSecret = () => process.env.JWT_SECRET || 'supersecretkey';
 const JWT_EXPIRES_IN = '1d';
 
 export const AuthService = {
@@ -23,7 +23,7 @@ export const AuthService = {
       passwordHash,
     });
 
-    const token = jwt.sign({ id: newUser._id, role: newUser.role }, JWT_SECRET, {
+    const token = jwt.sign({ id: newUser._id, role: newUser.role }, getJwtSecret(), {
       expiresIn: JWT_EXPIRES_IN,
     });
 
@@ -49,7 +49,7 @@ export const AuthService = {
       throw new AppError('Invalid email or password', 401);
     }
 
-    const token = jwt.sign({ id: user._id, role: user.role }, JWT_SECRET, {
+    const token = jwt.sign({ id: user._id, role: user.role }, getJwtSecret(), {
       expiresIn: JWT_EXPIRES_IN,
     });
 
@@ -95,7 +95,7 @@ export const AuthService = {
 
     const token = jwt.sign(
       { id: targetUser._id, role: targetUser.role, adminId: admin._id },
-      JWT_SECRET,
+      getJwtSecret(),
       { expiresIn: JWT_EXPIRES_IN }
     );
 

@@ -206,7 +206,7 @@ const styles = {
 
 export default function CheckInPage() {
     const theme = useTheme();
-    const {user} = useAuth();
+    const { user } = useAuth();
     const { showToast } = useToast();
     const [qrData, setQrData] = useState('');
     const [loading, setLoading] = useState(false);
@@ -215,6 +215,7 @@ export default function CheckInPage() {
     const [classes, setClasses] = useState<ClassSession[]>([]);
     const [selectedClassId, setSelectedClassId] = useState('');
     const [attendees, setAttendees] = useState<Booking[]>([]);
+    const [lastScannedData, setLastScannedData] = useState('');
     const scannerRef = useRef<Html5QrcodeScanner | null>(null);
 
     useEffect(() => {
@@ -281,10 +282,29 @@ export default function CheckInPage() {
 
     const onScanFailure = () => { };
 
-    const processCheckIn = async (data: string) => {
+    const getCurrentLocation = (): Promise<{ lat: number; lng: number } | undefined> => {
+        return new Promise((resolve) => {
+            if (!navigator.geolocation) {
+                console.warn("Geolocation not supported");
+                return resolve(undefined);
+            }
+            navigator.geolocation.getCurrentPosition(
+                (pos) => resolve({ lat: pos.coords.latitude, lng: pos.coords.longitude }),
+                (err) => {
+                    console.warn("Geolocation error:", err);
+                    resolve(undefined);
+                },
+                { timeout: 5000 }
+            );
+        });
+    };
+
+    const processCheckIn = async (data: string, override: boolean = false) => {
         setLoading(true);
+        setLastScannedData(data);
         try {
-            const response = await bookingService.checkIn(data);
+            const location = await getCurrentLocation();
+            const response = await bookingService.checkIn(data, location, override);
             const userName = response.data?.user?.fullName?.toUpperCase() || 'MEMBER';
             const className = response.data?.classSession?.title?.toUpperCase() || 'SESSION';
 
@@ -293,10 +313,10 @@ export default function CheckInPage() {
                 message: `WELCOME, ${userName}! ACCESS GRANTED FOR ${className}.`
             });
             setQrData('');
-        } catch (error: unknown) {
+        } catch (error: any) {
             setResult({
                 success: false,
-                message: (error as Error).message || 'ACCESS DENIED. INVALID CREDENTIALS OR BOOKING STATUS.'
+                message: error.message || 'ACCESS DENIED. INVALID CREDENTIALS OR BOOKING STATUS.'
             });
         } finally {
             setLoading(false);
@@ -372,6 +392,18 @@ export default function CheckInPage() {
                                         <Button variant="contained" fullWidth onClick={handleReset} sx={styles.actionButton}>
                                             NEXT SCAN
                                         </Button>
+                                        {!result.success && (user?.role === 'STUDIO_ADMIN' || user?.role === 'INSTRUCTOR') && (
+                                            <Button
+                                                variant="outlined"
+                                                color="warning"
+                                                fullWidth
+                                                onClick={() => processCheckIn(lastScannedData, true)}
+                                                sx={{ ...styles.actionButton, mt: 2 }}
+                                                disabled={loading}
+                                            >
+                                                {loading ? 'PROCESSING...' : 'FORCE OVERRIDE & CHECK-IN'}
+                                            </Button>
+                                        )}
                                     </Box>
                                 </motion.div>
                             ) : (

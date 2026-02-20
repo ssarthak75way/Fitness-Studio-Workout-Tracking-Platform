@@ -120,6 +120,7 @@ export default function LogWorkoutModal({ open, onClose, onSuccess, initialValue
   });
 
   const [suggestions, setSuggestions] = useState<any>(null);
+  const [plateaus, setPlateaus] = useState<any[]>([]);
 
   // Fetch suggested weights if templateId is provided
   useEffect(() => {
@@ -132,7 +133,7 @@ export default function LogWorkoutModal({ open, onClose, onSuccess, initialValue
 
             // Auto-update weights in the form if we have suggestions
             const updatedExercises = initialValues.exercises?.map(ex => {
-              const suggestion = response.data.suggestions.exercises.find((s: any) => s.name === ex.name);
+              const suggestion = response.data.suggestions.exercises.find((s: { name: string; oneRM?: number; prescribedWeight?: number }) => s.name === ex.name);
               if (suggestion && suggestion.prescribedWeight > 0) {
                 return {
                   ...ex,
@@ -160,6 +161,21 @@ export default function LogWorkoutModal({ open, onClose, onSuccess, initialValue
 
     fetchSuggestions();
   }, [open, initialValues, reset]);
+
+  // Fetch Plateaus
+  useEffect(() => {
+    const fetchPlateaus = async () => {
+      if (open) {
+        try {
+          const response = await workoutService.getPlateaus();
+          setPlateaus(response.data.plateaus || []);
+        } catch (err) {
+          console.error('Failed to fetch plateaus:', err);
+        }
+      }
+    };
+    fetchPlateaus();
+  }, [open]);
 
 
   // Re-sync form if initialValues change (needed for templates)
@@ -265,22 +281,33 @@ export default function LogWorkoutModal({ open, onClose, onSuccess, initialValue
                     />
                     {suggestions && (
                       <Box sx={{ display: 'flex', gap: 1, mt: 1 }}>
-                        {suggestions.exercises.find((s: any) => s.name === exerciseFields[index].name)?.oneRM && (
+                        {suggestions.exercises.find((s: { name: string; oneRM?: number; prescribedWeight?: number }) => s.name === exerciseFields[index].name)?.oneRM && (
                           <Chip
-                            label={`EST. 1RM: ${suggestions.exercises.find((s: any) => s.name === exerciseFields[index].name).oneRM}kg`}
+                            label={`EST. 1RM: ${suggestions.exercises.find((s: { name: string; oneRM?: number; prescribedWeight?: number }) => s.name === exerciseFields[index].name)?.oneRM}kg`}
                             size="small"
+                            color="secondary"
                             variant="outlined"
-                            sx={{ fontSize: '0.6rem', fontWeight: 800 }}
                           />
                         )}
-                        {suggestions.exercises.find((s: any) => s.name === exerciseFields[index].name)?.prescribedWeight > 0 && (
+                        {suggestions.exercises.find((s: { name: string; oneRM?: number; prescribedWeight?: number }) => s.name === exerciseFields[index].name)?.prescribedWeight > 0 && (
                           <Chip
-                            label="PRESCRIBED"
+                            label={`PRESCRIBED: ${suggestions.exercises.find((s: { name: string; oneRM?: number; prescribedWeight?: number }) => s.name === exerciseFields[index].name)?.prescribedWeight}kg`}
                             size="small"
                             color="primary"
                             sx={{ fontSize: '0.6rem', fontWeight: 900, borderRadius: 0.5 }}
                           />
                         )}
+                      </Box>
+                    )}
+
+                    {plateaus.find(p => p.status === 'PLATEAU' && p.lastExercises.includes(exerciseFields[index].name)) && (
+                      <Box sx={{ mt: 1, p: 1.5, bgcolor: alpha(theme.palette.warning.main, 0.1), borderLeft: `3px solid ${theme.palette.warning.main}` }}>
+                        <Typography variant="caption" fontWeight={900} color="warning.main" sx={{ display: 'block', letterSpacing: '1px' }}>
+                          PLATEAU DETECTED
+                        </Typography>
+                        <Typography variant="body2" sx={{ fontSize: '0.75rem', color: 'text.secondary', fontWeight: 600 }}>
+                          {plateaus.find(p => p.status === 'PLATEAU' && p.lastExercises.includes(exerciseFields[index].name))?.suggestion}
+                        </Typography>
                       </Box>
                     )}
                   </Box>

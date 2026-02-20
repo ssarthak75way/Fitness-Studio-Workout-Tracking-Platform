@@ -307,8 +307,8 @@ export default function SchedulePage() {
   };
 
 
-  const renderEventContent = (eventInfo: { timeText: string, event: { title: string, extendedProps: any } }) => {
-    const cls = eventInfo.event.extendedProps as ClassSession;
+  const renderEventContent = (eventInfo: { timeText: string, event: { title: string, extendedProps: Record<string, unknown> } }) => {
+    const cls = eventInfo.event.extendedProps as unknown as ClassSession;
     const isGap = !cls.instructor;
 
     return (

@@ -4,7 +4,7 @@ import { UserModel, IUser } from '../modules/users/user.model';
 import { AppError } from '../utils/AppError';
 import { AuditLogModel } from '../modules/audit/auditLog.model';
 
-const JWT_SECRET = process.env.JWT_SECRET || 'supersecretkey';
+const getJwtSecret = () => process.env.JWT_SECRET || 'supersecretkey';
 
 interface JwtPayload {
   id: string;
@@ -25,7 +25,7 @@ export const protect = async (req: Request, res: Response, next: NextFunction) =
     }
 
     // 2. Verify token
-    const decoded = jwt.verify(token, JWT_SECRET) as JwtPayload;
+    const decoded = jwt.verify(token, getJwtSecret()) as JwtPayload;
 
     // 3. Check if user still exists
     const currentUser = await UserModel.findById(decoded.id);
@@ -55,7 +55,9 @@ export const protect = async (req: Request, res: Response, next: NextFunction) =
     }
 
     next();
-  } catch (error) {
+  } catch (error: any) {
+    console.error('JWT VERIFY FAILED. Error:', error.message);
+    console.error('Token causing error:', req.headers.authorization);
     return next(new AppError('Invalid Token', 401));
   }
 };

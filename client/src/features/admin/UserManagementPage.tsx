@@ -222,8 +222,12 @@ export default function UserManagementPage() {
         try {
             await impersonate(userId);
             showToast('IMPERSONATION PROTOCOL STARTED', 'success');
-        } catch (err: any) {
-            showToast(err.response?.data?.message || 'Failed to start impersonation', 'error');
+        } catch (err: unknown) {
+            if (userId === confirmDialog.user?._id) { // Assuming 'user' refers to confirmDialog.user
+                showToast('You cannot resent welcome email to yourself.', 'error'); // Changed toast.showToast to showToast
+            } else {
+                showToast((err as { response?: { data?: { message?: string } } }).response?.data?.message || 'Failed to resend welcome email', 'error'); // Changed toast.showToast to showToast
+            }
         }
     };
 
@@ -236,7 +240,7 @@ export default function UserManagementPage() {
             );
             setUsers(nonAdminUsers);
         } catch (err: unknown) {
-            showToast((err as Error).message || 'Failed to fetch users', 'error');
+            showToast((err as { response?: { data?: { message?: string } } }).response?.data?.message || 'Failed to start impersonation', 'error');
         } finally {
             setLoading(false);
         }

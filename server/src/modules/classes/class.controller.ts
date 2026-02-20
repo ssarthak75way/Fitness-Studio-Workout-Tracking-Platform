@@ -112,7 +112,10 @@ export const deleteClassHandler = async (req: Request, res: Response, next: Next
 
 export const cancelClassHandler = async (req: Request, res: Response, next: NextFunction) => {
   try {
-    const classSession = await ClassService.cancelClass(req.params.id);
+    const isInstructor = (req as any).user.role === 'INSTRUCTOR';
+    const instructorId = isInstructor ? (req as any).user._id : undefined;
+
+    const classSession = await ClassService.cancelClass(req.params.id, instructorId);
     res.status(200).json({
       status: 'success',
       data: { class: classSession },

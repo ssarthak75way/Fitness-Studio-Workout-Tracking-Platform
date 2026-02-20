@@ -32,6 +32,7 @@ interface ClassEventProps {
     capacity: number;
     enrolledCount: number;
     location?: string;
+    isCancelled?: boolean;
   };
 }
 
@@ -89,6 +90,25 @@ export default function ClassDetailsModal({ event, open, onClose, onBookingSucce
       showToast('You have successfully covered this class!', 'success');
     } catch (err: unknown) {
       showToast((err as Error)?.message || 'Failed to cover class', 'error');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleCancelOrWithdraw = async (action: 'CANCEL' | 'WITHDRAW') => {
+    setLoading(true);
+    try {
+      await api.patch(`/classes/${event.id}/cancel`);
+      onBookingSuccess();
+      onClose();
+      showToast(
+        action === 'CANCEL'
+          ? 'Class has been permanently cancelled.'
+          : 'You have withdrawn from this session. It is now open for coverage.',
+        'success'
+      );
+    } catch (err: unknown) {
+      showToast((err as Error)?.message || `Failed to ${action.toLowerCase()} class`, 'error');
     } finally {
       setLoading(false);
     }
@@ -179,6 +199,24 @@ export default function ClassDetailsModal({ event, open, onClose, onBookingSucce
             color="secondary"
           >
             {loading ? 'Processing...' : 'Cover this Gap'}
+          </Button>
+        )}
+        {user?.role === 'STUDIO_ADMIN' && !event.extendedProps.isCancelled && (
+          <Button
+            onClick={() => handleCancelOrWithdraw('CANCEL')}
+            color="error"
+            disabled={loading}
+          >
+            Cancel Class
+          </Button>
+        )}
+        {user?.role === 'INSTRUCTOR' && instructor?._id === user?._id && !event.extendedProps.isCancelled && (
+          <Button
+            onClick={() => handleCancelOrWithdraw('WITHDRAW')}
+            color="error"
+            disabled={loading}
+          >
+            Withdraw
           </Button>
         )}
       </DialogActions>

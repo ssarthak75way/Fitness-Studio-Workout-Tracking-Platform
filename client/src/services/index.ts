@@ -31,17 +31,17 @@ export const metricsService = {
 };
 
 export const membershipService = {
-    createOrder: async (type: string): Promise<ApiResponse<{ order: any; key: string }>> => {
+    createOrder: async (type: string): Promise<ApiResponse<{ order: Record<string, unknown>; key: string }>> => {
         const response = await api.post('/memberships/create-order', { type });
         return response.data;
     },
 
-    verifyPayment: async (data: any): Promise<ApiResponse<{ membership: Membership }>> => {
+    verifyPayment: async (data: Record<string, unknown>): Promise<ApiResponse<{ membership: Membership }>> => {
         const response = await api.post('/memberships/verify-payment', data);
         return response.data;
     },
 
-    changePlan: async (type: string): Promise<ApiResponse<{ order?: any; key?: string; membership?: Membership; amount?: number }>> => {
+    changePlan: async (type: string): Promise<ApiResponse<{ order?: Record<string, unknown>; key?: string; membership?: Membership; amount?: number }>> => {
         const response = await api.post('/memberships/change-plan', { type });
         return response.data;
     },
@@ -97,7 +97,7 @@ export const workoutService = {
         const response = await api.get('/workouts/plateaus');
         return response.data;
     },
-    initiateProgram: async (): Promise<ApiResponse<{ program: any }>> => {
+    initiateProgram: async (): Promise<ApiResponse<{ program: PeriodizedProgram }>> => {
         const response = await api.post('/workouts/periodization/initiate');
         return response.data;
     },
@@ -112,7 +112,7 @@ export const workoutService = {
         });
         return response.data;
     },
-    getSuggestedWeights: async (templateId: string): Promise<ApiResponse<{ suggestions: any }>> => {
+    getSuggestedWeights: async (templateId: string): Promise<ApiResponse<{ suggestions: { exercises: { name: string; oneRM: number; prescribedWeight: number }[] } }>> => {
 
         const response = await api.get(`/workouts/periodization/suggested-weights/${templateId}`);
         return response.data;

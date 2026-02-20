@@ -74,7 +74,8 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const impersonate = async (userId: string) => {
     try {
       const response = await authService.impersonate(userId);
-      const { user: newUser, token: newToken } = response.data;
+      const newToken = response.token!;
+      const newUser = response.data.user;
 
       // Save current token as admin token
       if (token) {
@@ -95,7 +96,8 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const stopImpersonation = async () => {
     try {
       const response = await authService.stopImpersonation();
-      const { user: newUser, token: newToken } = response.data;
+      const newToken = response.token!;
+      const newUser = response.data.user;
 
       localStorage.removeItem('adminToken');
       localStorage.setItem('token', newToken);

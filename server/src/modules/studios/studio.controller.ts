@@ -74,3 +74,35 @@ export const deleteStudioHandler = async (req: Request, res: Response, next: Nex
         next(error);
     }
 };
+
+export const getReconciliationReportHandler = async (req: Request, res: Response, next: NextFunction) => {
+    try {
+        const studioId = req.params.id; // The studio we are querying for
+        const { ReconciliationLogModel } = await import('./reconciliation-log.model.js');
+
+        const [payables, receivables] = await Promise.all([
+            // Payables: This studio is homeStudio, members went elsewhere
+            ReconciliationLogModel.find({ homeStudio: studioId, resolved: false }).populate('hostStudio', 'name'),
+            // Receivables: This studio is hostStudio, members from elsewhere came here
+            ReconciliationLogModel.find({ hostStudio: studioId, resolved: false }).populate('homeStudio', 'name')
+        ]);
+
+        const totalPayable = payables.reduce((sum, log) => sum + log.amount, 0);
+        const totalReceivable = receivables.reduce((sum, log) => sum + log.amount, 0);
+
+        res.status(200).json({
+            status: 'success',
+            data: {
+                summary: {
+                    totalPayable,
+                    totalReceivable,
+                    netBalance: totalReceivable - totalPayable
+                },
+                payables,
+                receivables
+            }
+        });
+    } catch (error) {
+        next(error);
+    }
+};

@@ -6,7 +6,7 @@ export interface IAuditLog extends Document {
     action: string;
     method: string;
     path: string;
-    payload?: any;
+    payload?: unknown;
     timestamp: Date;
 }
 

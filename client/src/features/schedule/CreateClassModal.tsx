@@ -107,7 +107,7 @@ export default function CreateClassModal({ open, onClose, onSuccess }: Props) {
       onClose();
     } catch (error) {
       console.error('Failed to create class', error);
-      showToast('Failed to create class', 'error');
+      showToast((error as any).message || "Failed to create class", "error");
     }
   };
 

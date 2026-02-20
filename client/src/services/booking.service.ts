@@ -16,8 +16,13 @@ export const bookingService = {
         return response.data;
     },
 
-    checkIn: async (qrCode: string) => {
-        const response = await api.post('/bookings/check-in', { qrCode });
+    checkIn: async (qrCode: string, location?: { lat: number; lng: number }, override: boolean = false) => {
+        const response = await api.post('/bookings/check-in', {
+            qrCode,
+            lat: location?.lat,
+            lng: location?.lng,
+            override
+        });
         return response.data;
     },
 

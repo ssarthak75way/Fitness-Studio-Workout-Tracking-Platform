@@ -34,8 +34,26 @@ export const BookingService = {
       throw new AppError('Your membership has expired. Please renew your plan to book classes.', 403);
     }
 
-    // Check Credits (For class packs)
-    if (membership.type === PlanType.CLASS_PACK_10) {
+    // Check Credits (For class packs and corporate)
+    if (membership.type === PlanType.CLASS_PACK_10 || membership.type === PlanType.CORPORATE) {
+      if (membership.type === PlanType.CORPORATE && membership.billingCycleRenewalDate && membership.corporateAccountId) {
+        // Lazy-evaluation: if we are past the renewal date, reset credits and push date forward
+        if (new Date() >= membership.billingCycleRenewalDate) {
+          const { CorporateAccountModel } = await import('../memberships/corporate-account.model.js');
+          const corpAccount = await CorporateAccountModel.findById(membership.corporateAccountId);
+          if (corpAccount && corpAccount.isActive) {
+            console.log(`[BookingService] Hard-resetting Corporate credits for user ${userId}`);
+            const nextRenewal = new Date(membership.billingCycleRenewalDate);
+            nextRenewal.setMonth(nextRenewal.getMonth() + 1);
+            membership.billingCycleRenewalDate = nextRenewal;
+            membership.creditsRemaining = corpAccount.monthlyCapPerEmployee;
+            await membership.save();
+          } else {
+            throw new AppError('Your corporate account is inactive or not found.', 403);
+          }
+        }
+      }
+
       if ((membership.creditsRemaining || 0) <= 0) {
         throw new AppError('No class credits remaining.', 403);
       }
@@ -68,8 +86,8 @@ export const BookingService = {
         $inc: { enrolledCount: 1 },
       });
 
-      // Deduct credit if class pack
-      if (membership.type === PlanType.CLASS_PACK_10) {
+      // Deduct credit if class pack or corporate
+      if (membership.type === PlanType.CLASS_PACK_10 || membership.type === PlanType.CORPORATE) {
         membership.creditsRemaining = (membership.creditsRemaining || 0) - 1;
         await membership.save();
       }
@@ -111,16 +129,13 @@ export const BookingService = {
 
   //  Cancel a booking
   cancelBooking: async (bookingId: string, userId: string) => {
-    const session = await mongoose.startSession();
-    session.startTransaction();
-
     try {
       // 1. Find the booking
       const booking = await BookingModel.findOne({
         _id: bookingId,
         user: userId,
         status: { $in: [BookingStatus.CONFIRMED, BookingStatus.WAITLISTED] },
-      }).populate('classSession').session(session);
+      }).populate('classSession');
 
       if (!booking) {
         throw new AppError('Booking not found or already cancelled', 404);
@@ -143,27 +158,27 @@ export const BookingService = {
 
       // 2. Update booking status
       booking.status = BookingStatus.CANCELLED;
-      await booking.save({ session });
+      await booking.save();
 
       // 3. If was confirmed, handle promotion and penalty
       if (wasConfirmed) {
         // Decrement class count
         await ClassSessionModel.findByIdAndUpdate(classSession._id, {
           $inc: { enrolledCount: -1 },
-        }, { session });
+        });
 
         // Try to promote first waitlisted booking
         const waitlistedBooking = await BookingModel.findOne({
           classSession: classSession._id,
           status: BookingStatus.WAITLISTED,
-        }).sort({ bookedAt: 1 }).session(session);
+        }).sort({ bookedAt: 1 });
 
         if (waitlistedBooking) {
           // Check if waitlisted user has an active membership and credits if needed
           const waitlistUserMembership = await MembershipModel.findOne({
             user: waitlistedBooking.user,
             isActive: true,
-          }).session(session);
+          });
 
           // We promote even if credits are low for now, but deduct if they have them
           // In a stricter system, we might skip users without credits
@@ -171,7 +186,7 @@ export const BookingService = {
             if (waitlistUserMembership.type === PlanType.CLASS_PACK_10) {
               if ((waitlistUserMembership.creditsRemaining || 0) > 0) {
                 waitlistUserMembership.creditsRemaining = (waitlistUserMembership.creditsRemaining || 0) - 1;
-                await waitlistUserMembership.save({ session });
+                await waitlistUserMembership.save();
               } else {
                 // If they ran out of credits while waiting, we might need a different policy.
                 // For now, we'll allow it but they might go negative or we skip.
@@ -181,11 +196,11 @@ export const BookingService = {
             }
 
             waitlistedBooking.status = BookingStatus.CONFIRMED;
-            await waitlistedBooking.save({ session });
+            await waitlistedBooking.save();
 
             await ClassSessionModel.findByIdAndUpdate(classSession._id, {
               $inc: { enrolledCount: 1 },
-            }, { session });
+            });
 
             wasSlotFilled = true;
             promotedBooking = waitlistedBooking;
@@ -196,7 +211,7 @@ export const BookingService = {
         const cancellingUserMembership = await MembershipModel.findOne({
           user: userId,
           isActive: true,
-        }).session(session);
+        });
 
         if (cancellingUserMembership && cancellingUserMembership.type === PlanType.CLASS_PACK_10) {
           // Refund if:
@@ -204,7 +219,7 @@ export const BookingService = {
           // 2. OR Late but slot was filled (Waiver)
           if (!isLate || wasSlotFilled) {
             cancellingUserMembership.creditsRemaining = (cancellingUserMembership.creditsRemaining || 0) + 1;
-            await cancellingUserMembership.save({ session });
+            await cancellingUserMembership.save();
           } else {
             // Penalty applies: No refund
             console.log(`[Penalty] Late cancellation for user ${userId}. Credit not refunded.`);
@@ -212,27 +227,11 @@ export const BookingService = {
         }
       }
 
-      await session.commitTransaction();
-
-      // 5. Notify users (Post-commit)
-      if (promotedBooking) {
-        await NotificationService.createNotification(
-          promotedBooking.user.toString(),
-          'BOOKING_CONFIRMATION',
-          `Good news! You've been promoted from the waitlist to confirmed for ${classSession.title}.`,
-          classSession._id.toString()
-        );
-      }
-
       return booking;
     } catch (error) {
-      await session.abortTransaction();
       throw error;
-    } finally {
-      session.endSession();
     }
   },
-
 
   // Get User's Bookings
   getUserBookings: async (userId: string) => {
@@ -346,6 +345,26 @@ export const BookingService = {
       staffId: staffId ? new mongoose.Types.ObjectId(staffId) : undefined,
       timestamp: now
     });
+
+    // 5. Cross-Location Financial Reconciliation
+    const membership = await MembershipModel.findOne({ user: booking.user._id, isActive: true });
+    if (membership && membership.homeStudio && membership.homeStudio.toString() !== studio._id.toString()) {
+      const { ReconciliationLogModel } = await import('../studios/reconciliation-log.model.js');
+
+      // Ensure we don't duplicate logs for the same booking
+      const existingLog = await ReconciliationLogModel.findOne({ booking: booking._id });
+      if (!existingLog) {
+        console.log(`[BookingService] Cross-location attendance detected. Logging $${studio.dropInRate} debt to Home Studio ${membership.homeStudio}.`);
+        await ReconciliationLogModel.create({
+          user: booking.user._id,
+          booking: booking._id,
+          homeStudio: membership.homeStudio,
+          hostStudio: studio._id,
+          amount: studio.dropInRate || 25,
+          description: `Cross-location check-in: User ${booking.user._id} attended ${classSession.title} at ${studio.name}.`
+        });
+      }
+    }
 
     return booking;
   },

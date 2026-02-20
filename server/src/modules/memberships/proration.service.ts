@@ -2,9 +2,10 @@ import { IMembership, PlanType } from './membership.model.js';
 import { differenceInDays, endOfDay, startOfDay } from 'date-fns';
 
 export const PRICING = {
-    [PlanType.MONTHLY]: 9,
-    [PlanType.ANNUAL]: 99,
+    [PlanType.MONTHLY]: 99,
+    [PlanType.ANNUAL]: 999,
     [PlanType.CLASS_PACK_10]: 50,
+    [PlanType.CORPORATE]: 0, // Paid externally
 };
 
 export const ProrationService = {
@@ -24,6 +25,8 @@ export const ProrationService = {
             const totalCredits = 10;
             const remainingCredits = current.creditsRemaining || 0;
             unusedValue = (remainingCredits / totalCredits) * PRICING[PlanType.CLASS_PACK_10];
+        } else if (current.type === PlanType.CORPORATE) {
+            unusedValue = 0; // Corporate accounts are not individually prorated
         } else {
             // Subscription: Credit based on remaining time
             if (current.endDate) {
